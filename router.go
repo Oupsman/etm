@@ -23,6 +23,7 @@ func runHttp(listenAddr string) error {
 	apiV1.PUT("/categories", models.CreateCategory)
 	apiV1.GET("/tasks", models.GetTasks)
 	apiV1.GET("/tasks/:id", models.GetTask)
+	apiV1.DELETE("/tasks/:id", models.DeleteTask)
 	apiV1.POST("/tasks", models.CreateTask)
 	apiV1.PUT("/tasks/:id", models.UpdateTask)
 	apiV1.GET("/healthcheck", func(c *gin.Context) {

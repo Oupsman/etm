@@ -105,3 +105,24 @@ func UpdateTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, task)
 }
+
+func DeleteTask(c *gin.Context) {
+	var db = ConnectToDb()
+
+	var id int
+	id, _ = strconv.Atoi(c.Query("id"))
+
+	var Task = Tasks{}
+
+	result := db.Find(&Task, id)
+	if result.Error != nil {
+		c.JSON(http.StatusForbidden, Task)
+	}
+
+	result = db.Delete(&Task)
+	if result.Error != nil {
+		c.JSON(http.StatusForbidden, Task)
+	}
+	c.JSON(http.StatusOK, Task)
+
+}
