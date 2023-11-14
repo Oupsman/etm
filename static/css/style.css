@@ -1,0 +1,65 @@
+#app {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+    width: 100%;
+    height: 100vh;
+    display: inline-table;
+}
+
+.backlog {
+    background-color: lightgrey;
+    width: 10%;
+    height: 100vh;
+    float: left;
+    padding: 10px;
+    margin: 10px;
+}
+
+.completed {
+    background-color: lightgreen;
+    width: 10%;
+    height: 100vh;
+    margin: 10px;
+    float: right;
+
+}
+
+.UrgentImportant {
+    background-color: #aa00aa;
+    width: 35%;
+    height: 50vh;
+    margin: 10px;
+    position: relative;
+    float: left;
+}
+
+.UrgentNotImportant {
+    background-color: #aa0000;
+    width: 35%;
+    height: 50vh;
+    margin: 10px;
+    position: relative;
+    float: left;
+}
+
+.NotUrgentNotImportant {
+    background-color: #ff00ff;
+    width: 35%;
+    height: 50vh;
+    margin: 10px;
+    position: relative;
+    float: left;
+}
+
+.NotUrgentImportant {
+    background-color: #0000ff;
+    width: 35%;
+    height: 50vh;
+    margin: 10px;
+    position: relative;
+    float: left;
+}

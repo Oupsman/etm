@@ -24,7 +24,8 @@ type Tasks struct {
 func GetTasks(c *gin.Context) {
 	var db = ConnectToDb()
 	var Tasks = []Tasks{}
-	result := db.Find(&Tasks)
+	CategoryID := c.Query("categoryId")
+	result := db.Find(&Tasks, CategoryID)
 	if result.Error != nil {
 		panic(result.Error)
 	}
