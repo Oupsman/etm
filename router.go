@@ -4,6 +4,7 @@ import "net/http"
 
 import (
 	"ETM/models"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,6 +12,14 @@ func runHttp(listenAddr string) error {
 
 	httpRouter := gin.Default()
 
+	httpRouter.LoadHTMLGlob("templates/*")
+
+	httpRouter.Use(static.Serve("/static", static.LocalFile("./static", true)))
+	httpRouter.GET("/index", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"title": "Eisenhower Task Manager",
+		})
+	})
 	apiV1 := httpRouter.Group("/api/v1")
 	{
 		apiV1.GET("/", func(c *gin.Context) {
@@ -19,6 +28,8 @@ func runHttp(listenAddr string) error {
 			})
 		})
 	}
+	// Serve frontend static files
+
 	apiV1.GET("/categories", models.GetCategories)
 	apiV1.PUT("/categories", models.CreateCategory)
 	apiV1.GET("/tasks", models.GetTasks)

@@ -8,7 +8,8 @@ import (
 
 type Category struct {
 	gorm.Model
-	Name string
+	Name  string
+	Color string
 }
 
 func GetCategories(c *gin.Context) {
@@ -25,8 +26,10 @@ func GetCategories(c *gin.Context) {
 func CreateCategory(c *gin.Context) {
 	var db = ConnectToDb()
 	var name = c.Query("name")
+	var color = c.Query("color")
 	var category = Category{
-		Name: name,
+		Name:  name,
+		Color: color,
 	}
 
 	result := db.Create(&category)
