@@ -1,3 +1,45 @@
+function addTab() {
+    console.log('addTab')
+}
+
+function addTask () {
+    const taskName = $("#taskName");
+    const taskComment = $("#taskComment");
+    const taskDueDate = $("#taskDueDate");
+
+    const name = taskName.val()
+    const comment = taskComment.val()
+    const dueDate = taskDueDate.val()
+
+    const body = {
+        name: name,
+        comment: comment,
+        duedate: dueDate
+    }
+
+    // API call to create the task
+    // $.post("/api/v1/task", JSON.stringify(body), (data, status) => {
+    //    console.log(data);
+    // }, "json");
+    $.ajax(
+        {
+            url: '/api/v1/task',
+            type: 'POST',
+            data: JSON.stringify(body),
+            beforeSend: function(xhr){
+                xhr.setRequestHeader("Content-Type","application/json");
+                xhr.setRequestHeader("Accept","application/json");
+            },
+            dataType: 'json',
+            async: false,
+            success: function (msg) {
+                console.log(msg);
+            }
+        }
+    );
+
+
+}
 
 async function render(container, data) {
 
@@ -7,7 +49,7 @@ async function render(container, data) {
     content += '<div id="tabs">';
     content += ' <ul>';
     let tasksContent = '';
-    let backlog = '<div class="backlog">';
+    let backlog = '<div class="backlog"><button class="opener" id="add_task">Add Task</button>';
     let completed = '<div class="completed">';
     let notUrgentNotImportant = '<div class="NotUrgentNotImportant">';
     let urgentNotImportant = '<div class="UrgentNotImportant">';
@@ -53,7 +95,7 @@ async function render(container, data) {
             tasksContent += '</div>';
         });
     }
-
+    content += '<li class="opener" id="add_tab"><a href="">Add</a></li>'
     content += '</ul>'
     content += tasksContent;
     content += '</div>';
@@ -69,19 +111,16 @@ async function home () {
             categories: []
         };
 
-        fetch('/api/v1/categories').then(function (response) {
+        await fetch('/api/v1/categories').then(function (response) {
             return response.json();
         }).then(function (categories) {
             data.categories = categories;
         });
 
-        render('#app', data);
-        $( "#tabs" ).tabs();
-
-
+        await render('#app', data);
 }
 
-function handleTabs() {
+async function handleTabs() {
 
     $( function() {
         var tabTitle = $( "#tab_title" ),
@@ -92,49 +131,6 @@ function handleTabs() {
         var tabs = $( "#tabs" ).tabs();
 
         // Modal dialog init: custom buttons and a "close" callback resetting the form inside
-        var dialog = $( "#dialog" ).dialog({
-            autoOpen: false,
-            modal: true,
-            buttons: {
-                Add: function() {
-                    addTab();
-                    $( this ).dialog( "close" );
-                },
-                Cancel: function() {
-                    $( this ).dialog( "close" );
-                }
-            },
-            close: function() {
-                form[ 0 ].reset();
-            }
-        });
-
-        // AddTab form: calls addTab function on submit and closes the dialog
-        var form = dialog.find( "form" ).on( "submit", function( event ) {
-            addTab();
-            dialog.dialog( "close" );
-            event.preventDefault();
-        });
-
-        // Actual addTab function: adds new tab using the input from the form above
-        function addTab() {
-            var label = tabTitle.val() || "Tab " + tabCounter,
-                id = "tabs-" + tabCounter,
-                li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
-                tabContentHtml = tabContent.val() || "Tab " + tabCounter + " content.";
-
-            tabs.find( ".ui-tabs-nav" ).append( li );
-            tabs.append( "<div id='" + id + "'><p>" + tabContentHtml + "</p></div>" );
-            tabs.tabs( "refresh" );
-            tabCounter++;
-        }
-
-        // AddTab button: just opens the dialog
-        $( "#add_tab" )
-            .button()
-            .on( "click", function() {
-                dialog.dialog( "open" );
-            });
 
         // Close icon: removing the tab on click
         tabs.on( "click", "span.ui-icon-close", function() {
@@ -153,5 +149,78 @@ function handleTabs() {
 });
 }
 
-await home();
-handleTabs();
+async function main() {
+    await home();
+    await handleTabs();
+
+    var addCategoryDialog = $("#add_category").dialog({
+        height: 400,
+        width: 550,
+        modal: true,
+        autoOpen: false,
+        draggable: true,
+        buttons: {
+            Add: function() {
+                addTab();
+                $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+            form[ 0 ].reset();
+        }
+    });
+
+    // AddTab form: calls addTab function on submit and closes the dialog
+    var form = addCategoryDialog.find( "form" ).on( "submit", function( event ) {
+        addTab();
+        addCategoryDialog.dialog( "close" );
+        event.preventDefault();
+    });
+
+    // AddTab button: just opens the dialog
+    $( "#add_tab" )
+        .button()
+        .on( "click", function() {
+            addCategoryDialog.dialog( "open" );
+        });
+
+    var addTaskDialog = $("#add_task").dialog({
+        height: 400,
+        width: 550,
+        modal: true,
+        autoOpen: false,
+        draggable: true,
+        buttons: {
+            Add: function() {
+                addTask();
+                $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+            form[ 0 ].reset();
+        }
+    });
+
+    // AddTab form: calls addTab function on submit and closes the dialog
+    var form = addTaskDialog.find( "form" ).on( "submit", function( event ) {
+        addTask();
+        addTaskDialog.dialog( "close" );
+        event.preventDefault();
+    });
+
+    // AddTab button: just opens the dialog
+    $( "#add_task" )
+        .button()
+        .on( "click", function() {
+            addTaskDialog.dialog( "open" );
+        });
+
+}
+
+main();

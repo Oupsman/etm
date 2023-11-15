@@ -8,20 +8,46 @@
   <!-- Get the latest major version -->
   <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  <script src="/static/js/jquery.colorpicker.js"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
   <link href="/static/css/style.css" rel="stylesheet">
+  <link href="/static/css/jquery.colorpicker.css" rel="stylesheet" type="text/css" />
 
-  <style>
-  .ui-tabs-vertical { width: 55em; }
-  .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
-  .ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
-  .ui-tabs-vertical .ui-tabs-nav li a { display:block; }
-  .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; }
-  .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
-  </style>
 </head>
 
 <body>
+
+    <div id="add_task" title="Add a new task">
+        <p>
+          <form>
+            <fieldset>
+              <label for="taskName">Name</label>
+              <input type="text" name="taskName" id="taskName" value="New Task" class="text ui-widget-content ui-corner-all">
+              <label for="taskComment">Comment</label>
+              <input type="text" name="taskComment" id="taskComment" value="bla bla bla" class="text ui-widget-content ui-corner-all">
+              <!-- Allow form submission with keyboard without duplicating the dialog button -->
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </p>
+    </div>
+
+    <div id="add_category" title="Add Category">
+        <p>
+          <form>
+            <fieldset>
+              <label for="tabName">Name</label>
+              <input type="text" name="tabName" id="tabName" value="New Tab" class="text ui-widget-content ui-corner-all">
+              <label for="tabColor">Color</label>
+              <input type="text" name="tabColor" id="tabColor" value="#cccccc" class="text ui-widget-content ui-corner-all">
+
+              <!-- Allow form submission with keyboard without duplicating the dialog button -->
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </p>
+    </div>
+
     <div id="app"></div>
     <script src="/static/js/app.js"></script>
 </body>

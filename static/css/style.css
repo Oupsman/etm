@@ -14,7 +14,7 @@
 
 .backlog {
     background-color: lightgrey;
-    width: 10%;
+    width: 20%;
     height: 100vh;
     float: left;
     padding: 10px;
@@ -23,7 +23,7 @@
 
 .completed {
     background-color: lightgreen;
-    width: 10%;
+    width: 20%;
     height: 100vh;
     margin: 10px;
     float: right;
@@ -32,7 +32,7 @@
 
 .UrgentImportant {
     background-color: #aa00aa;
-    width: 35%;
+    width: 25%;
     height: 50vh;
     margin: 10px;
     position: relative;
@@ -41,7 +41,7 @@
 
 .UrgentNotImportant {
     background-color: #aa0000;
-    width: 35%;
+    width: 25%;
     height: 50vh;
     margin: 10px;
     position: relative;
@@ -50,7 +50,7 @@
 
 .NotUrgentNotImportant {
     background-color: #ff00ff;
-    width: 35%;
+    width: 25%;
     height: 50vh;
     margin: 10px;
     position: relative;
@@ -59,16 +59,20 @@
 
 .NotUrgentImportant {
     background-color: #0000ff;
-    width: 35%;
+    width: 25%;
     height: 50vh;
     margin: 10px;
     position: relative;
     float: left;
 }
 
-#dialog label, #dialog input { display:block; }
-#dialog label { margin-top: 0.5em; }
-#dialog input, #dialog textarea { width: 95%; }
+#add_task label, #add_task input { display:block; }
+#add_task label { margin-top: 0.5em; }
+#add_task input, #add_task textarea { width: 95%; }
+
+#add_category label, #add_category input { display:block; }
+#add_category label { margin-top: 0.5em; }
+#add_category input, #add_category textarea { width: 95%; }
 #tabs { margin-top: 1em; }
 #tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
 #add_tab { cursor: pointer; }

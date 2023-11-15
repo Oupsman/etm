@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -47,27 +48,46 @@ func GetTask(c *gin.Context) {
 func CreateTask(c *gin.Context) {
 
 	var db = ConnectToDb()
-	var name = c.Query("name")
-	var comment = c.Query("comment")
-	var dueDate time.Time
-	var categoryid uint
 
-	dueDate, _ = time.Parse(time.RFC3339, c.Query("duedate"))
+	type TaskBody struct {
+		name    string
+		comment string
+		duedate string
+	}
+
+	var taskBody TaskBody
+	var dueDate time.Time
+
+	if err := c.ShouldBindJSON(&taskBody); err != nil {
+		fmt.Println("error binding datas")
+		fmt.Println(err)
+		c.JSON(http.StatusForbidden, taskBody)
+		return
+	}
+
+	dueDate, _ = time.Parse(time.RFC3339, taskBody.duedate)
 	categID, _ := strconv.ParseUint(c.Query("categoryid"), 10, 32)
-	categoryid = uint(categID)
+
+	categoryid := uint(categID)
 
 	var task = Tasks{
-		Name:       name,
-		Comment:    comment,
+		Name:       taskBody.name,
+		Comment:    taskBody.comment,
 		IsBackLog:  true,
 		Priority:   false,
 		Urgency:    false,
 		CategoryID: categoryid,
 		DueDate:    dueDate,
 	}
+
+	fmt.Println("Name")
+	fmt.Println(taskBody.name)
+	fmt.Println("Comment")
+	fmt.Println(taskBody.comment)
 	result := db.Create(&task)
 	if result.Error != nil {
 		c.JSON(http.StatusForbidden, task)
+		return
 	}
 
 	c.JSON(http.StatusOK, task)
