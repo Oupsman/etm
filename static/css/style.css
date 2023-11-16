@@ -1,9 +1,15 @@
+html, body {
+    height: 100vh;
+    margin: 0;
+}
+
 #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
+    height: 100vh;
 }
 
 #tabs {
@@ -12,10 +18,16 @@
     display: inline-table;
 }
 
+div[id^="tabs-"] {
+    width: 100%;
+    height: 100vh;
+    display: inline-table;
+}
+
 .backlog {
     background-color: lightgrey;
     width: 20%;
-    height: 100vh;
+    height: 100%;
     float: left;
     padding: 10px;
     margin: 10px;
@@ -24,50 +36,50 @@
 .completed {
     background-color: lightgreen;
     width: 20%;
-    height: 100vh;
+    height: 100%;
     margin: 10px;
     float: right;
 
 }
 
 .UrgentImportant {
-    background-color: #aa00aa;
+    background-color: lightsalmon;
     width: 25%;
-    height: 50vh;
+    height: 50%;
     margin: 10px;
     position: relative;
     float: left;
 }
 
 .UrgentNotImportant {
-    background-color: #aa0000;
+    background-color: lightyellow;
     width: 25%;
-    height: 50vh;
+    height: 50%;
     margin: 10px;
     position: relative;
     float: left;
 }
 
 .NotUrgentNotImportant {
-    background-color: #ff00ff;
+    background-color: lightskyblue;
     width: 25%;
-    height: 50vh;
+    height: 50%;
     margin: 10px;
     position: relative;
     float: left;
 }
 
 .NotUrgentImportant {
-    background-color: #0000ff;
+    background-color: lightpink;
     width: 25%;
-    height: 50vh;
+    height: 50%;
     margin: 10px;
     position: relative;
     float: left;
 }
 
 .task {
-    background-color: #dddddd;
+    background-color: white;
     width: 90%;
     height: 40px;
     margin: 2px;
@@ -97,7 +109,4 @@
 #add_category label, #add_category input { display:block; }
 #add_category label { margin-top: 0.5em; }
 #add_category input, #add_category textarea { width: 95%; }
-#tabs { margin-top: 1em; }
-#tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
-#add_tab { cursor: pointer; }
 

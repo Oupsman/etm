@@ -163,6 +163,38 @@ function addTask () {
 
 function editTask() {
     console.log('editTask')
+    const taskID = $("#editTaskID").val();
+    const taskName = $("#editTaskName").val();
+    const taskComment = $("#editTaskComment").val();
+    const taskDueDate = $("#editTaskDueDate").val();
+    const taskPriority = $("#editTaskPriority").val();
+    const taskUrgency = $("#editTaskUrgency").val();
+    const taskIsBackLog = $("#editTaskIsBackLog").val();
+    const taskIsComplete = $("#editTaskIsComplete").val();
+
+
+    const body = {
+        id: taskID,
+        name: taskName,
+        comment: taskComment,
+        duedate: taskDueDate,
+        priority: taskPriority === "true",
+        urgency: taskUrgency === "true",
+        isbacklog: taskIsBackLog === "true",
+        iscomplete: taskIsComplete === "true",
+
+    }
+
+    $.ajax({
+            url: '/api/v1/task/' + taskID,
+            type: 'POST',
+            data: JSON.stringify(body),
+            success: function(data){
+                //some logic to show that the data was updated
+                //then close the window
+                $(this).dialog('close');
+            }
+    });
 }
 
 async function render(container, data) {
@@ -377,6 +409,23 @@ async function main() {
             updateTaskPriority(taskID, category);
         }
     });
+
+    var editTaskDialog = $('#editTaskDialog').dialog({
+        autoOpen: 'false',
+        modal: 'true',
+        minHeight: '400px',
+        minWidth: '400px',
+        buttons: {
+            'Save Changes': function () {
+                editTask()
+                $(this).dialog('close');
+            },
+
+            'Discard & Exit': function () {
+                $(this).dialog('close');
+            }
+        }
+    });
     $('.edittask').click(function(e, ui){
         var task = $(this).parent();
         var taskID = task.attr('id').split('-')[1];
@@ -387,42 +436,49 @@ async function main() {
             type: 'GET',
             success: function(data){
                 let html = "<p>"
+                html += "<input type='hidden' name='taskID' id='editTaskID' value='" + data.ID + "'>"
+                html += "<input type='hidden' name='taskPriority' id='editTaskPriority' value='" + data.priority + "'>"
+                html += "<input type='hidden' name='taskUrgency' id='editTaskUrgency' value='" + data.urgency + "'>"
+                html += "<input type='hidden' name='taskIsBackLog' id='editTaskIsBackLog' value='" + data.isbacklog + "'>"
+                html += "<input type='hidden' name='taskIsCompleted' id='editTaskIsComplete' value='" + data.iscomplete + "'>"
                 html += "<label for='taskName'>Name</label>"
-                html += "<input type='text' name='taskName' id='taskName' value='" + data.name + "' class='text ui-widget-content ui-corner-all'>"
+                html += "<input type='text' name='taskName' id='editTaskName' value='" + data.name + "' class='text ui-widget-content ui-corner-all'>"
                 html += "<label for='taskComment'>Comment</label>"
-                html += "<input type='text' name='taskComment' id='taskComment' value='" + data.comment + "' class='text ui-widget-content ui-corner-all'>"
+                html += "<input type='text' name='taskComment' id='editTaskComment' value='" + data.comment + "' class='text ui-widget-content ui-corner-all'>"
                 html += "<label for='taskDueDate'>Due Date</label>"
-                html += "<input type='text' name='taskDueDate' id='taskDueDate' value='" + data.duedate + "' class='text ui-widget-content ui-corner-all'>"
+                html += "<input type='text' name='taskDueDate' id='editTaskDueDate' value='" + data.duedate + "' class='text ui-widget-content ui-corner-all'>"
                 html += "</p>"
                 $('#editTaskDialog').html(html);
                 $('#editTaskDialog').dialog('open');
+                $( "#taskDueDate" ).datepicker({
+                    dateFormat: "yy-mm-dd",
+                });
             }
         });
     });
-    $('#editTaskDialog').dialog({
-        autoOpen: 'false',
-        modal: 'true',
-        minHeight: '400px',
-        minWidth: '400px',
-        buttons: {
-            'Save Changes': function(){
-                $.ajax({
-                    url: '/api/v1/task/' + taskID,
-                    type: 'POST',
-                    data: $(this).find('form').serialize(),
-                    success: function(data){
-                        //some logic to show that the data was updated
-                        //then close the window
-                        $(this).dialog('close');
-                    }
-                });
-            },
-            'Discard & Exit' : function(){
-                $(this).dialog('close');
-            }
-        }
-    });
-
 }
 
 main();
+$('#popup').dialog({
+    autoOpen: 'false',
+    modal: 'true',
+    minHeight: '300px',
+    minWidth: '300px',
+    buttons: {
+        'Save Changes': function(){
+            $.ajax({
+                url: 'path/to/my/page.ext',
+                type: 'POST',
+                data: $(this).find('form').serialize(),
+                success: function(data){
+                    //some logic to show that the data was updated
+                    //then close the window
+                    $(this).dialog('close');
+                }
+            });
+        },
+        'Discard & Exit' : function(){
+            $(this).dialog('close');
+        }
+    }
+});
