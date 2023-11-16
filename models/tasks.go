@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -46,33 +48,40 @@ func GetTask(c *gin.Context) {
 }
 
 func CreateTask(c *gin.Context) {
+	// body, _ := io.ReadAll(c.Request.Body)
+	// println(string(body))
 
 	var db = ConnectToDb()
 
 	type TaskBody struct {
-		name    string
-		comment string
-		duedate string
+		Name    string `json:"name"`
+		Comment string `json:"comment"`
+		DueDate string `json:"duedate"`
 	}
 
-	var taskBody TaskBody
+	taskBody := TaskBody{}
 	var dueDate time.Time
 
-	if err := c.ShouldBindJSON(&taskBody); err != nil {
-		fmt.Println("error binding datas")
-		fmt.Println(err)
-		c.JSON(http.StatusForbidden, taskBody)
+	err := c.ShouldBindJSON(&taskBody)
+	switch {
+	case errors.Is(err, io.EOF):
+		fmt.Println("Error :", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request body"})
+		return
+	case err != nil:
+		fmt.Println("Error :", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	dueDate, _ = time.Parse(time.RFC3339, taskBody.duedate)
+	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 	categID, _ := strconv.ParseUint(c.Query("categoryid"), 10, 32)
 
 	categoryid := uint(categID)
 
 	var task = Tasks{
-		Name:       taskBody.name,
-		Comment:    taskBody.comment,
+		Name:       taskBody.Name,
+		Comment:    taskBody.Comment,
 		IsBackLog:  true,
 		Priority:   false,
 		Urgency:    false,
@@ -81,12 +90,12 @@ func CreateTask(c *gin.Context) {
 	}
 
 	fmt.Println("Name")
-	fmt.Println(taskBody.name)
+	fmt.Println(taskBody.Name)
 	fmt.Println("Comment")
-	fmt.Println(taskBody.comment)
+	fmt.Println(taskBody.Comment)
 	result := db.Create(&task)
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, task)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unable to add task to database"})
 		return
 	}
 

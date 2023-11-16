@@ -65,10 +65,12 @@ async function render(container, data) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
             for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
                 const task = tasks[taskNumber];
-                const taskDiv = '<div id="task-' + task.ID + '">' + task.Name + '</div>';
-                if (task.isBackLog) {
+                console.log("Task: ", task)
+                const taskDiv = '<div class="task" id="task-' + task.ID + '"> <span>' + task.Name + '</span></div>';
+
+                if (task.IsBackLog) {
                     backlog += taskDiv
-                } else if (task.isComplete) {
+                } else if (task.IsComplete) {
                     completed += taskDiv
                 } else if ( ! task.Priority && !task.Urgency ) {
                     notUrgentNotImportant += taskDiv;
