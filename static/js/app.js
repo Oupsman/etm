@@ -1,5 +1,81 @@
+function formatTask(task) {
+    return '<div class="task draggable" id="task-' + task.ID + '"><span class="ui-icon ui-icon-arrow-4" class="handle"></span> <span>' + task.name + '</span><span class="ui-icon ui-icon-pencil"></span></div>';
+}
+
 function addTab() {
     console.log('addTab')
+}
+
+function updateTaskPriority (taskID, category) {
+    console.log("Task ID: ", taskID, "Category: ", category)
+    let taskUrgency = category[0];
+    let taskPriority = category[1];
+    let taskName = '';
+    let taskComment = '';
+    let taskDueDate = '';
+    let urgency = taskUrgency === '1';
+    let priority = taskPriority === '1';
+
+    const iscompleted = category === 'completed';
+    const isbacklog = category === 'backlog';
+
+// get current task details
+    $.ajax({
+        url: '/api/v1/task/' + taskID,
+        type: 'GET',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Accept", "application/json");
+        },
+        dataType: 'json',
+        async: false,
+        success: function (msg) {
+            console.log("Task: ", msg)
+            const task = msg;
+            taskName = task.name;
+            taskComment = task.comment;
+            taskDueDate = task.duedate;
+        }
+    });
+
+    if (iscompleted) {
+        urgency = false
+        priority = false
+    }
+
+
+    const body = {
+        id: taskID.toString(),
+        name: taskName,
+        comment: taskComment,
+        urgency: urgency,
+        priority: priority,
+        iscompleted: iscompleted,
+        dueDate: taskDueDate,
+        isbacklog: isbacklog,
+
+    }
+    console.log("Body:", JSON.stringify(body))
+    // API call to update the task
+    $.ajax(
+        {
+            url: '/api/v1/task/' + taskID,
+            type: 'POST',
+            data: JSON.stringify(body),
+            beforeSend: function(xhr){
+                xhr.setRequestHeader("Content-Type","application/json");
+                xhr.setRequestHeader("Accept","application/json");
+            },
+            dataType: 'json',
+            async: false,
+            success: function (msg) {
+//                $('<p>Text</p>').appendTo('#Content');
+                taskDiv = formatTask(msg);
+                $(taskDiv).appendTo('#'.category);
+
+            }
+        }
+    );
 }
 
 function addTask () {
@@ -14,7 +90,7 @@ function addTask () {
     const body = {
         name: name,
         comment: comment,
-        duedate: dueDate
+        duedate: dueDate + "T00:00:00Z"
     }
 
     // API call to create the task
@@ -33,7 +109,19 @@ function addTask () {
             dataType: 'json',
             async: false,
             success: function (msg) {
-                console.log(msg);
+//                $('<p>Text</p>').appendTo('#Content');
+                taskDiv = formatTask(msg);
+                $(taskDiv).appendTo(".backlog");
+                $( ".draggable" ).draggable({
+                    snap: true,
+                    // handle: "span.handle",
+                    zIndex: 100,
+                    stop: function () {
+                        var task = $(this);
+                        var taskID = task.attr('id').split('-')[1];
+                        updateTaskPriority(taskID);
+                    }
+                });
             }
         }
     );
@@ -49,12 +137,12 @@ async function render(container, data) {
     content += '<div id="tabs">';
     content += ' <ul>';
     let tasksContent = '';
-    let backlog = '<div class="backlog"><button class="opener" id="add_task">Add Task</button>';
-    let completed = '<div class="completed">';
-    let notUrgentNotImportant = '<div class="NotUrgentNotImportant">';
-    let urgentNotImportant = '<div class="UrgentNotImportant">';
-    let notUrgentImportant = '<div class="NotUrgentImportant">';
-    let urgentImportant = '<div class="UrgentImportant">';
+    let backlog = '<div class="backlog"><h3>Backlog</h3><button class="opener" id="add_task">Add Task</button>';
+    let completed = '<div id="completed" class="completed droppable"><h3>Completed</h3>';
+    let notUrgentNotImportant = '<div id="00" class="NotUrgentNotImportant droppable"><h3>Delegate</h3>';
+    let urgentNotImportant = '<div id="10" class="UrgentNotImportant droppable"><h3>Urgent, Not Important</h3>';
+    let notUrgentImportant = '<div id="01" class="NotUrgentImportant droppable"><h3>Important but not urgent</h3>';
+    let urgentImportant = '<div id="11" class="UrgentImportant droppable"><h3>Urgent and Important</h3>';
 
     for (let i = 0; i < data['categories'].length; i++) {
         const category = data.categories[i];
@@ -65,20 +153,19 @@ async function render(container, data) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
             for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
                 const task = tasks[taskNumber];
-                console.log("Task: ", task)
-                const taskDiv = '<div class="task" id="task-' + task.ID + '"> <span>' + task.Name + '</span></div>';
-
-                if (task.IsBackLog) {
+                // const taskDiv = '<div class="task draggable" id="task-' + task.ID + '"><span class="ui-icon ui-icon-note"></span> <span>' + task.name + '</span></div>';
+                const taskDiv = formatTask(task);
+                if (task.isbacklog) {
                     backlog += taskDiv
-                } else if (task.IsComplete) {
+                } else if (task.iscomplete) {
                     completed += taskDiv
-                } else if ( ! task.Priority && !task.Urgency ) {
+                } else if ( ! task.priority && !task.urgency ) {
                     notUrgentNotImportant += taskDiv;
-                } else if (! task.Priority && task.Urgency) {
+                } else if (! task.priority && task.urgency) {
                     urgentNotImportant += taskDiv
-                } else if (taskPriority && ! task.Urgency) {
+                } else if (task.priority && ! task.urgency) {
                     notUrgentImportant += taskDiv
-                } else if (task.Priority && task.Urgency) {
+                } else if (task.priority && task.urgency) {
                     urgentImportant += taskDiv
                 }
             }
@@ -222,6 +309,25 @@ async function main() {
         .on( "click", function() {
             addTaskDialog.dialog( "open" );
         });
+    // date picker for task addition
+    $( "#taskDueDate" ).datepicker({
+        dateFormat: "yy-mm-dd",
+    });
+
+    $( ".draggable" ).draggable({
+        snap: true,
+        // handle: "span.handle",
+        zIndex: 100,
+    });
+
+    $('.droppable').droppable({
+        drop: function (event, ui) {
+            var task = ui.draggable;
+            var taskID = task.attr('id').split('-')[1];
+            var category = $(this).attr('id');
+            updateTaskPriority(taskID, category);
+        }
+    });
 
 }
 

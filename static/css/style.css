@@ -69,10 +69,12 @@
 .task {
     background-color: #dddddd;
     width: 90%;
+    height: 40px;
     margin: 2px;
     padding: 2px;
     position: relative;
     text-align: left;
+    border: 2px black dotted;
 
 }
 

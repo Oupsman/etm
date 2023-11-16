@@ -13,15 +13,26 @@ import (
 
 type Tasks struct {
 	gorm.Model
-	Name       string
-	Comment    string
-	IsComplete bool
-	IsBackLog  bool
-	CategoryID uint
+	Name       string `json:"name"`
+	Comment    string `json:"comment"`
+	IsComplete bool   `json:"iscomplete"`
+	IsBackLog  bool   `json:"isbacklog"`
+	CategoryID uint   `json:"category-id"`
 	Category   Category
-	Priority   bool
-	Urgency    bool
-	DueDate    time.Time
+	Priority   bool      `json:"priority"`
+	Urgency    bool      `json:"urgency"`
+	DueDate    time.Time `json:"duedate"`
+}
+
+type TaskBody struct {
+	Id          string `json:"id,omitempty"`
+	Name        string `json:"name"`
+	Comment     string `json:"comment"`
+	DueDate     string `json:"duedate"`
+	IsBackLog   bool   `json:"isbacklog,omitempty"`
+	IsCompleted bool   `json:"iscompleted,omitempty"`
+	Priority    bool   `json:"priority,omitempty"`
+	Urgency     bool   `json:"urgency,omitempty"`
 }
 
 func GetTasks(c *gin.Context) {
@@ -41,7 +52,8 @@ func GetTask(c *gin.Context) {
 	var id = c.Query("id")
 	result := db.First(&task, id)
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, "Unable to get task ID ")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to get category ID"})
+		return
 	}
 
 	c.JSON(http.StatusOK, task)
@@ -52,12 +64,6 @@ func CreateTask(c *gin.Context) {
 	// println(string(body))
 
 	var db = ConnectToDb()
-
-	type TaskBody struct {
-		Name    string `json:"name"`
-		Comment string `json:"comment"`
-		DueDate string `json:"duedate"`
-	}
 
 	taskBody := TaskBody{}
 	var dueDate time.Time
@@ -74,7 +80,11 @@ func CreateTask(c *gin.Context) {
 		return
 	}
 
-	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
+	dueDate, err = time.Parse(time.RFC3339, taskBody.DueDate)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	categID, _ := strconv.ParseUint(c.Query("categoryid"), 10, 32)
 
 	categoryid := uint(categID)
@@ -105,32 +115,50 @@ func CreateTask(c *gin.Context) {
 
 func UpdateTask(c *gin.Context) {
 	var db = ConnectToDb()
-	var id int
-	id, _ = strconv.Atoi(c.Query("id"))
-	var name = c.Query("name")
-	var comment = c.Query("comment")
 	var dueDate time.Time
-	var task = Tasks{}
-	var priority bool
-	var urgency bool
-	var completed bool
 
-	dueDate, _ = time.Parse(time.RFC3339, c.Query("duedate"))
-	result := db.First(&task, id)
-	if result.Error != nil {
-		c.JSON(http.StatusForbidden, task)
+	taskBody := TaskBody{}
+	var task = Tasks{}
+
+	err := c.ShouldBindJSON(&taskBody)
+	switch {
+	case errors.Is(err, io.EOF):
+		fmt.Println("Error :", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request body"})
+		return
+	case err != nil:
+		fmt.Println("Error :", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	task.Comment = comment
-	task.Name = name
+	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
+
+	id, _ := strconv.Atoi(taskBody.Id)
+
+	result := db.First(&task, id)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error finding task in database"})
+		return
+	}
+
+	task.Comment = taskBody.Comment
+	task.Name = taskBody.Name
 	task.DueDate = dueDate
-	task.Priority = priority
-	task.Urgency = urgency
-	task.IsComplete = completed
+	task.Priority = taskBody.Priority
+	task.Urgency = taskBody.Urgency
+	task.IsComplete = taskBody.IsCompleted
+	task.IsBackLog = taskBody.IsBackLog
+
+	fmt.Println(task.Name)
+	fmt.Println(task.Comment)
+	fmt.Println(task.Priority)
+	fmt.Println(task.Urgency)
 
 	result = db.Save(&task)
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, task)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error updating task in database"})
+		return
 	}
 
 	c.JSON(http.StatusOK, task)
