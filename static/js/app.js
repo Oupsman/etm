@@ -3,7 +3,9 @@ function formatTask(task) {
         '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
         '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
         '<span>' + task.name + '</span>' +
-        '<span class="ui-icon ui-icon-pencil"></span><span class="ui-icon ui-icon-trash"></span>' +
+
+        '<button class="taskbutton deletetask"><span class="ui-icon ui-icon-trash"></span></button>' +
+        '<button class="taskbutton edittask"><span class="ui-icon ui-icon-pencil"></span></button>' +
             '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
             '<label>Comment: </label><p>' + task.comment + '</p>' +
             '<label>Due Date: </label><p>' + task.duedate + '</p>' +
@@ -14,6 +16,8 @@ function formatTask(task) {
 function addTab() {
     console.log('addTab')
 }
+
+
 
 function updateTaskPriority (taskID, category) {
     console.log("Task ID: ", taskID, "Category: ", category)
@@ -155,6 +159,10 @@ function addTask () {
     );
 
 
+}
+
+function editTask() {
+    console.log('editTask')
 }
 
 async function render(container, data) {
@@ -337,6 +345,7 @@ async function main() {
         .on( "click", function() {
             addTaskDialog.dialog( "open" );
         });
+
     // date picker for task addition
     $( "#taskDueDate" ).datepicker({
         dateFormat: "yy-mm-dd",
@@ -366,6 +375,51 @@ async function main() {
             var taskID = task.attr('id').split('-')[1];
             var category = $(this).attr('id');
             updateTaskPriority(taskID, category);
+        }
+    });
+    $('.edittask').click(function(e, ui){
+        var task = $(this).parent();
+        var taskID = task.attr('id').split('-')[1];
+        console.log(taskID)
+        e.preventDefault();
+        $.ajax({
+            url: '/api/v1/task/' + taskID,
+            type: 'GET',
+            success: function(data){
+                let html = "<p>"
+                html += "<label for='taskName'>Name</label>"
+                html += "<input type='text' name='taskName' id='taskName' value='" + data.name + "' class='text ui-widget-content ui-corner-all'>"
+                html += "<label for='taskComment'>Comment</label>"
+                html += "<input type='text' name='taskComment' id='taskComment' value='" + data.comment + "' class='text ui-widget-content ui-corner-all'>"
+                html += "<label for='taskDueDate'>Due Date</label>"
+                html += "<input type='text' name='taskDueDate' id='taskDueDate' value='" + data.duedate + "' class='text ui-widget-content ui-corner-all'>"
+                html += "</p>"
+                $('#editTaskDialog').html(html);
+                $('#editTaskDialog').dialog('open');
+            }
+        });
+    });
+    $('#editTaskDialog').dialog({
+        autoOpen: 'false',
+        modal: 'true',
+        minHeight: '400px',
+        minWidth: '400px',
+        buttons: {
+            'Save Changes': function(){
+                $.ajax({
+                    url: '/api/v1/task/' + taskID,
+                    type: 'POST',
+                    data: $(this).find('form').serialize(),
+                    success: function(data){
+                        //some logic to show that the data was updated
+                        //then close the window
+                        $(this).dialog('close');
+                    }
+                });
+            },
+            'Discard & Exit' : function(){
+                $(this).dialog('close');
+            }
         }
     });
 
