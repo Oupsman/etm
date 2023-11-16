@@ -33,10 +33,11 @@ func runHttp(listenAddr string) error {
 	apiV1.GET("/categories", models.GetCategories)
 	apiV1.PUT("/categories", models.CreateCategory)
 	apiV1.GET("/tasks/:categoryId", models.GetTasks)
-	apiV1.GET("/task/:id", models.GetTask)
-	apiV1.DELETE("/task/:id", models.DeleteTask)
 	apiV1.POST("/task", models.CreateTask)
-	apiV1.POST("/task/:id", models.UpdateTask)
+	apiV1.POST("/task/:taskId", models.UpdateTask)
+	apiV1.GET("/task/:taskId", models.GetTask)
+	apiV1.DELETE("/task/:taskId", models.DeleteTask)
+
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",

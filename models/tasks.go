@@ -49,10 +49,11 @@ func GetTasks(c *gin.Context) {
 func GetTask(c *gin.Context) {
 	var db = ConnectToDb()
 	var task = Tasks{}
-	var id = c.Query("id")
-	result := db.First(&task, id)
+	id, _ := strconv.Atoi(c.Param("taskId"))
+	result := db.First(&task, uint(id))
+
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to get category ID"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to get task"})
 		return
 	}
 
@@ -135,8 +136,10 @@ func UpdateTask(c *gin.Context) {
 	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 
 	id, _ := strconv.Atoi(taskBody.Id)
-
-	result := db.First(&task, id)
+	fmt.Println("ID")
+	fmt.Println(id)
+	task.ID = uint(id)
+	result := db.First(&task)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error finding task in database"})
 		return
@@ -149,7 +152,7 @@ func UpdateTask(c *gin.Context) {
 	task.Urgency = taskBody.Urgency
 	task.IsComplete = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
-
+	fmt.Println(task.ID)
 	fmt.Println(task.Name)
 	fmt.Println(task.Comment)
 	fmt.Println(task.Priority)

@@ -1,5 +1,14 @@
 function formatTask(task) {
-    return '<div class="task draggable" id="task-' + task.ID + '"><span class="ui-icon ui-icon-arrow-4" class="handle"></span> <span>' + task.name + '</span><span class="ui-icon ui-icon-pencil"></span></div>';
+    return '<div class="task draggable" id="task-' + task.ID + '">' +
+        '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
+        '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
+        '<span>' + task.name + '</span>' +
+        '<span class="ui-icon ui-icon-pencil"></span><span class="ui-icon ui-icon-trash"></span>' +
+            '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
+            '<label>Comment: </label><p>' + task.comment + '</p>' +
+            '<label>Due Date: </label><p>' + task.duedate + '</p>' +
+            '</div>' +
+        '</div>';
 }
 
 function addTab() {
@@ -15,7 +24,7 @@ function updateTaskPriority (taskID, category) {
     let taskDueDate = '';
     let urgency = taskUrgency === '1';
     let priority = taskPriority === '1';
-
+    let categoryclass = '';
     const iscompleted = category === 'completed';
     const isbacklog = category === 'backlog';
 
@@ -30,7 +39,7 @@ function updateTaskPriority (taskID, category) {
         dataType: 'json',
         async: false,
         success: function (msg) {
-            console.log("Task: ", msg)
+            console.log("UpdateTask : ", msg)
             const task = msg;
             taskName = task.name;
             taskComment = task.comment;
@@ -55,6 +64,23 @@ function updateTaskPriority (taskID, category) {
         isbacklog: isbacklog,
 
     }
+    switch (category) {
+        case "11": categoryclass = ".UrgentImportant"
+            break;
+        case "10": categoryclass = ".UrgentNotImportant"
+            break;
+        case "01": categoryclass = ".NotUrgentImportant"
+            break;
+        case "00": categoryclass = ".NotUrgentNotImportant"
+            break;
+        completed: categoryclass = ".completed"
+            break;
+        backlog: categoryclass = ".backlog"
+            break;
+
+
+
+    }
     console.log("Body:", JSON.stringify(body))
     // API call to update the task
     $.ajax(
@@ -71,7 +97,7 @@ function updateTaskPriority (taskID, category) {
             success: function (msg) {
 //                $('<p>Text</p>').appendTo('#Content');
                 taskDiv = formatTask(msg);
-                $(taskDiv).appendTo('#'.category);
+                $(taskDiv).appendTo(categoryclass);
 
             }
         }
@@ -111,6 +137,8 @@ function addTask () {
             success: function (msg) {
 //                $('<p>Text</p>').appendTo('#Content');
                 taskDiv = formatTask(msg);
+                $('#details-task-*').hide();
+
                 $(taskDiv).appendTo(".backlog");
                 $( ".draggable" ).draggable({
                     snap: true,
@@ -313,13 +341,25 @@ async function main() {
     $( "#taskDueDate" ).datepicker({
         dateFormat: "yy-mm-dd",
     });
-
+/*
+    $('.modal-task-display').each(function(k,v){ // Go through all Divs with .modal-task-display class
+        var box = $(this).dialog({ modal:true, resizable:false,autoOpen: false });
+        $(this).parent().find('.ui-dialog-titlebar-close').hide();
+        taskID = $(this).attr('id').split('-')[2];
+        let task = $.find("#task-" + taskID)
+        $(task).mouseover(function() {
+            box.dialog( "open" );
+        }).mouseout(function() {
+            box.dialog( "close" );
+        });
+    });
+*/
     $( ".draggable" ).draggable({
         snap: true,
         // handle: "span.handle",
         zIndex: 100,
     });
-
+    $( document ).tooltip();
     $('.droppable').droppable({
         drop: function (event, ui) {
             var task = ui.draggable;

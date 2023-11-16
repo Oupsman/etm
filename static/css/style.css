@@ -78,6 +78,14 @@
 
 }
 
+.modal-task-display {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    padding-top: 100px;
+    padding-left: 100px;
+}
+
 #add_task label, #add_task input { display:block; }
 #add_task label { margin-top: 0.5em; }
 #add_task input, #add_task textarea { width: 95%; }
