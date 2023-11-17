@@ -17,7 +17,7 @@
 
 <body>
 
-    <div id="add_task" title="Add a new task">
+    <div id="add_task_dialog" title="Add a new task">
         <p>
           <form>
             <fieldset>
@@ -35,7 +35,7 @@
         </p>
     </div>
 
-    <div id="add_category" title="Add Category">
+    <div id="add_category_dialog" title="Add Category">
         <p>
           <form>
             <fieldset>
@@ -51,7 +51,11 @@
         </p>
     </div>
 
-    <div id="editTaskDialog"></div>
+    <div id="editTaskDialog"><p><form></form></p></div>
+    <div id='message' style="display: none;">
+        <span>Hey, This is my Message.</span>
+        <a href="#" class="close-notify">X</a>
+    </div>
 
     <div id="app"></div>
     <script src="/static/js/app.js"></script>

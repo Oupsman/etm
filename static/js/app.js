@@ -3,7 +3,6 @@ function formatTask(task) {
         '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
         '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
         '<span>' + task.name + '</span>' +
-
         '<button class="taskbutton deletetask"><span class="ui-icon ui-icon-trash"></span></button>' +
         '<button class="taskbutton edittask"><span class="ui-icon ui-icon-pencil"></span></button>' +
             '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
@@ -11,6 +10,15 @@ function formatTask(task) {
             '<label>Due Date: </label><p>' + task.duedate + '</p>' +
             '</div>' +
         '</div>';
+}
+
+function popupMessage(message, color) {
+    const messagePopup = $("#message");
+    messagePopup.html(message);
+    messagePopup.css("background-color", color);
+    messagePopup.css("color", "white");
+    messagePopup.show();
+    messagePopup.fadeOut(3000);
 }
 
 function addTab() {
@@ -48,6 +56,10 @@ function updateTaskPriority (taskID, category) {
             taskName = task.name;
             taskComment = task.comment;
             taskDueDate = task.duedate;
+            popupMessage("Task updated", "green");
+        },
+        error: function () {
+            popupMessage("Error updating task", "red");
         }
     });
 
@@ -155,6 +167,10 @@ function addTask () {
                         updateTaskPriority(taskID);
                     }
                 });
+                popupMessage("Task added", "green");
+            },
+            error: function () {
+                popupMessage("Error Adding Task", "red");
             }
         }
     );
@@ -192,13 +208,17 @@ function editTask() {
             data: JSON.stringify(body),
             success: function(data){
                 //some logic to show that the data was updated
-                //then close the window
-                $(this).dialog('close');
+                //then close the window$
+                popupMessage("Task Updated", "green");
+
+            },
+            error: function () {
+                popupMessage("Error Updating Task", "red");
             }
     });
 
     $('#task-' + taskID).html(formatTask(body));
-    $('#task-' + taskID).parent().reload();
+    // location.reload();
 }
 
 async function render(container, data) {
@@ -225,7 +245,6 @@ async function render(container, data) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
             for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
                 const task = tasks[taskNumber];
-                // const taskDiv = '<div class="task draggable" id="task-' + task.ID + '"><span class="ui-icon ui-icon-note"></span> <span>' + task.name + '</span></div>';
                 const taskDiv = formatTask(task);
                 if (task.isbacklog) {
                     backlog += taskDiv
@@ -263,6 +282,53 @@ async function render(container, data) {
 
     app.html(content)
     app.html();
+    let addCategoryDialog = $("#add_category_dialog").dialog({
+        height: 400,
+        width: 550,
+        modal: true,
+        autoOpen: false,
+        draggable: true,
+        buttons: {
+            Add: function() {
+                addTab();
+                $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+            categoryForm[0].reset();
+        }
+    });
+
+    // AddTab form: calls addTab function on submit and closes the dialog
+    let categoryForm = addCategoryDialog.find( "form" ).on( "submit", function( event ) {
+        addTab();
+        addCategoryDialog.dialog( "close" );
+        event.preventDefault();
+    });
+
+    // AddTab button: just opens the dialog
+    $( "#add_tab" ).button().on( "click", function() {
+        addCategoryDialog.dialog( "open" );
+    });
+    var tabs = $( "#tabs" ).tabs();
+
+    // Close icon: removing the tab on click
+    tabs.on( "click", "span.ui-icon-close", function() {
+        var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+        $( "#" + panelId ).remove();
+        tabs.tabs( "refresh" );
+    });
+
+    tabs.on( "keyup", function( event ) {
+        if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
+            var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
+            $( "#" + panelId ).remove();
+            tabs.tabs( "refresh" );
+        }
+    });
     $("ul.tabs li").first().addClass("active");
 }
 
@@ -284,29 +350,8 @@ async function home () {
 async function handleTabs() {
 
     $( function() {
-        var tabTitle = $( "#tab_title" ),
-            tabContent = $( "#tab_content" ),
-            tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
-            tabCounter = 2;
 
-        var tabs = $( "#tabs" ).tabs();
 
-        // Modal dialog init: custom buttons and a "close" callback resetting the form inside
-
-        // Close icon: removing the tab on click
-        tabs.on( "click", "span.ui-icon-close", function() {
-            var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
-            $( "#" + panelId ).remove();
-            tabs.tabs( "refresh" );
-        });
-
-        tabs.on( "keyup", function( event ) {
-            if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
-                var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
-                $( "#" + panelId ).remove();
-                tabs.tabs( "refresh" );
-            }
-        });
 });
 }
 
@@ -314,41 +359,9 @@ async function main() {
     await home();
     await handleTabs();
 
-    var addCategoryDialog = $("#add_category").dialog({
-        height: 400,
-        width: 550,
-        modal: true,
-        autoOpen: false,
-        draggable: true,
-        buttons: {
-            Add: function() {
-                addTab();
-                $( this ).dialog( "close" );
-            },
-            Cancel: function() {
-                $( this ).dialog( "close" );
-            }
-        },
-        close: function() {
-            form[ 0 ].reset();
-        }
-    });
 
-    // AddTab form: calls addTab function on submit and closes the dialog
-    var form = addCategoryDialog.find( "form" ).on( "submit", function( event ) {
-        addTab();
-        addCategoryDialog.dialog( "close" );
-        event.preventDefault();
-    });
-
-    // AddTab button: just opens the dialog
-    $( "#add_tab" )
-        .button()
-        .on( "click", function() {
-            addCategoryDialog.dialog( "open" );
-        });
-
-    var addTaskDialog = $("#add_task").dialog({
+    let addTaskDom = $("#add_task_dialog")
+    let addTaskDialog = addTaskDom.dialog({
         height: 400,
         width: 550,
         modal: true,
@@ -364,21 +377,19 @@ async function main() {
             }
         },
         close: function() {
-            form[ 0 ].reset();
+            taskForm[0].reset();
         }
     });
 
     // AddTab form: calls addTab function on submit and closes the dialog
-    var form = addTaskDialog.find( "form" ).on( "submit", function( event ) {
+    var taskForm = addTaskDialog.find( "form" ).on( "submit", function( event ) {
         addTask();
         addTaskDialog.dialog( "close" );
         event.preventDefault();
     });
 
     // AddTab button: just opens the dialog
-    $( "#add_task" )
-        .button()
-        .on( "click", function() {
+    $("#add_task").button().on( "click", function() {
             addTaskDialog.dialog( "open" );
         });
 
@@ -386,19 +397,7 @@ async function main() {
     $( "#taskDueDate" ).datepicker({
         dateFormat: "yy-mm-dd",
     });
-/*
-    $('.modal-task-display').each(function(k,v){ // Go through all Divs with .modal-task-display class
-        var box = $(this).dialog({ modal:true, resizable:false,autoOpen: false });
-        $(this).parent().find('.ui-dialog-titlebar-close').hide();
-        taskID = $(this).attr('id').split('-')[2];
-        let task = $.find("#task-" + taskID)
-        $(task).mouseover(function() {
-            box.dialog( "open" );
-        }).mouseout(function() {
-            box.dialog( "close" );
-        });
-    });
-*/
+
     $( ".draggable" ).draggable({
         snap: true,
         // handle: "span.handle",
@@ -414,22 +413,6 @@ async function main() {
         }
     });
 
-    var editTaskDialog = $('#editTaskDialog').dialog({
-        autoOpen: 'false',
-        modal: 'true',
-        minHeight: '400px',
-        minWidth: '400px',
-        buttons: {
-            'Save Changes': function () {
-                editTask()
-                $(this).dialog('close');
-            },
-
-            'Discard & Exit': function () {
-                $(this).dialog('close');
-            }
-        }
-    });
     $('.edittask').click(function(e, ui){
         var task = $(this).parent();
         var taskID = task.attr('id').split('-')[1];
@@ -439,7 +422,24 @@ async function main() {
             url: '/api/v1/task/' + taskID,
             type: 'GET',
             success: function(data){
-                let html = "<p>"
+                let editTaskDialog = $('#editTaskDialog').dialog({
+                    autoOpen: 'false',
+                    modal: 'true',
+                    minHeight: '400px',
+                    minWidth: '400px',
+                    buttons: {
+                        'Save Changes': function () {
+                            editTask()
+                            $(this).dialog('close');
+                        },
+
+                        'Discard & Exit': function () {
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+
+                let html = "<p><form>"
                 html += "<input type='hidden' name='taskID' id='editTaskID' value='" + data.ID + "'>"
                 html += "<input type='hidden' name='taskPriority' id='editTaskPriority' value='" + data.priority + "'>"
                 html += "<input type='hidden' name='taskUrgency' id='editTaskUrgency' value='" + data.urgency + "'>"
@@ -451,10 +451,18 @@ async function main() {
                 html += "<input type='text' name='taskComment' id='editTaskComment' value='" + data.comment + "' class='text ui-widget-content ui-corner-all'>"
                 html += "<label for='taskDueDate'>Due Date</label>"
                 html += "<input type='text' name='taskDueDate' id='editTaskDueDate' value='" + data.duedate + "' class='text ui-widget-content ui-corner-all'>"
-                html += "</p>"
-                $('#editTaskDialog').html(html);
-                $('#editTaskDialog').dialog('open');
-                $( "#taskDueDate" ).datepicker({
+                html += "</form></p>"
+                let editTaskDom = $('#editTaskDialog');
+                editTaskDom.html(html);
+                let editTaskForm = editTaskDom.find( "form" ).on( "submit", function( event ) {
+                    editTask();
+                    addTaskDialog.dialog( "close" );
+                    event.preventDefault();
+                });
+
+                editTaskDialog.dialog('open');
+
+                $( "#editTaskDueDate" ).datepicker({
                     dateFormat: "yy-mm-dd",
                 });
             }
@@ -463,26 +471,3 @@ async function main() {
 }
 
 main();
-$('#popup').dialog({
-    autoOpen: 'false',
-    modal: 'true',
-    minHeight: '300px',
-    minWidth: '300px',
-    buttons: {
-        'Save Changes': function(){
-            $.ajax({
-                url: 'path/to/my/page.ext',
-                type: 'POST',
-                data: $(this).find('form').serialize(),
-                success: function(data){
-                    //some logic to show that the data was updated
-                    //then close the window
-                    $(this).dialog('close');
-                }
-            });
-        },
-        'Discard & Exit' : function(){
-            $(this).dialog('close');
-        }
-    }
-});
