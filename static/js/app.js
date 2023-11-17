@@ -89,9 +89,9 @@ function updateTaskPriority (taskID, category) {
             break;
         case "00": categoryclass = ".NotUrgentNotImportant"
             break;
-        completed: categoryclass = ".completed"
+        case "completed": categoryclass = ".completed"
             break;
-        backlog: categoryclass = ".backlog"
+        case "backlog": categoryclass = ".backlog"
             break;
 
 
