@@ -26,68 +26,67 @@ div[id^="tabs-"] {
 
 .backlog {
     background-color: lightgrey;
-    width: 20%;
+    width: 25%;
     height: 100%;
     float: left;
-    padding: 10px;
-    margin: 10px;
+    justify-content: center;
 }
 
 .completed {
     background-color: lightgreen;
-    width: 20%;
+    width: 25%;
     height: 100%;
-    margin: 10px;
     float: right;
-
+    justify-content: center;
 }
 
 .UrgentImportant {
     background-color: lightsalmon;
     width: 25%;
     height: 50%;
-    margin: 10px;
     position: relative;
     float: left;
+    justify-content: center;
 }
 
 .UrgentNotImportant {
     background-color: lightyellow;
     width: 25%;
     height: 50%;
-    margin: 10px;
     position: relative;
     float: left;
+    justify-content: center;
 }
 
 .NotUrgentNotImportant {
     background-color: lightskyblue;
     width: 25%;
     height: 50%;
-    margin: 10px;
     position: relative;
     float: left;
+    justify-content: center;
 }
 
 .NotUrgentImportant {
     background-color: lightpink;
     width: 25%;
     height: 50%;
-    margin: 10px;
     position: relative;
     float: left;
+
 }
 
 .task {
     background-color: white;
-    width: 90%;
+    width: 95%;
     height: 40px;
-    margin: 2px;
+    margin: 2px auto;
     padding: 2px;
     position: relative;
     text-align: left;
-    border: 2px black dotted;
+    border: 1px darkgrey solid;
     display: block;
+
 }
 
 .modal-task-display {

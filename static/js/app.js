@@ -102,6 +102,7 @@ function updateTaskPriority (taskID, category) {
 //                $('<p>Text</p>').appendTo('#Content');
                 taskDiv = formatTask(msg);
                 $(taskDiv).appendTo(categoryclass);
+                $(taskDiv).parent().reload();
 
             }
         }
@@ -195,6 +196,9 @@ function editTask() {
                 $(this).dialog('close');
             }
     });
+
+    $('#task-' + taskID).html(formatTask(body));
+    $('#task-' + taskID).parent().reload();
 }
 
 async function render(container, data) {
