@@ -406,17 +406,16 @@ async function main() {
     $( document ).tooltip();
     $('.droppable').droppable({
         drop: function (event, ui) {
-            var task = ui.draggable;
-            var taskID = task.attr('id').split('-')[1];
-            var category = $(this).attr('id');
+            const task = ui.draggable;
+            const taskID = task.attr('id').split('-')[1];
+            const category = $(this).attr('id');
             updateTaskPriority(taskID, category);
         }
     });
 
     $('.edittask').click(function(e, ui){
-        var task = $(this).parent();
-        var taskID = task.attr('id').split('-')[1];
-        console.log(taskID)
+        const task = $(this).parent();
+        const taskID = task.attr('id').split('-')[1];
         e.preventDefault();
         $.ajax({
             url: '/api/v1/task/' + taskID,

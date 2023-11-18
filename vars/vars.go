@@ -9,7 +9,15 @@ import (
 var Host string
 var Port string
 
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
+}
+
 func Init() {
-	Host = os.Getenv("HOST")
-	Port = os.Getenv("PORT")
+	Host = getEnv("HOST", "127.0.0.1")
+	Port = getEnv("PORT", "8080")
 }
