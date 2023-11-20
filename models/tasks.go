@@ -170,19 +170,22 @@ func UpdateTask(c *gin.Context) {
 func DeleteTask(c *gin.Context) {
 	var db = ConnectToDb()
 
-	var id int
-	id, _ = strconv.Atoi(c.Query("id"))
-
+	id, _ := strconv.Atoi(c.Param("taskId"))
+	fmt.Println("ID")
+	fmt.Println(id)
 	var Task = Tasks{}
 
 	result := db.Find(&Task, id)
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, Task)
+		fmt.Println("Error :", result.Error)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error finding task in database" + result.Error.Error()})
+		return
 	}
-
 	result = db.Delete(&Task)
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, Task)
+		fmt.Println("Error :", result.Error)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + result.Error.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, Task)
 

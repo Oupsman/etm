@@ -221,6 +221,28 @@ function editTask() {
     // location.reload();
 }
 
+function deleteTask() {
+    console.log('deleteTask')
+    const taskID = $("#deleteTaskID").val();
+
+    $.ajax({
+        url: '/api/v1/task/' + taskID,
+        type: 'DELETE',
+        success: function(data){
+            //some logic to show that the data was updated
+            //then close the window$
+            popupMessage("Task delete", "green");
+
+            },
+        error: function () {
+            popupMessage("Error deleting Task", "red");
+        }
+    });
+
+    location.reload();
+}
+
+
 async function render(container, data) {
 
     let app = $(container);
@@ -455,7 +477,7 @@ async function main() {
                 editTaskDom.html(html);
                 let editTaskForm = editTaskDom.find( "form" ).on( "submit", function( event ) {
                     editTask();
-                    addTaskDialog.dialog( "close" );
+                    editTaskDialog.dialog( "close" );
                     event.preventDefault();
                 });
 
@@ -464,6 +486,57 @@ async function main() {
                 $( "#editTaskDueDate" ).datepicker({
                     dateFormat: "yy-mm-dd",
                 });
+            }
+        });
+    });
+    $('.deletetask').click(function(e, ui){
+        const task = $(this).parent();
+        const taskID = task.attr('id').split('-')[1];
+        e.preventDefault();
+        $.ajax({
+            url: '/api/v1/task/' + taskID,
+            type: 'GET',
+            success: function(data){
+                let deleteTaskDialog = $('#deleteTaskDialog').dialog({
+                    autoOpen: 'false',
+                    modal: 'true',
+                    minHeight: '400px',
+                    minWidth: '400px',
+                    buttons: {
+                        'Delete task': function () {
+                            deleteTask()
+                            $(this).dialog('close');
+                            },
+
+                        'Exit': function () {
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+
+                let html = "<p><form>"
+                html += "<input type='hidden' name='taskID' id='deleteTaskID' value='" + data.ID + "'>"
+                html += "<input type='hidden' name='taskPriority' id='deleteTaskPriority' value='" + data.priority + "'>"
+                html += "<input type='hidden' name='taskUrgency' id='deleteTaskUrgency' value='" + data.urgency + "'>"
+                html += "<input type='hidden' name='taskIsBackLog' id='deleteTaskIsBackLog' value='" + data.isbacklog + "'>"
+                html += "<input type='hidden' name='taskIsCompleted' id='deleteTaskIsComplete' value='" + data.iscomplete + "'>"
+                html += "<label for='taskName'>Name</label>"
+                html += "<div id='deleteTaskName'>" + data.name +"</div>"
+                html += "<label for='taskComment'>Comment</label>"
+                html += "<div id='deleteTaskComment'>" + data.comment +"</div>"
+                html += "<label for='taskDueDate'>Due Date</label>"
+                html += "<div id='deleteTaskDueDate'>" + data.duedate +"</div>"
+                html += "</form></p>"
+                let deleteTaskDom = $('#deleteTaskDialog');
+                deleteTaskDom.html(html);
+                let deleteTaskForm = deleteTaskDom.find( "form" ).on( "submit", function( event ) {
+                    deleteTask();
+                    deleteTaskDialog.dialog( "close" );
+                    event.preventDefault();
+                });
+
+                deleteTaskDialog.dialog('open');
+
             }
         });
     });
