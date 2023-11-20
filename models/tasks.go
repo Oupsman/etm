@@ -61,8 +61,6 @@ func GetTask(c *gin.Context) {
 }
 
 func CreateTask(c *gin.Context) {
-	// body, _ := io.ReadAll(c.Request.Body)
-	// println(string(body))
 
 	var db = ConnectToDb()
 
@@ -100,10 +98,6 @@ func CreateTask(c *gin.Context) {
 		DueDate:    dueDate,
 	}
 
-	fmt.Println("Name")
-	fmt.Println(taskBody.Name)
-	fmt.Println("Comment")
-	fmt.Println(taskBody.Comment)
 	result := db.Create(&task)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unable to add task to database"})
@@ -136,8 +130,7 @@ func UpdateTask(c *gin.Context) {
 	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 
 	id, _ := strconv.Atoi(taskBody.Id)
-	fmt.Println("ID")
-	fmt.Println(id)
+
 	task.ID = uint(id)
 	result := db.First(&task)
 	if result.Error != nil {
@@ -152,11 +145,6 @@ func UpdateTask(c *gin.Context) {
 	task.Urgency = taskBody.Urgency
 	task.IsComplete = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
-	fmt.Println(task.ID)
-	fmt.Println(task.Name)
-	fmt.Println(task.Comment)
-	fmt.Println(task.Priority)
-	fmt.Println(task.Urgency)
 
 	result = db.Save(&task)
 	if result.Error != nil {
@@ -171,19 +159,16 @@ func DeleteTask(c *gin.Context) {
 	var db = ConnectToDb()
 
 	id, _ := strconv.Atoi(c.Param("taskId"))
-	fmt.Println("ID")
-	fmt.Println(id)
+
 	var Task = Tasks{}
 
 	result := db.Find(&Task, id)
 	if result.Error != nil {
-		fmt.Println("Error :", result.Error)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error finding task in database" + result.Error.Error()})
 		return
 	}
 	result = db.Delete(&Task)
 	if result.Error != nil {
-		fmt.Println("Error :", result.Error)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + result.Error.Error()})
 		return
 	}
