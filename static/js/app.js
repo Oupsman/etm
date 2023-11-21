@@ -185,8 +185,7 @@ function addTask () {
             dataType: 'json',
             async: false,
             success: function (msg) {
-//                $('<p>Text</p>').appendTo('#Content');
-                taskDiv = formatTask(msg);
+                let taskDiv = formatTask(msg);
                 $('#details-task-*').hide();
 
                 $(taskDiv).appendTo(".backlog");
@@ -195,8 +194,8 @@ function addTask () {
                     // handle: "span.handle",
                     zIndex: 100,
                     stop: function () {
-                        var task = $(this);
-                        var taskID = task.attr('id').split('-')[1];
+                        const task = $(this);
+                        const taskID = task.attr('id').split('-')[1];
                         updateTaskPriority(taskID);
                     }
                 });
@@ -251,7 +250,6 @@ function editTask() {
     });
 
     $('#task-' + taskID).html(formatTask(body));
-    // location.reload();
 }
 
 function deleteTask() {
@@ -301,7 +299,7 @@ async function render(container, data) {
             return response.json();
         }).then(function (tasks) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
-                for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
+                for (let taskNumber of tasks) {
                     const task = tasks[taskNumber];
                     const taskDiv = formatTask(task);
                     if (task.isbacklog) {
@@ -340,7 +338,7 @@ async function render(container, data) {
 
     app.html(content)
     app.html();
-    var tabs = $( "#tabs" ).tabs();
+    let tabs = $( "#tabs" ).tabs();
     tabs.on( "tabsactivate", function( event, ui ) {
         console.log("Tab switch");
         bindAll();
@@ -354,7 +352,7 @@ async function render(container, data) {
 
     tabs.on( "keyup", function( event ) {
         if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
-            var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
+            let panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
             $( "#" + panelId ).remove();
             tabs.tabs( "refresh" );
         }
@@ -401,7 +399,7 @@ function bindAll() {
     });
 
     // AddTab form: calls addCategory function on submit and closes the dialog
-    var taskForm = addTaskDialog.find( "form" ).on( "submit", function( event ) {
+    let taskForm = addTaskDialog.find( "form" ).on( "submit", function( event ) {
         addTask();
         addTaskDialog.dialog( "close" );
         event.preventDefault();
