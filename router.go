@@ -31,7 +31,7 @@ func runHttp(listenAddr string) error {
 	// Serve frontend static files
 
 	apiV1.GET("/categories", models.GetCategories)
-	apiV1.PUT("/categories", models.CreateCategory)
+	apiV1.POST("/categories", models.CreateCategory)
 	apiV1.GET("/tasks/:categoryId", models.GetTasks)
 	apiV1.POST("/task", models.CreateTask)
 	apiV1.POST("/task/:taskId", models.UpdateTask)

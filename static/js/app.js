@@ -21,8 +21,35 @@ function popupMessage(message, color) {
     messagePopup.fadeOut(3000);
 }
 
-function addTab() {
-    console.log('addTab')
+function addCategory() {
+    console.log('addCategory')
+    const categoryName = $("#tabName").val();
+    const categoryColor = $("#tabColor").val();
+
+    const body = {
+        name: categoryName,
+        color: categoryColor
+    }
+    $.ajax(
+        {
+            url: '/api/v1/categories',
+            type: 'POST',
+            data: JSON.stringify(body),
+            beforeSend: function(xhr){
+                xhr.setRequestHeader("Content-Type","application/json");
+                xhr.setRequestHeader("Accept","application/json");
+            },
+            dataType: 'json',
+            async: false,
+            success: function (msg) {
+                popupMessage("Category added", "green");
+                location.reload();
+            },
+            error: function () {
+                popupMessage("Error Adding Category", "red");
+            }
+        }
+    );
 }
 
 
@@ -260,7 +287,7 @@ async function render(container, data) {
 
     for (let i = 0; i < data['categories'].length; i++) {
         const category = data.categories[i];
-        content += '<li><a href="#tabs-' + category.ID + '">' + category.Name + '</a></li>';
+        content += '<li><a href="#tabs-' + category.ID + '">' + category.name + '</a></li>';
         await fetch('/api/v1/tasks/' + category.ID).then(function (response) {
             return response.json();
         }).then(function (tasks) {
@@ -304,37 +331,6 @@ async function render(container, data) {
 
     app.html(content)
     app.html();
-    let addCategoryDialog = $("#add_category_dialog").dialog({
-        height: 400,
-        width: 550,
-        modal: true,
-        autoOpen: false,
-        draggable: true,
-        buttons: {
-            Add: function() {
-                addTab();
-                $( this ).dialog( "close" );
-            },
-            Cancel: function() {
-                $( this ).dialog( "close" );
-            }
-        },
-        close: function() {
-            categoryForm[0].reset();
-        }
-    });
-
-    // AddTab form: calls addTab function on submit and closes the dialog
-    let categoryForm = addCategoryDialog.find( "form" ).on( "submit", function( event ) {
-        addTab();
-        addCategoryDialog.dialog( "close" );
-        event.preventDefault();
-    });
-
-    // AddTab button: just opens the dialog
-    $( "#add_tab" ).button().on( "click", function() {
-        addCategoryDialog.dialog( "open" );
-    });
     var tabs = $( "#tabs" ).tabs();
 
     // Close icon: removing the tab on click
@@ -403,7 +399,7 @@ async function main() {
         }
     });
 
-    // AddTab form: calls addTab function on submit and closes the dialog
+    // AddTab form: calls addCategory function on submit and closes the dialog
     var taskForm = addTaskDialog.find( "form" ).on( "submit", function( event ) {
         addTask();
         addTaskDialog.dialog( "close" );
@@ -540,6 +536,47 @@ async function main() {
             }
         });
     });
+    $( "#add_tab" ).button().on( "click", function(e) {
+        e.preventDefault();
+        let addCategoryDOM = $("#add_category_dialog")
+        let addCategoryDialog = addCategoryDOM.dialog({
+            autoOpen: 'false',
+            modal: 'true',
+            minHeight: '400px',
+            minWidth: '400px',
+            buttons: {
+                'Add category': function () {
+                    addCategory()
+                    $(this).dialog('close');
+                },
+
+                'Exit': function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+
+        let html = "<p><form>"
+        html += "<label for='tabName'>Name</label>"
+        html += "<input type='text' name='tabName' id='tabName' value='New Tab' class='text ui-widget-content ui-corner-all'>"
+        html += "<label for='tabColor'>Color</label>\n"
+        html += "<input type='text' name='tabColor' id='tabColor' value='#cccccc' class='text ui-widget-content ui-corner-all'>"
+        html += "</form></p>"
+
+        addCategoryDOM.html(html);
+
+        let addCategoryForm = addCategoryDOM.find( "form" ).on( "submit", function( event ) {
+            addCategory();
+            addCategoryDialog.dialog( "close" );
+            event.preventDefault();
+        });
+
+        addCategoryDialog.dialog('open');
+    });
+
+    // AddTab button: just opens the dialog
+
+
 }
 
 main();
