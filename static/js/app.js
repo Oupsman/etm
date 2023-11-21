@@ -157,10 +157,16 @@ function addTask () {
     const comment = taskComment.val()
     const dueDate = taskDueDate.val()
 
+
+    let curTab = $('.ui-tabs-active');
+    let curTabID = curTab.attr('aria-controls').split('-')[1];
+    console.log("Current Tab: ", curTabID)
+
     const body = {
         name: name,
         comment: comment,
-        duedate: dueDate + "T00:00:00Z"
+        duedate: dueDate + "T00:00:00Z",
+        categoryid: curTabID,
     }
 
     // API call to create the task
@@ -278,49 +284,52 @@ async function render(container, data) {
     content += '<div id="tabs">';
     content += ' <ul>';
     let tasksContent = '';
-    let backlog = '<div class="backlog"><h3>Backlog</h3><button class="opener" id="add_task">Add Task</button>';
-    let completed = '<div id="completed" class="completed droppable"><h3>Completed</h3>';
-    let notUrgentNotImportant = '<div id="00" class="NotUrgentNotImportant droppable"><h3>Delegate</h3>';
-    let urgentNotImportant = '<div id="10" class="UrgentNotImportant droppable"><h3>Urgent, Not Important</h3>';
-    let notUrgentImportant = '<div id="01" class="NotUrgentImportant droppable"><h3>Important but not urgent</h3>';
-    let urgentImportant = '<div id="11" class="UrgentImportant droppable"><h3>Urgent and Important</h3>';
 
     for (let i = 0; i < data['categories'].length; i++) {
         const category = data.categories[i];
-        content += '<li><a href="#tabs-' + category.ID + '">' + category.name + '</a></li>';
+        console.log(category.name)
+        let backlog = '<div class="backlog"><h3>Backlog</h3><button class="opener" id="add_task">Add Task</button>';
+        let completed = '<div id="completed" class="completed droppable"><h3>Completed</h3>';
+        let notUrgentNotImportant = '<div id="00" class="NotUrgentNotImportant droppable"><h3>Delegate</h3>';
+        let urgentNotImportant = '<div id="10" class="UrgentNotImportant droppable"><h3>Urgent, Not Important</h3>';
+        let notUrgentImportant = '<div id="01" class="NotUrgentImportant droppable"><h3>Important but not urgent</h3>';
+        let urgentImportant = '<div id="11" class="UrgentImportant droppable"><h3>Urgent and Important</h3>';
+
+        content += '<li style="background-color:' + category.color + '; "><a href="#tabs-' + category.ID + '">' + category.name + '</a></li>';
+
         await fetch('/api/v1/tasks/' + category.ID).then(function (response) {
             return response.json();
         }).then(function (tasks) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
-            for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
-                const task = tasks[taskNumber];
-                const taskDiv = formatTask(task);
-                if (task.isbacklog) {
-                    backlog += taskDiv
-                } else if (task.iscomplete) {
-                    completed += taskDiv
-                } else if ( ! task.priority && !task.urgency ) {
-                    notUrgentNotImportant += taskDiv;
-                } else if (! task.priority && task.urgency) {
-                    urgentNotImportant += taskDiv
-                } else if (task.priority && ! task.urgency) {
-                    notUrgentImportant += taskDiv
-                } else if (task.priority && task.urgency) {
-                    urgentImportant += taskDiv
+                for (let taskNumber = 0; taskNumber < tasks.length; taskNumber++) {
+                    const task = tasks[taskNumber];
+                    const taskDiv = formatTask(task);
+                    if (task.isbacklog) {
+                        backlog += taskDiv
+                    } else if (task.iscomplete) {
+                        completed += taskDiv
+                    } else if ( ! task.priority && !task.urgency ) {
+                        notUrgentNotImportant += taskDiv;
+                    } else if (! task.priority && task.urgency) {
+                        urgentNotImportant += taskDiv
+                    } else if (task.priority && ! task.urgency) {
+                        notUrgentImportant += taskDiv
+                    } else if (task.priority && task.urgency) {
+                        urgentImportant += taskDiv
+                    }
                 }
-            }
-            backlog += '</div>';
-            completed += '</div>';
-            notUrgentNotImportant += '</div>';
-            urgentNotImportant += '</div>';
-            notUrgentImportant += '</div>';
-            urgentImportant += '</div>';
-            tasksContent += backlog;
-            tasksContent += completed;
-            tasksContent += notUrgentImportant;
-            tasksContent += urgentImportant;
-            tasksContent += notUrgentNotImportant;
-            tasksContent += urgentNotImportant;
+                backlog += '</div>';
+                completed += '</div>';
+                notUrgentNotImportant += '</div>';
+                urgentNotImportant += '</div>';
+                notUrgentImportant += '</div>';
+                urgentImportant += '</div>';
+                tasksContent += backlog;
+                tasksContent += completed;
+                tasksContent += notUrgentImportant;
+                tasksContent += urgentImportant;
+                tasksContent += notUrgentNotImportant;
+                tasksContent += urgentNotImportant;
             tasksContent += '</div>';
         });
     }
@@ -332,7 +341,10 @@ async function render(container, data) {
     app.html(content)
     app.html();
     var tabs = $( "#tabs" ).tabs();
-
+    tabs.on( "tabsactivate", function( event, ui ) {
+        console.log("Tab switch");
+        bindAll();
+    });
     // Close icon: removing the tab on click
     tabs.on( "click", "span.ui-icon-close", function() {
         var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
@@ -365,19 +377,8 @@ async function home () {
         await render('#app', data);
 }
 
-async function handleTabs() {
-
-    $( function() {
-
-
-});
-}
-
-async function main() {
-    await home();
-    await handleTabs();
-
-
+function bindAll() {
+    console.log("bindAll called")
     let addTaskDom = $("#add_task_dialog")
     let addTaskDialog = addTaskDom.dialog({
         height: 400,
@@ -407,9 +408,9 @@ async function main() {
     });
 
     // AddTab button: just opens the dialog
-    $("#add_task").button().on( "click", function() {
-            addTaskDialog.dialog( "open" );
-        });
+    $(".opener").button().on( "click", function() {
+        addTaskDialog.dialog( "open" );
+    });
 
     // date picker for task addition
     $( "#taskDueDate" ).datepicker({
@@ -502,7 +503,7 @@ async function main() {
                         'Delete task': function () {
                             deleteTask()
                             $(this).dialog('close');
-                            },
+                        },
 
                         'Exit': function () {
                             $(this).dialog('close');
@@ -536,6 +537,15 @@ async function main() {
             }
         });
     });
+
+}
+async function main() {
+    await home();
+
+    bindAll();
+
+
+
     $( "#add_tab" ).button().on( "click", function(e) {
         e.preventDefault();
         let addCategoryDOM = $("#add_category_dialog")

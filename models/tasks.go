@@ -33,15 +33,17 @@ type TaskBody struct {
 	IsCompleted bool   `json:"iscompleted,omitempty"`
 	Priority    bool   `json:"priority,omitempty"`
 	Urgency     bool   `json:"urgency,omitempty"`
+	CategoryID  string `json:"categoryid,omitempty"`
 }
 
 func GetTasks(c *gin.Context) {
 	var db = ConnectToDb()
 	var Tasks = []Tasks{}
-	CategoryID := c.Query("categoryId")
-	result := db.Find(&Tasks, CategoryID)
+	CategoryID, _ := strconv.Atoi(c.Param("categoryId"))
+	result := db.Where("category_id = ?", CategoryID).Find(&Tasks)
 	if result.Error != nil {
-		panic(result.Error)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
+		return
 	}
 	c.JSON(http.StatusOK, Tasks)
 }
@@ -84,9 +86,8 @@ func CreateTask(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	categID, _ := strconv.ParseUint(c.Query("categoryid"), 10, 32)
 
-	categoryid := uint(categID)
+	CategoryID, _ := strconv.Atoi(taskBody.CategoryID)
 
 	var task = Tasks{
 		Name:       taskBody.Name,
@@ -94,7 +95,7 @@ func CreateTask(c *gin.Context) {
 		IsBackLog:  true,
 		Priority:   false,
 		Urgency:    false,
-		CategoryID: categoryid,
+		CategoryID: uint(CategoryID),
 		DueDate:    dueDate,
 	}
 
