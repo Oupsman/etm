@@ -1,4 +1,5 @@
 function formatTask(task) {
+
     return '<div class="task draggable" id="task-' + task.ID + '">' +
         '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
         '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
@@ -298,7 +299,7 @@ async function render(container, data) {
             return response.json();
         }).then(function (tasks) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
-                for (let taskNumber of tasks) {
+                for (let taskNumber = 0 ; taskNumber < tasks.length ; taskNumber++ ) {
                     const task = tasks[taskNumber];
                     const taskDiv = formatTask(task);
                     if (task.isbacklog) {
@@ -386,10 +387,10 @@ function bindAll() {
         buttons: {
             Add: function() {
                 addTask();
-                $( this ).dialog( "close" );
+                addTaskDialog.dialog( "close" );
             },
             Cancel: function() {
-                $( this ).dialog( "close" );
+                addTaskDialog.dialog( "close" );
             }
         },
         close: function() {
@@ -554,11 +555,11 @@ async function main() {
             buttons: {
                 'Add category': function () {
                     addCategory()
-                    $(this).dialog('close');
+                    addCategoryDialog.dialog('close');
                 },
 
                 'Exit': function () {
-                    $(this).dialog('close');
+                    addCategoryDialog.dialog('close');
                 }
             }
         });
@@ -567,7 +568,7 @@ async function main() {
         html += "<label for='tabName'>Name</label>"
         html += "<input type='text' name='tabName' id='tabName' value='New Tab' class='text ui-widget-content ui-corner-all'>"
         html += "<label for='tabColor'>Color</label>\n"
-        html += "<input type='text' name='tabColor' id='tabColor' value='#cccccc' class='text ui-widget-content ui-corner-all'>"
+        html += "<input type='color' name='tabColor' id='tabColor' value='#cccccc' class='text ui-widget-content ui-corner-all'>"
         html += "</form></p>"
 
         addCategoryDOM.html(html);
