@@ -138,8 +138,7 @@ function updateTaskPriority (taskID, category) {
             dataType: 'json',
             async: false,
             success: function (msg) {
-//                $('<p>Text</p>').appendTo('#Content');
-                taskDiv = formatTask(msg);
+                let taskDiv = formatTask(msg);
                 $(taskDiv).appendTo(categoryclass);
                 $(taskDiv).parent().reload();
 
