@@ -23,7 +23,7 @@ func getEnv(key, fallback string) string {
 }
 
 func Init() {
-	Host = getEnv("HOST", "127.0.0.1")
+	Host = getEnv("HOST", "")
 	Port = getEnv("PORT", "8080")
 	DbHost = getEnv("DB_HOST", "127.0.0.1")
 	DbPort = getEnv("DB_PORT", "5432")
