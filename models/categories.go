@@ -21,9 +21,9 @@ type CategoryBody struct {
 }
 
 func GetCategories(c *gin.Context) {
-	var db = ConnectToDb()
+	// var Db = ConnectToDb()
 	var Categories = []Category{}
-	result := db.Find(&Categories)
+	result := Db.Find(&Categories)
 
 	if result.Error != nil {
 		c.JSON(http.StatusForbidden, Categories)
@@ -32,7 +32,7 @@ func GetCategories(c *gin.Context) {
 }
 
 func CreateCategory(c *gin.Context) {
-	var db = ConnectToDb()
+	//  var Db = ConnectToDb()
 
 	var category = Category{}
 
@@ -48,7 +48,7 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	result := db.Create(&category)
+	result := Db.Create(&category)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": result.Error.Error()})
 		return

@@ -37,10 +37,10 @@ type TaskBody struct {
 }
 
 func GetTasks(c *gin.Context) {
-	var db = ConnectToDb()
+	// var Db = ConnectToDb()
 	var Tasks = []Tasks{}
 	CategoryID, _ := strconv.Atoi(c.Param("categoryId"))
-	result := db.Where("category_id = ?", CategoryID).Find(&Tasks)
+	result := Db.Where("category_id = ?", CategoryID).Find(&Tasks)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
 		return
@@ -49,10 +49,10 @@ func GetTasks(c *gin.Context) {
 }
 
 func GetTask(c *gin.Context) {
-	var db = ConnectToDb()
+	// var Db = ConnectToDb()
 	var task = Tasks{}
 	id, _ := strconv.Atoi(c.Param("taskId"))
-	result := db.First(&task, uint(id))
+	result := Db.First(&task, uint(id))
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to get task"})
@@ -64,7 +64,7 @@ func GetTask(c *gin.Context) {
 
 func CreateTask(c *gin.Context) {
 
-	var db = ConnectToDb()
+	//	var Db = ConnectToDb()
 
 	taskBody := TaskBody{}
 	var dueDate time.Time
@@ -99,7 +99,7 @@ func CreateTask(c *gin.Context) {
 		DueDate:    dueDate,
 	}
 
-	result := db.Create(&task)
+	result := Db.Create(&task)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unable to add task to database"})
 		return
@@ -110,7 +110,7 @@ func CreateTask(c *gin.Context) {
 }
 
 func UpdateTask(c *gin.Context) {
-	var db = ConnectToDb()
+	// var Db = ConnectToDb()
 	var dueDate time.Time
 
 	taskBody := TaskBody{}
@@ -133,7 +133,7 @@ func UpdateTask(c *gin.Context) {
 	id, _ := strconv.Atoi(taskBody.Id)
 
 	task.ID = uint(id)
-	result := db.First(&task)
+	result := Db.First(&task)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error finding task in database"})
 		return
@@ -147,7 +147,7 @@ func UpdateTask(c *gin.Context) {
 	task.IsComplete = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
 
-	result = db.Save(&task)
+	result = Db.Save(&task)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "error updating task in database"})
 		return
@@ -157,18 +157,18 @@ func UpdateTask(c *gin.Context) {
 }
 
 func DeleteTask(c *gin.Context) {
-	var db = ConnectToDb()
+	// var Db = ConnectToDb()
 
 	id, _ := strconv.Atoi(c.Param("taskId"))
 
 	var Task = Tasks{}
 
-	result := db.Find(&Task, id)
+	result := Db.Find(&Task, id)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error finding task in database" + result.Error.Error()})
 		return
 	}
-	result = db.Delete(&Task)
+	result = Db.Delete(&Task)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + result.Error.Error()})
 		return

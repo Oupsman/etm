@@ -11,16 +11,16 @@ import (
 
 func initApp() {
 	vars.Init()
-	db := models.ConnectToDb()
-	db.AutoMigrate(&models.Tasks{}, &models.Category{})
+	models.ConnectToDb()
+	models.Db.AutoMigrate(&models.Tasks{}, &models.Category{})
 
 	// Check if a category exists
 	var category = models.Category{}
-	result := db.First(&category)
+	result := models.Db.First(&category)
 	if result.Error != nil {
 		// Create a category
 		category.Name = "Default"
-		db.Create(&category)
+		models.Db.Create(&category)
 	}
 
 }

@@ -4,14 +4,29 @@ import (
 	"ETM/vars"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"time"
 )
 
-func ConnectToDb() *gorm.DB {
-	// db, err := gorm.Open(sqlite.Open("etm.db"), &gorm.Config{})
+var Db *gorm.DB
+
+func ConnectToDb() {
+	var err error
+	// Db, err := gorm.Open(sqlite.Open("etm.Db"), &gorm.Config{})
 	dsn := "host=" + vars.DbHost + " user=" + vars.Username + " password=" + vars.Password + " dbname=" + vars.Database + " port=" + vars.DbPort + " sslmode=disable TimeZone=Europe/Paris"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	Db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	sqlDB, err := Db.DB()
+
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(10)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(100)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
 	if err != nil {
 		panic("failed to connect database")
 	}
-	return db
+
 }
