@@ -147,6 +147,11 @@ function updateTaskPriority (taskID, category) {
         }
     );
 }
+Date.prototype.addDays = function(days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
+}
 
 function addTask () {
     const taskName = $("#taskName");
@@ -162,10 +167,19 @@ function addTask () {
     let curTabID = curTab.attr('aria-controls').split('-')[1];
     console.log("Current Tab: ", curTabID)
 
+    var realDueDate
+
+    if (dueDate === "") {
+        let date = new Date
+        realDueDate = date.addDays(2)
+    } else {
+        realDueDate = dueDate
+    }
+
     const body = {
         name: name,
         comment: comment,
-        duedate: dueDate + "T00:00:00Z",
+        duedate: realDueDate + "T00:00:00Z",
         categoryid: curTabID,
     }
 
