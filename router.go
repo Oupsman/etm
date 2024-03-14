@@ -1,9 +1,9 @@
 package main
 
-import "net/http"
-
 import (
 	"ETM/models"
+	"net/http"
+
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +28,7 @@ func runHttp(listenAddr string) error {
 			})
 		})
 	}
+
 	// Serve frontend static files
 
 	apiV1.GET("/categories", models.GetCategories)

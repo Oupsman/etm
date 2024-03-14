@@ -1,5 +1,4 @@
 function formatTask(task) {
-
     return '<div class="task draggable" id="task-' + task.ID + '">' +
         '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
         '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
@@ -173,13 +172,13 @@ function addTask () {
         let date = new Date
         realDueDate = date.addDays(2)
     } else {
-        realDueDate = dueDate
+        realDueDate = dueDate + "T00:00:00Z"
     }
 
     const body = {
         name: name,
         comment: comment,
-        duedate: realDueDate + "T00:00:00Z",
+        duedate: realDueDate,
         categoryid: curTabID,
     }
 

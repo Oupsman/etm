@@ -4,9 +4,10 @@ import (
 	"ETM/models"
 	"ETM/vars"
 	"fmt"
-	_ "gorm.io/driver/sqlite"
 	"log"
 	"net"
+
+	_ "gorm.io/driver/postgres"
 )
 
 func initApp() {
