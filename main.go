@@ -13,7 +13,7 @@ import (
 func initApp() {
 	vars.Init()
 	models.ConnectToDb()
-	models.Db.AutoMigrate(&models.Tasks{}, &models.Category{})
+	models.Db.AutoMigrate(&models.Tasks{}, &models.Category{}, &models.Users{})
 
 	// Check if a category exists
 	var category = models.Category{}
