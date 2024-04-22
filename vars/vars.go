@@ -28,7 +28,7 @@ func Init() {
 	DbHost = getEnv("DB_HOST", "127.0.0.1")
 	DbPort = getEnv("DB_PORT", "5432")
 	Database = getEnv("DATABASE", "etm")
-	Username = getEnv("DB_USERNAME", "etmusr")
+	Username = getEnv("DB_USERNAME", "etm")
 	Password = getEnv("DB_PASSWORD", "etmpass")
 
 }

@@ -1,5 +1,5 @@
 # Start from the latest Golang base image
-FROM golang:latest AS base
+FROM golang:1.22.2 AS base
 
 # Add Maintainer Info
 LABEL maintainer="Oupsman <oupsman@oupsman.fr>"
@@ -31,7 +31,7 @@ EXPOSE ${PORT}
 
 # Healthcheck
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s \
-  CMD wget --no-verbose --tries=1 --no-check-certificate http://localhost:$PORT/api/v1/healthcheck || exit 1
+  CMD wget --no-verbose --tries=1 --no-check-certificate http://localhost:${PORT}/api/v1/healthcheck || exit 1
 
 # Command to run the executable
 CMD ["/app/main"]

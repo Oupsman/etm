@@ -54,5 +54,4 @@ func GetUserDetails(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, User)
-
 }
