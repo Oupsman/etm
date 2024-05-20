@@ -1,5 +1,6 @@
 package models
 
+// Package model
 import (
 	"errors"
 	"fmt"
