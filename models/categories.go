@@ -1,6 +1,6 @@
 package models
 
-// Package model
+// Package model for Categories
 import (
 	"errors"
 	"fmt"
