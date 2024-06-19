@@ -37,7 +37,7 @@ func runHttp(listenAddr string) error {
 	apiV1.POST("/task", models.CreateTask)
 	apiV1.POST("/task/:taskId", models.UpdateTask)
 	apiV1.GET("/task/:taskId", models.GetTask)
-	apiV1.DELETE("/task/:taskId", models.DeleteTask)
+	apiV1.GET("/task/:taskId/delete", models.DeleteTask)
 
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

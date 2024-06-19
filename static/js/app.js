@@ -270,8 +270,8 @@ function deleteTask() {
     const taskID = $("#deleteTaskID").val();
 
     $.ajax({
-        url: '/api/v1/task/' + taskID,
-        type: 'DELETE',
+        url: '/api/v1/task/' + taskID + '/delete',
+        type: 'GET',
         success: function(data){
             //some logic to show that the data was updated
             //then close the window$
