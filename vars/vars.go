@@ -13,6 +13,7 @@ var DbPort string
 var Database string
 var Username string
 var Password string
+var SecretKey string
 
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
@@ -30,5 +31,5 @@ func Init() {
 	Database = getEnv("DATABASE", "etm")
 	Username = getEnv("DB_USERNAME", "etm")
 	Password = getEnv("DB_PASSWORD", "etmpass")
-
+	SecretKey = getEnv("SECRET_KEY", "")
 }

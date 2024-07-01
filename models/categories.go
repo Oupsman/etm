@@ -12,8 +12,10 @@ import (
 
 type Category struct {
 	gorm.Model
-	Name  string `json:"name" binding:"required"`
-	Color string `json:"color" binding:"required"`
+	Name   string `json:"name" binding:"required"`
+	Color  string `json:"color" binding:"required"`
+	UserID uint
+	User   Users
 }
 
 type CategoryBody struct {

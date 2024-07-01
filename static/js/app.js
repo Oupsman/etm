@@ -1,3 +1,67 @@
+let token = localStorage.getItem("EtmToken");
+let loggingin = false
+var worker
+var tokenWorker
+
+function LoginDialog() {
+    loggingin = true
+    let content = "<div id='logindiv'>\n"
+    content += "<form id='loginform'>\n"
+    content += "<input type='text' name='username' id='username' placeholder='Username' required>"
+    content += "<input type='password' name='password' id='password' placeholder='Password' required>"
+    content += "</form>"
+    content += "<p>No account ? Create an account <a href='/signup'>Here</a> </p>"
+    content += "</div>"
+
+    let loginDOM =  $("#logindialog")
+    let loginDialog = loginDOM.dialog({
+        autoOpen: 'false',
+        modal: 'true',
+        width: '800',
+        height: '600',
+        buttons: [
+            {
+                text: 'Exit',
+                click: function () {
+                    loginDialog.dialog('close');
+                }},
+            {
+                text: 'Login',
+                click : function () {
+                    let username = $("#username").val();
+                    let password = $("#password").val();
+                    let data = {
+                        name: username,
+                        password: password
+                    }
+                    fetch('/api/v1/user/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+
+                        },
+                        body: JSON.stringify(data),
+                    }).then(function (response) {
+                        return response.json();
+                    }).then(function (response) {
+                        if (response.token != null) {
+                            token = response.token;
+                            // save token in local storage
+                            localStorage.setItem("EtmToken", token);
+                            worker.postMessage(token)
+                            loginDialog.dialog('close');
+                            main();
+                        } else {
+                            popupMessage("Error logging in", "red")
+                        }
+                    });
+                }
+            }]
+    });
+
+    loginDialog.html(content)
+}
+
 function formatTask(task) {
     return '<div class="task draggable" id="task-' + task.ID + '">' +
         '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
@@ -130,6 +194,10 @@ function updateTaskPriority (taskID, category) {
         {
             url: '/api/v1/task/' + taskID,
             type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
             data: JSON.stringify(body),
             beforeSend: function(xhr){
                 xhr.setRequestHeader("Content-Type","application/json");
@@ -190,6 +258,10 @@ function addTask () {
         {
             url: '/api/v1/task',
             type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
             data: JSON.stringify(body),
             beforeSend: function(xhr){
                 xhr.setRequestHeader("Content-Type","application/json");
@@ -250,6 +322,10 @@ function editTask() {
     $.ajax({
             url: '/api/v1/task/' + taskID,
             type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
             data: JSON.stringify(body),
             success: function(data){
                 //some logic to show that the data was updated
@@ -308,7 +384,13 @@ async function render(container, data) {
 
         content += '<li style="background-color:' + category.color + '; "><a href="#tabs-' + category.ID + '">' + category.name + '</a></li>';
 
-        await fetch('/api/v1/tasks/' + category.ID).then(function (response) {
+        await fetch('/api/v1/tasks/' + category.ID, {
+            method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+            }
+        }).then(function (response) {
             return response.json();
         }).then(function (tasks) {
             tasksContent += '<div id="tabs-' + category.ID + '">';
@@ -379,7 +461,13 @@ async function home () {
             categories: []
         };
 
-        await fetch('/api/v1/categories').then(function (response) {
+        await fetch('/api/v1/categories', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).then(function (response) {
             return response.json();
         }).then(function (categories) {
             data.categories = categories;
@@ -550,12 +638,69 @@ function bindAll() {
     });
 
 }
+
+const check = () => {
+    if (!('serviceWorker' in navigator)) {
+        throw new Error('No Service Worker support!')
+    }
+    if (!('PushManager' in window)) {
+        throw new Error('No Push API Support!')
+    }
+}
+
+const registerServiceWorker = async () => {
+    const swRegistration = await navigator.serviceWorker.register('service-worker.js')
+    return swRegistration
+}
+
+const requestNotificationPermission = async () => {
+    const permission = await window.Notification.requestPermission()
+    // value of permission can be 'granted', 'default', 'denied'
+    // granted: user has accepted the request
+    // default: user has dismissed the notification permission popup by clicking on x
+    // denied: user has denied the request.
+    if (permission !== 'granted') {
+        throw new Error('Permission not granted for Notification')
+    }
+}
+
+const push = async () => {
+    check()
+    const swRegistration = await registerServiceWorker()
+    const permission = await requestNotificationPermission()
+}
+
 async function main() {
+    if (token === "" ) {
+        LoginDialog();
+    }
+
     await home();
+
+
 
     bindAll();
 
+    if (window.Worker) {
+        worker = new Worker('/static/js/webworker.js');
+        worker.postMessage(token)
+        worker.onmessage = function (event) {
+            console.log("Worker message received")
+            if (event.data === "login" && !loggingin) {
+                LoginDialog()
+            }
+        }
+        tokenWorker = new Worker('/static/js/renewtoken.js');
+        tokenWorker.postMessage(token)
+        tokenWorker.onmessage = function (event) {
+            token = event.data
+            console.debug("New token received", token)
+            worker.postMessage(token)
+        }
 
+    } else {
+        console.log("Web worker not supported")
+    }
 
     $( "#add_tab" ).button().on( "click", function(e) {
         e.preventDefault();
@@ -599,5 +744,7 @@ async function main() {
 
 
 }
+
+push();
 
 main();

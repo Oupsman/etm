@@ -10,11 +10,13 @@ import (
 	_ "gorm.io/driver/postgres"
 )
 
-func initApp() {
+func initApp() error {
 	vars.Init()
 	models.ConnectToDb()
-	models.Db.AutoMigrate(&models.Tasks{}, &models.Category{}, &models.Users{})
-
+	err := models.Db.AutoMigrate(&models.Tasks{}, &models.Category{}, &models.Users{}, &models.Keys{})
+	if err != nil {
+		return err
+	}
 	// Check if a category exists
 	var category = models.Category{}
 	result := models.Db.First(&category)
@@ -23,12 +25,14 @@ func initApp() {
 		category.Name = "Default"
 		models.Db.Create(&category)
 	}
-
+	return nil
 }
 
 func main() {
-	initApp()
-
+	err := initApp()
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("Starting Eisenhower Task Manager")
 	// 	fmt.Printf("Username: %s\n", vars.Username)
 	//	fmt.Printf("Token: %s\n", vars.Token)
