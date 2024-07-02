@@ -69,7 +69,7 @@ func GetActiveTasks() ([]Tasks, error) {
 
 	var tasks []Tasks
 
-	result := Db.Model(&Tasks{}).Where("is_complete = ?", false).Find(&tasks)
+	result := Db.Model(&Tasks{}).Where("is_complete = ? AND is_back_log = ?", false, false).Find(&tasks)
 
 	if result.Error != nil {
 		return nil, result.Error
