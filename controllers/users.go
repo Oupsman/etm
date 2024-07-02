@@ -185,7 +185,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser.ID = uint(UserID)
+	updatedUser.ID = UserID
 	updatedUser.Email = user.Email
 	updatedUser.Name = currentUser.Name
 	if user.Password != "" {
@@ -207,4 +207,39 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"message": "user updated successfully"})
+}
+
+func UpdateUserSubscription(c *gin.Context) {
+
+	var requestBody types.BrowserConfig
+
+	err := c.ShouldBindJSON(&requestBody)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	UserID, err := utils.GetUserID(bearerToken)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	currentUser, err := models.GetUser(UserID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	currentUser.Browser = requestBody.Subscription
+
+	err = models.UpdateUser(currentUser)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "user updated successfully"})
+
 }

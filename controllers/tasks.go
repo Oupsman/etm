@@ -106,7 +106,7 @@ func CreateTask(c *gin.Context) {
 		return
 	}
 	c.JSON(201, gin.H{
-		"taskid": task.ID,
+		"task": task,
 	})
 }
 
@@ -129,8 +129,8 @@ func UpdateTask(c *gin.Context) {
 
 	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 
-	task, result := models.GetTask(taskBody.Id)
-	if result.Error != nil {
+	task, err := models.GetTask(taskBody.Id)
+	if err != nil {
 		c.JSON(400, gin.H{"error": "task not found"})
 		return
 	}
@@ -149,7 +149,7 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{
-		"message": "task updated successfully",
+		"task": task,
 	})
 }
 
@@ -170,4 +170,9 @@ func DeleteTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "task deleted successfully",
 	})
+}
+
+func CheckTasks() error {
+
+	return nil
 }

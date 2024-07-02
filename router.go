@@ -40,13 +40,17 @@ func runHttp(listenAddr string) error {
 		})
 	}
 
+	// Generic endpoints
+
+	apiV1.GET("/getvapidkey", controllers.IsAuthorized(), controllers.GetVAPIDKey)
+
 	// Categories endpoints
 	apiV1.GET("/categories", models.GetCategories)
 	apiV1.POST("/categories", models.CreateCategory)
 
 	// Tasks Endpoints
 
-	apiV1.GET("/tasks/:categoryId", controllers.GetTasks)
+	apiV1.GET("/tasks/:CategoryId", controllers.GetTasks)
 	apiV1.POST("/task", controllers.CreateTask)
 	apiV1.POST("/task/:taskId", controllers.UpdateTask)
 	apiV1.GET("/task/:taskId", controllers.GetTask)
@@ -59,6 +63,7 @@ func runHttp(listenAddr string) error {
 	apiV1.POST("/user", controllers.UpdateUser)
 	apiV1.GET("/user", controllers.GetUser)
 	apiV1.GET("/user/refreshtoken", controllers.RefreshToken)
+	apiV1.POST("/user/updatesubscription", controllers.UpdateUserSubscription)
 
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

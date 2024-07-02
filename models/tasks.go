@@ -64,3 +64,15 @@ func UpdateTask(task *Tasks) error {
 
 	return nil
 }
+
+func GetActiveTasks() ([]Tasks, error) {
+
+	var tasks []Tasks
+
+	result := Db.Model(&Tasks{}).Where("is_complete = ?", false).Find(&tasks)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return tasks, nil
+}

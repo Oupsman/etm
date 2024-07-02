@@ -1,3 +1,5 @@
+let token = ""
+
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
     const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
@@ -9,23 +11,48 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray
 }
 
+self.addEventListener('message', function (e) {
+    token = e.data
+})
+
 self.addEventListener('activate', async () => {
     // This will be called only once when the service worker is activated.
     try {
-        let vapidPubKey = await fetch('/api/v1/getvapidkey')
+        // Wait until token is populated
+        while (token === "")  {
+            await new Promise(r => setTimeout(r, 2000));
+        }
+        let vapidPubKey = await fetch('/api/v1/getvapidkey', {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+        })
         vapidPubKey = await vapidPubKey.json()
-        console.log('Vapid Key:', vapidPubKey)
         const applicationServerKey = urlBase64ToUint8Array(
             vapidPubKey.public_key
         )
-        console.log('Application Server Key:', applicationServerKey, vapidPubKey)
         const options = { applicationServerKey: applicationServerKey, userVisibleOnly: true }
-        console.log('Options:', options)
         const subscription = await self.registration.pushManager.subscribe(options)
-        console.log("Subscription:", subscription)
+
+        const data = {
+            subscription: subscription
+        }
+        console.log("Data to send: ", JSON.stringify(data))
+        await fetch("/api/v1/user/updatesubscription", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                subscription: JSON.stringify(subscription)
+            })
+        }).then( )
         console.log(JSON.stringify(subscription))
     } catch (err) {
-        console.log('Error', err)
+        console.log('Error', JSON.stringify(err))
     }
 })
 

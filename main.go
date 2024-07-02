@@ -1,13 +1,14 @@
 package main
 
 import (
+	"ETM/controllers"
 	"ETM/models"
 	"ETM/vars"
 	"fmt"
+	_ "gorm.io/driver/postgres"
 	"log"
 	"net"
-
-	_ "gorm.io/driver/postgres"
+	"time"
 )
 
 func initApp() error {
@@ -33,10 +34,38 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	err = controllers.GenerateVapidKeys()
 	fmt.Println("Starting Eisenhower Task Manager")
 	// 	fmt.Printf("Username: %s\n", vars.Username)
 	//	fmt.Printf("Token: %s\n", vars.Token)
 	// 	fmt.Printf("Connection String: %s\n", vars.ConnectionString)
+
+	go func() {
+		for {
+			// Check every 12 hours if we have tasks with due date expired
+			tasks, err := models.GetActiveTasks()
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, task := range tasks {
+				now := time.Now()
+				if task.DueDate.Sub(now) < 0 {
+					message := "Task " + task.Name + " is overdue"
+					user, err := models.GetUser(task.UserID)
+					if err != nil {
+						log.Fatal(err)
+					}
+					err = controllers.BrowserSend(message, user.Browser)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+				time.Sleep(2 * time.Second)
+			}
+			time.Sleep(12 * time.Hour)
+		}
+	}()
+
 	fmt.Printf("Listening on %s:%s\n", vars.Host, vars.Port)
 
 	addr := net.JoinHostPort(vars.Host, vars.Port)

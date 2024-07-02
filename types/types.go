@@ -5,6 +5,10 @@ type TelegramConfig struct {
 	Token  string `json:"token"`
 }
 
+type BrowserConfig struct {
+	Subscription string `json:"subscription"`
+}
+
 type UserBody struct {
 	ID          uint64 `json:"user_id"`
 	Username    string `json:"username"`

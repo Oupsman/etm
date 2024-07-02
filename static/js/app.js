@@ -135,6 +135,9 @@ function updateTaskPriority (taskID, category) {
     $.ajax({
         url: '/api/v1/task/' + taskID,
         type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.setRequestHeader("Accept", "application/json");
@@ -159,9 +162,8 @@ function updateTaskPriority (taskID, category) {
         priority = false
     }
 
-
     const body = {
-        id: taskID.toString(),
+        id: Number(taskID),
         name: taskName,
         comment: taskComment,
         urgency: urgency,
@@ -259,7 +261,6 @@ function addTask () {
             url: '/api/v1/task',
             type: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
             data: JSON.stringify(body),
@@ -386,9 +387,9 @@ async function render(container, data) {
 
         await fetch('/api/v1/tasks/' + category.ID, {
             method: 'GET',
-                headers: {
+            headers: {
                 'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + token
             }
         }).then(function (response) {
             return response.json();
@@ -538,6 +539,10 @@ function bindAll() {
         $.ajax({
             url: '/api/v1/task/' + taskID,
             type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + token,
+            },
             success: function(data){
                 let editTaskDialog = $('#editTaskDialog').dialog({
                     autoOpen: 'false',
@@ -592,6 +597,10 @@ function bindAll() {
         $.ajax({
             url: '/api/v1/task/' + taskID,
             type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + token,
+            },
             success: function(data){
                 let deleteTaskDialog = $('#deleteTaskDialog').dialog({
                     autoOpen: 'false',
@@ -648,12 +657,20 @@ const check = () => {
     }
 }
 
-const registerServiceWorker = async () => {
+async function registerServiceWorker  () {
     const swRegistration = await navigator.serviceWorker.register('service-worker.js')
+    navigator.serviceWorker.ready.then((registration) => {
+        while (token === "") {
+            new Promise(r => setTimeout(r, 2000));
+        }
+        registration.active.postMessage(
+            token,
+        );
+    });
     return swRegistration
 }
 
-const requestNotificationPermission = async () => {
+async function requestNotificationPermission() {
     const permission = await window.Notification.requestPermission()
     // value of permission can be 'granted', 'default', 'denied'
     // granted: user has accepted the request
@@ -667,6 +684,7 @@ const requestNotificationPermission = async () => {
 const push = async () => {
     check()
     const swRegistration = await registerServiceWorker()
+
     const permission = await requestNotificationPermission()
 }
 
