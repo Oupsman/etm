@@ -14,7 +14,7 @@ type Category struct {
 	gorm.Model
 	Name   string `json:"name" binding:"required"`
 	Color  string `json:"color" binding:"required"`
-	UserID uint
+	UserID uint   `json:"userid" binding:"required"`
 	User   Users
 }
 

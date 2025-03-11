@@ -17,7 +17,7 @@ type Tasks struct {
 	Urgency    bool      `json:"urgency"`
 	DueDate    time.Time `json:"duedate"`
 	User       Users
-	UserID     uint
+	UserID     uint `json:"userid"`
 }
 
 func GetTasks(UserID uint, CategoryID int) ([]Tasks, error) {

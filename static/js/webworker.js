@@ -1,4 +1,4 @@
-let token = ""
+var token = ""
 
 // Check if api endpoint respond with the error code 200
 async function checkApi() {

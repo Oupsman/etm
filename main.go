@@ -19,13 +19,13 @@ func initApp() error {
 		return err
 	}
 	// Check if a category exists
-	var category = models.Category{}
+	/*var category = models.Category{}
 	result := models.Db.First(&category)
 	if result.Error != nil {
 		// Create a category
 		category.Name = "Default"
 		models.Db.Create(&category)
-	}
+	}*/
 	return nil
 }
 

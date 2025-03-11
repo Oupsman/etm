@@ -1,4 +1,4 @@
-let token = localStorage.getItem("EtmToken");
+let apiToken = localStorage.getItem("EtmToken")
 let loggingin = false
 var worker
 var tokenWorker
@@ -45,10 +45,10 @@ function LoginDialog() {
                         return response.json();
                     }).then(function (response) {
                         if (response.token != null) {
-                            token = response.token;
+                            apiToken = response.token;
                             // save token in local storage
-                            localStorage.setItem("EtmToken", token);
-                            worker.postMessage(token)
+                            localStorage.setItem("EtmToken", apiToken);
+                            worker.postMessage(apiToken)
                             loginDialog.dialog('close');
                             main();
                         } else {
@@ -85,12 +85,23 @@ function popupMessage(message, color) {
     messagePopup.fadeOut(3000);
 }
 
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
 function addCategory() {
     console.log('addCategory')
     const categoryName = $("#tabName").val();
     const categoryColor = $("#tabColor").val();
-
+    const token = parseJwt(apiToken)
     const body = {
+        userid: token.sub,
         name: categoryName,
         color: categoryColor
     }
@@ -136,7 +147,7 @@ function updateTaskPriority (taskID, category) {
         url: '/api/v1/task/' + taskID,
         type: 'GET',
         headers: {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + apiToken
         },
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -198,7 +209,7 @@ function updateTaskPriority (taskID, category) {
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + apiToken
             },
             data: JSON.stringify(body),
             beforeSend: function(xhr){
@@ -244,8 +255,9 @@ function addTask () {
     } else {
         realDueDate = dueDate + "T00:00:00Z"
     }
-
+    const token = parseJwt(apiToken)
     const body = {
+        userid: token.sub,
         name: name,
         comment: comment,
         duedate: realDueDate,
@@ -261,7 +273,7 @@ function addTask () {
             url: '/api/v1/task',
             type: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + apiToken
             },
             data: JSON.stringify(body),
             beforeSend: function(xhr){
@@ -307,8 +319,9 @@ function editTask() {
     const taskIsBackLog = $("#editTaskIsBackLog").val();
     const taskIsComplete = $("#editTaskIsComplete").val();
 
-
+    const token = parseJwt(apiToken)
     const body = {
+        userid: token.sub,
         id: taskID,
         name: taskName,
         comment: taskComment,
@@ -325,7 +338,7 @@ function editTask() {
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + apiToken
             },
             data: JSON.stringify(body),
             success: function(data){
@@ -389,7 +402,7 @@ async function render(container, data) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + apiToken
             }
         }).then(function (response) {
             return response.json();
@@ -466,7 +479,7 @@ async function home () {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + apiToken
             }
         }).then(function (response) {
             return response.json();
@@ -541,7 +554,7 @@ function bindAll() {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': "Bearer " + token,
+                'Authorization': "Bearer " + apiToken,
             },
             success: function(data){
                 let editTaskDialog = $('#editTaskDialog').dialog({
@@ -599,7 +612,7 @@ function bindAll() {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': "Bearer " + token,
+                'Authorization': "Bearer " + apiToken,
             },
             success: function(data){
                 let deleteTaskDialog = $('#deleteTaskDialog').dialog({
@@ -660,11 +673,11 @@ const check = () => {
 async function registerServiceWorker  () {
     const swRegistration = await navigator.serviceWorker.register('service-worker.js')
     navigator.serviceWorker.ready.then((registration) => {
-        while (token === "") {
+        while (apiToken === "") {
             new Promise(r => setTimeout(r, 2000));
         }
         registration.active.postMessage(
-            token,
+            apiToken,
         );
     });
     return swRegistration
@@ -689,7 +702,7 @@ const push = async () => {
 }
 
 async function main() {
-    if (token === "" ) {
+    if (apiToken === "" ) {
         LoginDialog();
     }
 
@@ -701,7 +714,7 @@ async function main() {
 
     if (window.Worker) {
         worker = new Worker('/static/js/webworker.js');
-        worker.postMessage(token)
+        worker.postMessage(apiToken)
         worker.onmessage = function (event) {
             console.log("Worker message received")
             if (event.data === "login" && !loggingin) {
@@ -709,11 +722,11 @@ async function main() {
             }
         }
         tokenWorker = new Worker('/static/js/renewtoken.js');
-        tokenWorker.postMessage(token)
+        tokenWorker.postMessage(apiToken)
         tokenWorker.onmessage = function (event) {
-            token = event.data
-            console.debug("New token received", token)
-            worker.postMessage(token)
+            apiToken = event.data
+            console.debug("New token received", apiToken)
+            worker.postMessage(apiToken)
         }
 
     } else {
