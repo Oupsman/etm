@@ -54,7 +54,7 @@ func runHttp(listenAddr string) error {
 	apiV1.POST("/task", controllers.CreateTask)
 	apiV1.POST("/task/:taskId", controllers.UpdateTask)
 	apiV1.GET("/task/:taskId", controllers.GetTask)
-	apiV1.GET("/task/:taskId/delete", controllers.DeleteTask)
+	apiV1.DELETE("/task/:taskId", controllers.DeleteTask)
 
 	// User endpoints
 	apiV1.GET("/user/logout", controllers.Logout)

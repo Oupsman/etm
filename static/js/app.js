@@ -219,10 +219,10 @@ function updateTaskPriority (taskID, category) {
             dataType: 'json',
             async: false,
             success: function (msg) {
-                let taskDiv = formatTask(msg);
+                let taskDiv = formatTask(msg.task);
                 $(taskDiv).appendTo(categoryclass);
                 $(taskDiv).parent().reload();
-
+                bindAll()
             }
         }
     );
@@ -283,7 +283,8 @@ function addTask () {
             dataType: 'json',
             async: false,
             success: function (msg) {
-                let taskDiv = formatTask(msg);
+                console.log(msg)
+                let taskDiv = formatTask(msg.task);
                 $('#details-task-*').hide();
 
                 $(taskDiv).appendTo(".backlog");
@@ -298,6 +299,7 @@ function addTask () {
                     }
                 });
                 popupMessage("Task added", "green");
+                bindAll()
             },
             error: function () {
                 popupMessage("Error Adding Task", "red");
@@ -360,8 +362,12 @@ function deleteTask() {
     const taskID = $("#deleteTaskID").val();
 
     $.ajax({
-        url: '/api/v1/task/' + taskID + '/delete',
-        type: 'GET',
+        url: '/api/v1/task/' + taskID,
+        type: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiToken
+        },
         success: function(data){
             //some logic to show that the data was updated
             //then close the window$
@@ -378,7 +384,7 @@ function deleteTask() {
 
 
 async function render(container, data) {
-
+    console.log('render() called')
     let app = $(container);
 
     let content = "";
