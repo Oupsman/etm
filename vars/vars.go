@@ -3,6 +3,8 @@
 package vars
 
 import (
+	"github.com/joho/godotenv"
+	"log"
 	"os"
 )
 
@@ -16,6 +18,10 @@ var Password string
 var SecretKey string
 
 func getEnv(key, fallback string) string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	value, exists := os.LookupEnv(key)
 	if !exists {
 		value = fallback
