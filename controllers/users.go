@@ -67,7 +67,7 @@ func Register(c *gin.Context) {
 
 	var existingUser models.Users
 
-	models.Db.Where("Username = ?", user.Name).First(&existingUser)
+	models.Db.Where("name = ?", user.Name).First(&existingUser)
 
 	if existingUser.ID != 0 {
 		c.JSON(409, gin.H{"error": "user already exists"})
@@ -150,6 +150,7 @@ func GetUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": "user not found"})
+		return
 	}
 	c.JSON(200, user)
 }
