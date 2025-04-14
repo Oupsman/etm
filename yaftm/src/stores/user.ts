@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', () => {
       password,
     }).then(response => {
       if (response.data.token) {
-        localStorage.setItem('msw-token', response.data.token)
+        localStorage.setItem('etm-token', response.data.token)
         const data = parseJwt(response.data.token)
         setUserSession({
           ...data,
@@ -40,12 +40,12 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const logout = async (): Promise<void> => {
-    const token = localStorage.getItem('msw-token')
+    const token = localStorage.getItem('etm-token')
     axios.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/logout', {
       token,
     }).then(response => {
       if (response.data.token) {
-        localStorage.removeItem('msw-token')
+        localStorage.removeItem('etm-token')
         session.value = null
         router.push('/')
       }
@@ -88,12 +88,12 @@ export const useUserStore = defineStore('user', () => {
   })
   // checks if the JWT token is still valid
   const checkToken = computed((): boolean => {
-    const token = localStorage.getItem('msw-token')
+    const token = localStorage.getItem('etm-token')
     if (token) {
       const decoded = parseJwt(token)
       if (decoded.exp < Date.now() / 1000) {
         // Token is expired
-        localStorage.removeItem('msw-token')
+        localStorage.removeItem('etm-token')
         session.value = null
         return false
       } else {
@@ -107,7 +107,7 @@ export const useUserStore = defineStore('user', () => {
 
   const getUser = async () : Promise<Object> => {
     console.log('Get user - function')
-    const token = localStorage.getItem('msw-token')
+    const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
     }
@@ -132,7 +132,7 @@ export const useUserStore = defineStore('user', () => {
 
   const updateUser = async (user: Object) : Promise<Object> => {
     console.log('user to save', user)
-    const token = localStorage.getItem('msw-token')
+    const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
     }
@@ -155,7 +155,7 @@ export const useUserStore = defineStore('user', () => {
 
   const refreshDashboard = async (): Promise<void> => {
     console.log('Get dashboard - function')
-    const token = localStorage.getItem('msw-token')
+    const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
     }
