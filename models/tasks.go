@@ -20,10 +20,10 @@ type Tasks struct {
 	UserID     uint `json:"userid"`
 }
 
-func GetTasks(UserID uint, CategoryID int) ([]Tasks, error) {
+func GetTasks(UserID uint) ([]Tasks, error) {
 	// var Db = ConnectToDb()
 	var Tasks = []Tasks{}
-	result := Db.Where("category_id = ? AND user_id = ?", CategoryID, UserID).Find(&Tasks)
+	result := Db.Where("user_id = ?", UserID).Find(&Tasks)
 	if result.Error != nil {
 		return nil, result.Error
 	}

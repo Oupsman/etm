@@ -15,7 +15,7 @@ import (
 
 func GetTasks(c *gin.Context) {
 
-	CategoryID, err := strconv.Atoi(c.Param("CategoryId"))
+	// CategoryID, err := strconv.Atoi(c.Param("CategoryId"))
 	bearerToken := c.Request.Header.Get("Authorization")
 	UserID, err := utils.GetUserID(bearerToken)
 	if err != nil {
@@ -23,7 +23,7 @@ func GetTasks(c *gin.Context) {
 		return
 	}
 
-	tasks, err := models.GetTasks(UserID, CategoryID)
+	tasks, err := models.GetTasks(UserID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
