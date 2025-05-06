@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"ETM/utils"
+	"ETM/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"

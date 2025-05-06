@@ -9,4 +9,3 @@ export interface Task {
   urgency:     boolean,
   categoryid:  string,
 }
-

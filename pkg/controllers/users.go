@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"ETM/models"
-	"ETM/types"
-	"ETM/utils"
-	"ETM/vars"
+	"ETM/pkg/app"
+	"ETM/pkg/models"
+	"ETM/pkg/types"
+	"ETM/pkg/utils"
+	"ETM/pkg/vars"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"strings"
@@ -12,6 +13,9 @@ import (
 )
 
 func Login(c *gin.Context) {
+
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
 
 	var user models.Users
 
@@ -22,7 +26,7 @@ func Login(c *gin.Context) {
 
 	var existingUser models.Users
 
-	models.Db.Where("name = ?", user.Name).First(&existingUser)
+	db.Debug().Where("name = ?", user.Name).First(&existingUser)
 
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})

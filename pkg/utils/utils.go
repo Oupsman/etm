@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"ETM/vars"
+	"ETM/pkg/vars"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 	"strings"

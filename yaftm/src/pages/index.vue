@@ -1,7 +1,12 @@
+<script lang="ts" setup>
+  import { useCategoryStore} from '@/stores/category.ts'
+</script>
+
 <template>
-  <HelloWorld />
+  <v-container>
+    <v-tab >
+
+    </v-tab>
+  </v-container>
 </template>
 
-<script lang="ts" setup>
-  //
-</script>

@@ -3,6 +3,7 @@
 package vars
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ var Database string
 var Username string
 var Password string
 var SecretKey string
+var Dsn string
 
 func getEnv(key, fallback string) string {
 	err := godotenv.Load()
@@ -38,4 +40,6 @@ func Init() {
 	Username = getEnv("DB_USERNAME", "etm")
 	Password = getEnv("DB_PASSWORD", "etmpass")
 	SecretKey = getEnv("SECRET_KEY", "")
+	Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DbHost, Username, Password, Database, DbPort)
+	fmt.Println("DSN: ", Dsn)
 }

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"ETM/models"
-	"ETM/types"
+	"ETM/pkg/models"
+	"ETM/pkg/types"
 	"encoding/json"
 	"errors"
 	"github.com/SherClockHolmes/webpush-go"

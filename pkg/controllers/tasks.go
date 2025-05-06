@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"ETM/models"
-	"ETM/types"
-	"ETM/utils"
+	models2 "ETM/pkg/models"
+	"ETM/pkg/types"
+	"ETM/pkg/utils"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ import (
 
 func GetTasks(c *gin.Context) {
 
-	// CategoryID, err := strconv.Atoi(c.Param("CategoryId"))
+	CategoryID, err := strconv.Atoi(c.Param("categoryId"))
 	bearerToken := c.Request.Header.Get("Authorization")
 	UserID, err := utils.GetUserID(bearerToken)
 	if err != nil {
@@ -23,7 +23,7 @@ func GetTasks(c *gin.Context) {
 		return
 	}
 
-	tasks, err := models.GetTasks(UserID)
+	tasks, err := models2.GetTasks(UserID, CategoryID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
@@ -42,7 +42,7 @@ func GetTask(c *gin.Context) {
 		return
 	}
 
-	task, err := models.GetTask(TaskID)
+	task, err := models2.GetTask(TaskID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -89,7 +89,7 @@ func CreateTask(c *gin.Context) {
 
 	CategoryID, _ := strconv.Atoi(taskBody.CategoryID)
 
-	var task = models.Tasks{
+	var task = models2.Tasks{
 		Name:       taskBody.Name,
 		Comment:    taskBody.Comment,
 		IsBackLog:  true,
@@ -100,7 +100,7 @@ func CreateTask(c *gin.Context) {
 		UserID:     UserID,
 	}
 
-	err = models.CreateTask(task)
+	err = models2.CreateTask(task)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -129,7 +129,7 @@ func UpdateTask(c *gin.Context) {
 
 	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 
-	task, err := models.GetTask(taskBody.Id)
+	task, err := models2.GetTask(taskBody.Id)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "task not found"})
 		return
@@ -143,7 +143,7 @@ func UpdateTask(c *gin.Context) {
 	task.IsComplete = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
 
-	err = models.UpdateTask(task)
+	err = models2.UpdateTask(task)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -157,12 +157,12 @@ func DeleteTask(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Param("taskId"))
 
-	Task, err := models.GetTask(id)
+	Task, err := models2.GetTask(id)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 	}
 
-	result := models.Db.Delete(&Task)
+	result := models2.Db.Delete(&Task)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + result.Error.Error()})
 		return

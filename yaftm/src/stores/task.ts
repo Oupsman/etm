@@ -8,6 +8,7 @@ import type { Task } from '@/types/task'
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([] as Task[])
+  const backlog = ref([] as Task[])
 
   const addTask = (task: Task): void => {
     tasks.value.push(task)
@@ -24,15 +25,17 @@ export const useTaskStore = defineStore('task', () => {
       ...task,
       token,
     }).then(response => {
-      console.log('Task created:', response.data)
+      backlog.value.push(task)
+      console.log('TaskCard created:', response.data)
     }).catch(error => {
-      console.error('Create Task error:', error)
+      console.error('Create TaskCard error:', error)
       throw new Error('Create task failed')
     })
   }
 
-  const removeTask = (taskId: number): boolean => {
-    tasks.value = tasks.value.filter((task) => task.id !== taskId)
+  const removeTask = (taskToDelete: Task): boolean => {
+    tasks.value = tasks.value.filter((task) => task.id !== taskToDelete.id)
+
     console.log('Delete task - function')
     confirm('Are you sure you want to delete this task?')
     const token = localStorage.getItem('etm-token')
@@ -44,7 +47,7 @@ export const useTaskStore = defineStore('task', () => {
       timeout: 1000,
       headers: { Authorization: `Bearer ${token}` },
     })
-    request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskId).then(response => {
+    request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.id).then(response => {
       console.log('task deleted:', response.data)
       return true
     }).catch(error => {
@@ -58,7 +61,7 @@ export const useTaskStore = defineStore('task', () => {
     const index = tasks.value.findIndex((task) => task.id === taskId)
     if (index !== -1) {
       tasks.value[index] = { ...tasks.value[index], ...updatedTask }
-      console.log('Task to save', updatedTask)
+      console.log('TaskCard to save', updatedTask)
       const token = localStorage.getItem('etm-token')
       if (!token) {
         throw new Error('No token')
@@ -71,11 +74,11 @@ export const useTaskStore = defineStore('task', () => {
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskId, {
         ...updatedTask,
       }).then(response => {
-        console.log('Task updated:', response.data)
+        console.log('TaskCard updated:', response.data)
         return true
       }).catch(error => {
-        console.error('Update Task error:', error)
-        throw new Error('update Task')
+        console.error('Update TaskCard error:', error)
+        throw new Error('update TaskCard')
       })
       return true
     }

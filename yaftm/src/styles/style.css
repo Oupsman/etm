@@ -1,0 +1,119 @@
+html, body {
+    height: 100vh;
+    margin: 0;
+}
+
+#app {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    height: 100vh;
+}
+
+#tabs {
+    width: 100%;
+    height: 100vh;
+    display: inline-table;
+}
+
+div[id^="tabs-"] {
+    width: auto;
+    height: 100vh;
+    display: inline-table;
+}
+
+.backlog {
+    background-color: lightgrey;
+    width: 25%;
+    height: 100%;
+    float: left;
+    justify-content: center;
+}
+
+.completed {
+    background-color: lightgreen;
+    width: 25%;
+    height: 100%;
+    float: right;
+    justify-content: center;
+}
+
+.UrgentImportant {
+    background-color: lightsalmon;
+    width: 25%;
+    height: 50%;
+    position: relative;
+    float: left;
+    justify-content: center;
+}
+
+.UrgentNotImportant {
+    background-color: lightyellow;
+    width: 25%;
+    height: 50%;
+    position: relative;
+    float: left;
+    justify-content: center;
+}
+
+.NotUrgentNotImportant {
+    background-color: lightskyblue;
+    width: 25%;
+    height: 50%;
+    position: relative;
+    float: left;
+    justify-content: center;
+}
+
+.NotUrgentImportant {
+    background-color: lightpink;
+    width: 25%;
+    height: 50%;
+    position: relative;
+    float: left;
+
+}
+
+.task {
+    background-color: white;
+    width: 95%;
+    height: 40px;
+    margin: 2px auto;
+    padding: 2px;
+    position: relative;
+    text-align: left;
+    border: 1px darkgrey solid;
+    display: block;
+
+}
+
+.modal-task-display {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    padding-top: 100px;
+    padding-left: 100px;
+}
+
+.taskbutton {
+    float: right;
+}
+
+#add_task label, #add_task input { display:block; }
+#add_task label { margin-top: 0.5em; }
+#add_task input, #add_task textarea { width: 95%; }
+
+#add_tab_dialog label, #add_tab_dialog input { display:block; }
+#add_tab_dialog label { margin-top: 0.5em; }
+#add_tab_dialog input, #add_tab_dialog textarea { width: 95%; }
+
+#editTaskDialog label, #editTaskDialog input { display:block; }
+#editTaskDialog label { margin-top: 0.5em; }
+#editTaskDialog input, #editTaskDialog textarea { width: 95%; }
+
+#add_category label, #add_category input { display:block; }
+#add_category label { margin-top: 0.5em; }
+#add_category input, #add_category textarea { width: 95%; }
+

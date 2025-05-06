@@ -130,7 +130,7 @@ function addCategory() {
 
 
 function updateTaskPriority (taskID, category) {
-    console.log("Task ID: ", taskID, "Category: ", category)
+    console.log("TaskCard ID: ", taskID, "Category: ", category)
     let taskUrgency = category[0];
     let taskPriority = category[1];
     let taskName = '';
@@ -161,7 +161,7 @@ function updateTaskPriority (taskID, category) {
             taskName = task.name;
             taskComment = task.comment;
             taskDueDate = task.duedate;
-            popupMessage("Task updated", "green");
+            popupMessage("TaskCard updated", "green");
         },
         error: function () {
             popupMessage("Error updating task", "red");
@@ -298,11 +298,11 @@ function addTask () {
                         updateTaskPriority(taskID);
                     }
                 });
-                popupMessage("Task added", "green");
+                popupMessage("TaskCard added", "green");
                 bindAll()
             },
             error: function () {
-                popupMessage("Error Adding Task", "red");
+                popupMessage("Error Adding TaskCard", "red");
             }
         }
     );
@@ -346,11 +346,11 @@ function editTask() {
             success: function(data){
                 //some logic to show that the data was updated
                 //then close the window$
-                popupMessage("Task Updated", "green");
+                popupMessage("TaskCard Updated", "green");
 
             },
             error: function () {
-                popupMessage("Error Updating Task", "red");
+                popupMessage("Error Updating TaskCard", "red");
             }
     });
 
@@ -371,11 +371,11 @@ function deleteTask() {
         success: function(data){
             //some logic to show that the data was updated
             //then close the window$
-            popupMessage("Task delete", "green");
+            popupMessage("TaskCard delete", "green");
 
             },
         error: function () {
-            popupMessage("Error deleting Task", "red");
+            popupMessage("Error deleting TaskCard", "red");
         }
     });
 
@@ -395,7 +395,7 @@ async function render(container, data) {
     for (let i = 0; i < data['categories'].length; i++) {
         const category = data.categories[i];
         console.log(category.name)
-        let backlog = '<div class="backlog"><h3>Backlog</h3><button class="opener" id="add_task">Add Task</button>';
+        let backlog = '<div class="backlog"><h3>Backlog</h3><button class="opener" id="add_task">Add TaskCard</button>';
         let completed = '<div id="completed" class="completed droppable"><h3>Completed</h3>';
         let notUrgentNotImportant = '<div id="00" class="NotUrgentNotImportant droppable"><h3>Delegate</h3>';
         let urgentNotImportant = '<div id="10" class="UrgentNotImportant droppable"><h3>Urgent, Not Important</h3>';

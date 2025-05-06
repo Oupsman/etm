@@ -1,13 +1,11 @@
 package models
 
 import (
-	"ETM/vars"
+	"ETM/pkg/vars"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"time"
 )
-
-var Db *gorm.DB
 
 func ConnectToDb() {
 	var err error

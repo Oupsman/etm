@@ -1,7 +1,7 @@
 package models
 
 import (
-	"ETM/types"
+	"ETM/pkg/types"
 	"net/http"
 	"strconv"
 
@@ -11,7 +11,7 @@ import (
 
 type Users struct {
 	gorm.Model
-	Name     string `json:"name"`
+	Name     string `json:"username"`
 	Password string `json:"password"`
 	Gid      uint   `json:"gid"`
 	IsAdmin  string `json:"isadmin"`
