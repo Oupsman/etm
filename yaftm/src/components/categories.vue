@@ -48,9 +48,9 @@
           >
             {{ category.name }}
           </v-tab>
-          <v-tab @click="triggerDialogCategory">
+          <v-btn @click="triggerDialogCategory">
             Add
-          </v-tab>
+          </v-btn>
         </v-tabs>
       </v-col>
     </v-row>

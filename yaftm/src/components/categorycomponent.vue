@@ -26,10 +26,10 @@
 </script>
 <template>
     <v-container>
-      <v-row>
+      <v-row class="flex-child text-subtitle-2" height="100%">
         <!-- Backlog Column -->
-        <v-col cols="3">
-          <v-card class="backlog">
+        <v-col class="d-flex" cols="1" width="25%" height="100%">
+          <v-card class="d-flex" color="lightgrey" height="100%">
             <v-card-title>Backlog</v-card-title>
             <v-card-text>
               <v-list>
@@ -42,7 +42,7 @@
         </v-col>
 
         <!-- Eisenhower Matrix -->
-        <v-col cols="4">
+        <v-col cols="2">
           <v-row>
             <v-col cols="6">
               <v-card class="UrgentImportant">
