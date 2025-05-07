@@ -3,7 +3,6 @@ package webserver
 import (
 	"ETM/pkg/app"
 	controllers2 "ETM/pkg/controllers"
-	"ETM/pkg/models"
 	"github.com/gin-gonic/contrib/cors"
 	"net/http"
 
@@ -60,8 +59,8 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/getvapidkey", controllers2.IsAuthorized(), controllers2.GetVAPIDKey)
 
 	// Categories endpoints
-	apiV1.GET("/categories", models.GetCategories)
-	apiV1.POST("/categories", models.CreateCategory)
+	apiV1.GET("/categories", controllers2.GetCategories)
+	apiV1.POST("/category", controllers2.CreateCategory)
 
 	// Tasks Endpoints
 

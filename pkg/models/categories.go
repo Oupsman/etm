@@ -2,12 +2,9 @@ package models
 
 // Package model for Categories
 import (
-	"errors"
-	"fmt"
-	"github.com/gin-gonic/gin"
+	"ETM/pkg/types"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"io"
-	"net/http"
 )
 
 type Category struct {
@@ -15,47 +12,42 @@ type Category struct {
 	Name   string `json:"name" binding:"required"`
 	Color  string `json:"color" binding:"required"`
 	UserID uint   `json:"userid" binding:"required"`
+	Active bool   `json:"active" binding:"required"`
 	User   Users
 }
 
-type CategoryBody struct {
-	Name  string
-	Color string
-}
-
-func GetCategories(c *gin.Context) {
+func (db *DB) GetCategories(UserUUID uuid.UUID) ([]Category, error) {
 	// var Db = ConnectToDb()
 	var Categories = []Category{}
-	result := Db.Find(&Categories)
+	result := db.Find(&Categories).Where("useruuid = ?", UserUUID)
 
 	if result.Error != nil {
-		c.JSON(http.StatusForbidden, Categories)
+		return nil, result.Error
 	}
-	c.JSON(http.StatusOK, Categories)
+	return Categories, nil
 }
 
-func CreateCategory(c *gin.Context) {
+func (db *DB) CreateCategory(newCategory types.CategoryBody, user Users) (Category, error) {
 	//  var Db = ConnectToDb()
-
-	var category = Category{}
-
-	err := c.ShouldBindJSON(&category)
-	switch {
-	case errors.Is(err, io.EOF):
-		fmt.Println("Error :", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request body"})
-		return
-	case err != nil:
-		fmt.Println("Error :", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	var category = Category{
+		Name:   newCategory.Name,
+		Color:  newCategory.Color,
+		UserID: user.ID,
+		Active: newCategory.Active,
 	}
-
-	result := Db.Create(&category)
+	result := db.Create(&category)
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": result.Error.Error()})
-		return
+		return Category{}, result.Error
 	}
 
-	c.JSON(http.StatusOK, category)
+	return category, nil
+}
+
+func (db *DB) UpdateCategory(category Category) error {
+	// var Db = ConnectToDb()
+	result := db.Save(&category)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

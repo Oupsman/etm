@@ -28,3 +28,10 @@ type TaskBody struct {
 	Urgency     bool   `json:"urgency,omitempty"`
 	CategoryID  string `json:"categoryid,omitempty"`
 }
+
+type CategoryBody struct {
+	Id     int    `json:"id,omitempty"`
+	Name   string `json:"name"`
+	Color  string `json:"color"`
+	Active bool   `json:"active"`
+}

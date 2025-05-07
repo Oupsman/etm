@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
 )
@@ -20,20 +21,20 @@ type Tasks struct {
 	UserID     uint `json:"userid"`
 }
 
-func GetTasks(UserID uint, CategoryId int) ([]Tasks, error) {
+func (db *DB) GetTasks(UserUUID uuid.UUID, CategoryId int) ([]Tasks, error) {
 	// var Db = ConnectToDb()
 	var Tasks = []Tasks{}
-	result := Db.Where("user_id = ? AND category_id = ?", UserID, CategoryId).Find(&Tasks)
+	result := db.Where("user_uuid = ? AND category_id = ?", UserUUID, CategoryId).Find(&Tasks)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return Tasks, nil
 }
 
-func GetTask(TaskID int) (*Tasks, error) {
+func (db *DB) GetTask(TaskID int) (*Tasks, error) {
 	// var Db = ConnectToDb()
 	var task = Tasks{}
-	result := Db.First(&task, TaskID)
+	result := db.First(&task, TaskID)
 
 	if result.Error != nil {
 
@@ -43,9 +44,9 @@ func GetTask(TaskID int) (*Tasks, error) {
 	return &task, nil
 }
 
-func CreateTask(task Tasks) error {
+func (db *DB) CreateTask(task Tasks) error {
 
-	result := Db.Create(&task)
+	result := db.Create(&task)
 	if result.Error != nil {
 
 		return result.Error
@@ -54,10 +55,10 @@ func CreateTask(task Tasks) error {
 	return nil
 }
 
-func UpdateTask(task *Tasks) error {
+func (db *DB) UpdateTask(task *Tasks) error {
 	// var Db = ConnectToDb()
 
-	result := Db.Save(&task)
+	result := db.Save(&task)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -65,7 +66,7 @@ func UpdateTask(task *Tasks) error {
 	return nil
 }
 
-func GetActiveTasks() ([]Tasks, error) {
+func (db *DB) GetActiveTasks() ([]Tasks, error) {
 
 	var tasks []Tasks
 

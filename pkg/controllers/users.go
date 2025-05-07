@@ -45,8 +45,9 @@ func Login(c *gin.Context) {
 	claims := jwt.MapClaims{
 		"authorized": true,
 		"exp":        expirationTime.Unix(),
-		"iss":        "switchdb",
+		"iss":        "etm",
 		"sub":        existingUser.ID,
+		"uuid":       existingUser.UUID.String(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -142,15 +143,17 @@ func WhoAmI(c *gin.Context) {
 }
 
 func GetUser(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
 
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
+	UserUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := models.GetUser(UserID)
+	user, err := db.GetUserByUUID(UserUUID)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": "user not found"})
@@ -163,6 +166,10 @@ func UpdateUser(c *gin.Context) {
 
 	var updatedUser models.Users
 	var user types.UserBody
+
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -170,14 +177,14 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
+	UserUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedUser.ID = uint(UserID)
-	currentUser, err := models.GetUser(UserID)
+	updatedUser.UUID = UserUUID
+	currentUser, err := db.GetUserByUUID(UserUUID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -190,7 +197,6 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser.ID = UserID
 	updatedUser.Email = user.Email
 	updatedUser.Name = currentUser.Name
 	if user.Password != "" {
@@ -204,7 +210,7 @@ func UpdateUser(c *gin.Context) {
 		updatedUser.Password = currentUser.Password
 	}
 
-	err = models.UpdateUser(updatedUser)
+	err = db.UpdateUser(updatedUser)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -218,6 +224,9 @@ func UpdateUserSubscription(c *gin.Context) {
 
 	var requestBody types.BrowserConfig
 
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
 	err := c.ShouldBindJSON(&requestBody)
 
 	if err != nil {
@@ -226,13 +235,13 @@ func UpdateUserSubscription(c *gin.Context) {
 	}
 
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
+	UserUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	currentUser, err := models.GetUser(UserID)
+	currentUser, err := db.GetUserByUUID(UserUUID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -240,7 +249,7 @@ func UpdateUserSubscription(c *gin.Context) {
 
 	currentUser.Browser = requestBody.Subscription
 
-	err = models.UpdateUser(currentUser)
+	err = db.UpdateUser(currentUser)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

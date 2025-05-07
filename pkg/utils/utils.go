@@ -3,6 +3,7 @@ package utils
 import (
 	"ETM/pkg/vars"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 )
@@ -42,4 +43,14 @@ func GetUserID(tokenString string) (uint, error) {
 		return 0, err
 	}
 	return uint(claims["sub"].(float64)), nil
+}
+
+func GetUserUUID(tokenString string) (uuid.UUID, error) {
+	reqToken := strings.Split(tokenString, " ")[1]
+
+	claims, err := ParseToken(reqToken)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return uuid.Parse(claims["uuid"].(string))
 }

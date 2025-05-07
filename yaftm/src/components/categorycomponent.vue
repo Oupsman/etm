@@ -29,7 +29,7 @@
       <v-row>
         <!-- Backlog Column -->
         <v-col cols="3">
-          <v-card>
+          <v-card class="backlog">
             <v-card-title>Backlog</v-card-title>
             <v-card-text>
               <v-list>
@@ -42,10 +42,10 @@
         </v-col>
 
         <!-- Eisenhower Matrix -->
-        <v-col cols="6">
+        <v-col cols="4">
           <v-row>
             <v-col cols="6">
-              <v-card>
+              <v-card class="UrgentImportant">
                 <v-card-title>Urgent et Important</v-card-title>
                 <v-card-text>
                   <v-list>
@@ -57,7 +57,7 @@
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card>
+              <v-card class="NotUrgentImportant">
                 <v-card-title>Non Urgent et Important</v-card-title>
                 <v-card-text>
                   <v-list>
@@ -69,7 +69,7 @@
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card>
+              <v-card class="UrgentNotImportant">
                 <v-card-title>Urgent et Non Important</v-card-title>
                 <v-card-text>
                   <v-list>
@@ -81,7 +81,7 @@
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card>
+              <v-card class="NotUrgentNotImportant">
                 <v-card-title>Non Urgent et Non Important</v-card-title>
                 <v-card-text>
                   <v-list>
@@ -97,7 +97,7 @@
 
         <!-- Completed Tasks Column -->
         <v-col cols="3">
-          <v-card>
+          <v-card class="completed">
             <v-card-title>Tâches Terminées</v-card-title>
             <v-card-text>
               <v-list>
@@ -113,5 +113,55 @@
 </template>
 
 <style scoped lang="sass">
+
+  .backlog
+    background-color: lightgrey
+    width: 25%
+    height: 100%
+    float: left
+    justify-content: center
+
+
+  .completed
+    background-color: lightgreen
+    width: 25%
+    height: 100%
+    float: right
+    justify-content: center
+
+
+  .UrgentImportant
+    background-color: lightsalmon
+    width: 25%
+    height: 50%
+    position: relative
+    float: left
+    justify-content: center
+
+
+  .UrgentNotImportant
+    background-color: lightyellow
+    width: 25%
+    height: 50%
+    position: relative
+    float: left
+    justify-content: center
+
+
+  .NotUrgentNotImportant
+    background-color: lightskyblue
+    width: 25%
+    height: 50%
+    position: relative
+    float: left
+    justify-content: center
+
+
+  .NotUrgentImportant
+    background-color: lightpink
+    width: 25%
+    height: 50%
+    position: relative
+    float: left
 
 </style>

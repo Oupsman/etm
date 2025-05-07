@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ETM/pkg/app"
 	models2 "ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
@@ -15,15 +16,18 @@ import (
 
 func GetTasks(c *gin.Context) {
 
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
 	CategoryID, err := strconv.Atoi(c.Param("categoryId"))
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
+	UserUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	tasks, err := models2.GetTasks(UserID, CategoryID)
+	tasks, err := db.GetTasks(UserUUID, CategoryID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
@@ -34,6 +38,9 @@ func GetTasks(c *gin.Context) {
 }
 
 func GetTask(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
 	TaskID, err := strconv.Atoi(c.Param("taskId"))
 	bearerToken := c.Request.Header.Get("Authorization")
 	UserID, err := utils.GetUserID(bearerToken)
@@ -42,7 +49,7 @@ func GetTask(c *gin.Context) {
 		return
 	}
 
-	task, err := models2.GetTask(TaskID)
+	task, err := db.GetTask(TaskID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -54,6 +61,8 @@ func GetTask(c *gin.Context) {
 }
 
 func CreateTask(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
 
 	taskBody := types.TaskBody{}
 	var dueDate time.Time
@@ -100,7 +109,7 @@ func CreateTask(c *gin.Context) {
 		UserID:     UserID,
 	}
 
-	err = models2.CreateTask(task)
+	err = db.CreateTask(task)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -111,6 +120,9 @@ func CreateTask(c *gin.Context) {
 }
 
 func UpdateTask(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
 	var dueDate time.Time
 
 	taskBody := types.TaskBody{}
@@ -129,7 +141,7 @@ func UpdateTask(c *gin.Context) {
 
 	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
 
-	task, err := models2.GetTask(taskBody.Id)
+	task, err := db.GetTask(taskBody.Id)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "task not found"})
 		return
@@ -143,7 +155,7 @@ func UpdateTask(c *gin.Context) {
 	task.IsComplete = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
 
-	err = models2.UpdateTask(task)
+	err = db.UpdateTask(task)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -154,10 +166,12 @@ func UpdateTask(c *gin.Context) {
 }
 
 func DeleteTask(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
 
 	id, _ := strconv.Atoi(c.Param("taskId"))
 
-	Task, err := models2.GetTask(id)
+	Task, err := db.GetTask(id)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 	}

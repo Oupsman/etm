@@ -4,9 +4,7 @@
 
 <template>
   <v-container>
-    <v-tab >
-
-    </v-tab>
+    <Categories />
   </v-container>
 </template>
 
