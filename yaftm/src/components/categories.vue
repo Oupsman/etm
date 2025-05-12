@@ -10,7 +10,7 @@
   const categoryName = ref('')
   const categoryColor = ref('#000000')
   const activeTab = ref(null)
-
+  const category = ref({} as Category)
   onMounted(async () => {
     try {
       categories = await categoryStore.getCategories()
@@ -37,8 +37,8 @@
 </script>
 
 <template>
-  <v-container>
-    <v-row>
+  <v-container style="position: relative; top: 0; left: 0; height: 100vh;">
+    <v-row style="position: relative; top: 0; left: 0; height: 5vh;">
       <v-col>
         <v-tabs v-model="activeTab">
           <v-tab
@@ -54,11 +54,10 @@
         </v-tabs>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row style="position: relative; top: 0; left: 0; height: 65vh;" >
       <v-col>
         <v-tabs-items v-model="activeTab">
           <v-tab-item
-            v-for="category in categories"
             :key="category.ID"
           >
             <CategoryComponent :category="category" />
@@ -108,5 +107,6 @@
 </template>
 
 <style scoped lang="sass">
-
+  fill-height
+    height: 100%
 </style>
