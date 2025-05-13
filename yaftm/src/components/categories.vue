@@ -9,15 +9,18 @@
   const dialog = ref(false)
   const categoryName = ref('')
   const categoryColor = ref('#000000')
-  const activeTab = ref(null)
+  const activeTab = ref(0)
   const category = ref({} as Category)
   onMounted(async () => {
     try {
       categories = await categoryStore.getCategories()
       categoriesDisplay.value = categories
+      console.log("Categories: ", categories)
+      setActiveTab(categories[0].ID)
     } catch (error) {
       console.log('Error fetching categories')
     }
+
   })
   const triggerDialogCategory = () => {
     dialog.value = true
@@ -34,6 +37,12 @@
     }
   }
 
+  const setActiveTab = (categoryId: number) => {
+    console.log("Switching active tab to category ID: " + categoryId)
+    activeTab.value = categoryId
+  }
+
+
 </script>
 
 <template>
@@ -45,6 +54,7 @@
             v-for="category in categoriesDisplay"
             :key="category.ID"
             :style="{ backgroundColor: category.color }"
+            @click="setActiveTab(category.ID)"
           >
             {{ category.name }}
           </v-tab>
@@ -54,13 +64,14 @@
         </v-tabs>
       </v-col>
     </v-row>
-    <v-row style="position: relative; top: 0; left: 0; height: 65vh;" >
+    <v-row style="position: relative; top: 0; left: 0; height: 65vh;">
       <v-col>
         <v-tabs-items v-model="activeTab">
           <v-tab-item
+            v-for="category in categoriesDisplay"
             :key="category.ID"
           >
-            <CategoryComponent :category="category" />
+            <CategoryComponent v-if="activeTab === category.ID" :category="category" />
           </v-tab-item>
         </v-tabs-items>
       </v-col>

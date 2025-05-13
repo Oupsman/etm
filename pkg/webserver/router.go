@@ -64,7 +64,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 
 	// Tasks Endpoints
 
-	apiV1.GET("/tasks/:categorieId", controllers2.GetTasks)
+	apiV1.GET("/tasks/:categoryId", controllers2.GetTasks)
 	apiV1.POST("/task", controllers2.CreateTask)
 	apiV1.POST("/task/:taskId", controllers2.UpdateTask)
 	apiV1.GET("/task/:taskId", controllers2.GetTask)

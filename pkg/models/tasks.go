@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
 )
@@ -21,10 +20,10 @@ type Tasks struct {
 	UserID     uint `json:"userid"`
 }
 
-func (db *DB) GetTasks(UserUUID uuid.UUID, CategoryId int) ([]Tasks, error) {
+func (db *DB) GetTasks(UserID uint, CategoryId int) ([]Tasks, error) {
 	// var Db = ConnectToDb()
 	var Tasks = []Tasks{}
-	result := db.Where("user_uuid = ? AND category_id = ?", UserUUID, CategoryId).Find(&Tasks)
+	result := db.Where("user_id = ? AND category_id = ?", UserID, CategoryId).Find(&Tasks)
 	if result.Error != nil {
 		return nil, result.Error
 	}

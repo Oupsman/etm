@@ -26,7 +26,7 @@ type TaskBody struct {
 	IsCompleted bool   `json:"iscompleted,omitempty"`
 	Priority    bool   `json:"priority,omitempty"`
 	Urgency     bool   `json:"urgency,omitempty"`
-	CategoryID  string `json:"categoryid,omitempty"`
+	CategoryID  uint   `json:"categoryid,omitempty"`
 }
 
 type CategoryBody struct {

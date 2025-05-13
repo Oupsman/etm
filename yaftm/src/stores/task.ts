@@ -34,7 +34,7 @@ export const useTaskStore = defineStore('task', () => {
   }
 
   const removeTask = (taskToDelete: Task): boolean => {
-    tasks.value = tasks.value.filter((task) => task.id !== taskToDelete.id)
+    tasks.value = tasks.value.filter((task) => task.ID !== taskToDelete.ID)
 
     console.log('Delete task - function')
     confirm('Are you sure you want to delete this task?')
@@ -47,7 +47,7 @@ export const useTaskStore = defineStore('task', () => {
       timeout: 1000,
       headers: { Authorization: `Bearer ${token}` },
     })
-    request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.id).then(response => {
+    request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.ID).then(response => {
       console.log('task deleted:', response.data)
       return true
     }).catch(error => {
@@ -58,7 +58,7 @@ export const useTaskStore = defineStore('task', () => {
   }
 
   const updateTask = (taskId: number, updatedTask: Task): boolean => {
-    const index = tasks.value.findIndex((task) => task.id === taskId)
+    const index = tasks.value.findIndex((task) => task.ID === taskId)
     if (index !== -1) {
       tasks.value[index] = { ...tasks.value[index], ...updatedTask }
       console.log('TaskCard to save', updatedTask)
@@ -84,7 +84,7 @@ export const useTaskStore = defineStore('task', () => {
     }
     return false
   }
-  const getTasks = async (): Promise<Task[]> => {
+  const getTasks = async (categoryID: number): Promise<Task[]> => {
     console.log('Get tasks - function')
     const token = localStorage.getItem('etm-token')
     if (!token) {
@@ -96,7 +96,7 @@ export const useTaskStore = defineStore('task', () => {
       headers: { Authorization: `Bearer ${token}` },
     })
     try {
-      const response = await request.get('/api/v1/tasks')
+      const response = await request.get('/api/v1/tasks/' + categoryID)
       tasks.value = response.data
       return response.data
     } catch (error) {

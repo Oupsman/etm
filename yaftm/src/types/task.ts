@@ -1,11 +1,11 @@
 export interface Task {
-  id:          number,
+  ID:          number,
   name:        string,
   comment:     string,
   duedate:     string,
-  isbackLog:   boolean,
+  isbacklog:   boolean,
   iscompleted: boolean,
   priority:    boolean,
   urgency:     boolean,
-  categoryid:  string,
+  categoryid:  number,
 }
