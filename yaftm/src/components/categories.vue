@@ -64,7 +64,7 @@
         </v-tabs>
       </v-col>
     </v-row>
-    <v-row style="position: relative; top: 0; left: 0; height: 65vh;">
+    <v-row style="position: relative; top: 0; left: 0; height: 80vh;">
       <v-col>
         <v-tabs-items v-model="activeTab">
           <v-tab-item

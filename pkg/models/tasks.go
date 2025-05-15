@@ -7,17 +7,17 @@ import (
 
 type Tasks struct {
 	gorm.Model
-	Name       string `json:"name"`
-	Comment    string `json:"comment"`
-	IsComplete bool   `json:"iscomplete"`
-	IsBackLog  bool   `json:"isbacklog"`
-	CategoryID uint   `json:"category-id"`
-	Category   Category
-	Priority   bool      `json:"priority"`
-	Urgency    bool      `json:"urgency"`
-	DueDate    time.Time `json:"duedate"`
-	User       Users
-	UserID     uint `json:"userid"`
+	Name        string `json:"name"`
+	Comment     string `json:"comment"`
+	IsCompleted bool   `json:"iscompleted"`
+	IsBackLog   bool   `json:"isbacklog"`
+	CategoryID  uint   `json:"category-id"`
+	Category    Category
+	Priority    bool      `json:"priority"`
+	Urgency     bool      `json:"urgency"`
+	DueDate     time.Time `json:"duedate"`
+	User        Users
+	UserID      uint `json:"userid"`
 }
 
 func (db *DB) GetTasks(UserID uint, CategoryId int) ([]Tasks, error) {

@@ -3,7 +3,7 @@
   import { useAppStore } from '@/stores/app'
   import { useVuelidate } from '@vuelidate/core'
   import { minLength, required, sameAs } from '@vuelidate/validators'
-
+  import type { User } from '@/types/user'
   const userStore = useUserStore()
   const appStore = useAppStore()
 
@@ -26,7 +26,7 @@
 
   const v$ = useVuelidate(rules, userForm)
 
-  const user = ref(null)
+  const user = ref(<User>{})
 
   const fetchUser = async () => {
     try {
@@ -50,10 +50,8 @@
     const isValid = await v$.value.$validate()
     if (!isValid) return
 
-    const dateOfBirth = new Date(`${userForm.value.birthyear}/${userForm.value.birthmonth}/${userForm.value.birthday}`)
     const updatedUser = {
       ...userForm.value,
-      date_of_birth: dateOfBirth.toISOString(),
     }
     await userStore.updateUser(updatedUser)
   }

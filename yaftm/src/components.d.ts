@@ -11,13 +11,11 @@ declare module 'vue' {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     Categories: typeof import('./components/categories.vue')['default']
     Categorycomponent: typeof import('./components/categorycomponent.vue')['default']
-    HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     LoginForm: typeof import('./components/LoginForm.vue')['default']
     ProfileForm: typeof import('./components/ProfileForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SignUpForm: typeof import('./components/SignUpForm.vue')['default']
-    TaskCard: typeof import('./components/TaskCard.vue')['default']
     Tasklist: typeof import('./components/tasklist.vue')['default']
   }
 }

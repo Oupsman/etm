@@ -7,3 +7,8 @@ export interface UserSession {
   uuid: string,
   token: string,
 }
+
+export interface User {
+  ID: number,
+  username: string,
+}

@@ -151,7 +151,7 @@ func UpdateTask(c *gin.Context) {
 	task.DueDate = dueDate
 	task.Priority = taskBody.Priority
 	task.Urgency = taskBody.Urgency
-	task.IsComplete = taskBody.IsCompleted
+	task.IsCompleted = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
 
 	err = db.UpdateTask(task)
