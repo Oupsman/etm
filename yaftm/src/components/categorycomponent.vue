@@ -27,19 +27,6 @@
 
       const message = ref<string>('')
       const displaySnack = ref(false)
-      const formatTask = (task: Task) => {
-        return '<div class="task draggable" id="task-' + task.ID + '">' +
-          '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
-          '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
-          '<span>' + task.name + '</span>' +
-          '<button class="taskbutton deletetask"><span class="ui-icon ui-icon-trash"></span></button>' +
-          '<button class="taskbutton edittask"><span class="ui-icon ui-icon-pencil"></span></button>' +
-          '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
-          '<label>Comment: </label><p>' + task.comment + '</p>' +
-          '<label>Due Date: </label><p>' + task.duedate + '</p>' +
-          '</div>' +
-          '</div>'
-      }
 
       const categoryStore = useCategoryStore()
       const taskStore = useTaskStore()
