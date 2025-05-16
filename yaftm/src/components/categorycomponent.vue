@@ -4,174 +4,168 @@
   import { useTaskStore } from '@/stores/task.ts'
   import { useAppStore } from '@/stores/app.ts'
   import { useUserStore } from '@/stores/user.ts'
-  import type { Category } from '@/types/category.ts'
   import type { Task, NewTask } from '@/types/task.ts'
   import { VueDraggableNext} from 'vue-draggable-next'
 
   export default defineComponent({
-    name: 'CategoryComponent',
-
-    components: {
-      draggable: VueDraggableNext,
-    },
     props: {
       categoryID: {
         type: Number,
         required: true
       },
-
     },
-
+    components: {
+      draggable: VueDraggableNext,
+    },
     setup(props) {
-    const backlog = ref<Task[]>([])
-    const urgentImportant = ref<Task[]>([])
-    const nonUrgentImportant = ref<Task[]>([])
-    const nonUrgentNonImportant = ref<Task[]>([])
-    const urgentNonImportant = ref<Task[]>([])
-    const completedTasks = ref<Task[]>([])
+      const backlog = ref<Task[]>([])
+      const urgentImportant = ref<Task[]>([])
+      const nonUrgentImportant = ref<Task[]>([])
+      const nonUrgentNonImportant = ref<Task[]>([])
+      const urgentNonImportant = ref<Task[]>([])
+      const completedTasks = ref<Task[]>([])
 
-    const taskDialog = ref(false)
-    const taskName = ref<string>('')
-    const taskDescription = ref<string>('')
-    const taskDueDate = ref<Date>(new Date())
+      const taskDialog = ref(false)
+      const taskName = ref<string>('')
+      const taskDescription = ref<string>('')
+      const taskDueDate = ref<Date>(new Date())
 
-    const message = ref<string>('')
-    const displaySnack = ref(false)
-    const formatTask = (task: Task) => {
-      return '<div class="task draggable" id="task-' + task.ID + '">' +
-        '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
-        '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
-        '<span>' + task.name + '</span>' +
-        '<button class="taskbutton deletetask"><span class="ui-icon ui-icon-trash"></span></button>' +
-        '<button class="taskbutton edittask"><span class="ui-icon ui-icon-pencil"></span></button>' +
-        '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
-        '<label>Comment: </label><p>' + task.comment + '</p>' +
-        '<label>Due Date: </label><p>' + task.duedate + '</p>' +
-        '</div>' +
-        '</div>'
-    }
-
-    const categoryStore = useCategoryStore()
-    const taskStore = useTaskStore()
-
-    const triggerTaskDialog = () => {
-      taskDialog.value = true
-    }
-
-    const addTask = () => {
-      taskDialog.value = false
-      console.log(typeof taskDueDate.value)
-      if (taskName.value && taskDescription.value && taskDueDate.value) {
-        const newTask: NewTask = {
-          name: taskName.value,
-          comment: taskDescription.value,
-          duedate: taskDueDate.value.toISOString(),
-          categoryid: props.categoryID,
-          isbacklog: true,
-        }
-        const task: Task = {
-          ID: 0,
-          iscompleted: false,
-          urgency: false,
-          priority: false,
-
-          ...newTask,
-        }
-        backlog.value.push(task)
+      const message = ref<string>('')
+      const displaySnack = ref(false)
+      const formatTask = (task: Task) => {
+        return '<div class="task draggable" id="task-' + task.ID + '">' +
+          '<span class="ui-icon ui-icon-arrow-4" class="handle"></span> ' +
+          '<span class="ui-icon ui-icon-newwin" class="view" title="Name: ' + task.name + ',Comment: ' + task.comment + ',Due Date: ' + task.duedate + '"></span> ' +
+          '<span>' + task.name + '</span>' +
+          '<button class="taskbutton deletetask"><span class="ui-icon ui-icon-trash"></span></button>' +
+          '<button class="taskbutton edittask"><span class="ui-icon ui-icon-pencil"></span></button>' +
+          '<div class="modal-task-display" id="details-task-' + task.ID + '"><label>Name: </label><p>' + task.name + '</p> ' +
+          '<label>Comment: </label><p>' + task.comment + '</p>' +
+          '<label>Due Date: </label><p>' + task.duedate + '</p>' +
+          '</div>' +
+          '</div>'
       }
-    }
 
-    const onChange = (evt: any) => {
-      console.log("onChange: ", evt)
-    }
+      const categoryStore = useCategoryStore()
+      const taskStore = useTaskStore()
 
-    const onMove = (evt: any) => {
-      const task: Task = evt.draggedContext.element
-      // const origin: String = evt.from.attributes.itemkey.nodeValue
-      const destination: String = evt.to.attributes.itemkey.nodeValue
-      if (destination === "backlog") {
-        task.isbacklog = true
-        task.iscompleted = false
-        task.urgency = false
-        task.priority = false
-      } else if (destination === "completedTasks") {
-        task.isbacklog = false
-        task.iscompleted = true
-        task.urgency = false
-        task.priority = false
-      } else if (destination ===  "urgentImportant") {
+      const triggerTaskDialog = () => {
+        taskDialog.value = true
+      }
+
+      const addTask = () => {
+        taskDialog.value = false
+        console.log(typeof taskDueDate.value)
+        if (taskName.value && taskDescription.value && taskDueDate.value) {
+          const newTask: NewTask = {
+            name: taskName.value,
+            comment: taskDescription.value,
+            duedate: taskDueDate.value.toISOString(),
+            categoryid: props.categoryID,
+            isbacklog: true,
+          }
+          const task: Task = {
+            ID: 0,
+            iscompleted: false,
+            urgency: false,
+            priority: false,
+
+            ...newTask,
+          }
+          backlog.value.push(task)
+        }
+      }
+
+      const onChange = (evt: any) => {
+        console.log("onChange: ", evt)
+      }
+
+      const onMove = (evt: any) => {
+        const task: Task = evt.draggedContext.element
+        // const origin: String = evt.from.attributes.itemkey.nodeValue
+        const destination: String = evt.to.attributes.itemkey.nodeValue
+        if (destination === "backlog") {
+          task.isbacklog = true
+          task.iscompleted = false
+          task.urgency = false
+          task.priority = false
+        } else if (destination === "completedTasks") {
+          task.isbacklog = false
+          task.iscompleted = true
+          task.urgency = false
+          task.priority = false
+        } else if (destination ===  "urgentImportant") {
+            task.isbacklog = false
+            task.iscompleted = false
+            task.urgency = true
+            task.priority = true
+        } else if (destination === "nonUrgentImportant") {
+          task.isbacklog = false
+          task.iscompleted = false
+          task.urgency = false
+          task.priority = true
+
+        } else if (destination === "urgentNonImportant") {
           task.isbacklog = false
           task.iscompleted = false
           task.urgency = true
-          task.priority = true
-      } else if (destination === "nonUrgentImportant") {
-        task.isbacklog = false
-        task.iscompleted = false
-        task.urgency = false
-        task.priority = true
-
-      } else if (destination === "urgentNonImportant") {
-        task.isbacklog = false
-        task.iscompleted = false
-        task.urgency = true
-        task.priority = false
-      } else if (destination === "nonUrgentNonImportant") {
-        task.isbacklog = false
-        task.iscompleted = false
-        task.urgency = false
-        task.priority = false
-      }
-       if (taskStore.updateTask(task.ID, task)) {
-
-       } else {
-          message.value = "Task update failed"
-       }
-        displaySnack.value = true
-    }
-
-    onMounted(async () => {
-      // query tasks from the store
-      const tasks = await taskStore.getTasks(props.categoryID)
-      // Parse tasks and add them to the respective lists
-      tasks.forEach((task: Task) => {
-        if (task.isbacklog) {
-          backlog.value.push(task)
-        } else if (task.iscompleted) {
-          completedTasks.value.push(task)
-        } else if (task.urgency && task.priority) {
-          urgentImportant.value.push(task)
-        } else if (!task.urgency && task.priority) {
-          nonUrgentImportant.value.push(task)
-        } else if (task.urgency && !task.priority) {
-          urgentNonImportant.value.push(task)
-        } else {
-          nonUrgentNonImportant.value.push(task)
+          task.priority = false
+        } else if (destination === "nonUrgentNonImportant") {
+          task.isbacklog = false
+          task.iscompleted = false
+          task.urgency = false
+          task.priority = false
         }
+         if (taskStore.updateTask(task.ID, task)) {
+
+         } else {
+            message.value = "Task update failed"
+         }
+          displaySnack.value = true
+      }
+
+      onMounted(async () => {
+        // query tasks from the store
+        const tasks = await taskStore.getTasks(props.categoryID)
+        // Parse tasks and add them to the respective lists
+        tasks.forEach((task: Task) => {
+          if (task.isbacklog) {
+            backlog.value.push(task)
+          } else if (task.iscompleted) {
+            completedTasks.value.push(task)
+          } else if (task.urgency && task.priority) {
+            urgentImportant.value.push(task)
+          } else if (!task.urgency && task.priority) {
+            nonUrgentImportant.value.push(task)
+          } else if (task.urgency && !task.priority) {
+            urgentNonImportant.value.push(task)
+          } else {
+            nonUrgentNonImportant.value.push(task)
+          }
+        })
       })
-    })
 
-    return {
-
-        message,
-        displaySnack,
-        backlog,
-        urgentImportant,
-        nonUrgentImportant,
-        nonUrgentNonImportant,
-        urgentNonImportant,
-        completedTasks,
-        taskDialog,
-        taskName,
-        taskDescription,
-        taskDueDate,
-        formatTask,
-        triggerTaskDialog,
-        addTask,
-        onMove,
-        onChange,
-    }
-  },
-})
+      return {
+          message,
+          displaySnack,
+          backlog,
+          urgentImportant,
+          nonUrgentImportant,
+          nonUrgentNonImportant,
+          urgentNonImportant,
+          completedTasks,
+          taskDialog,
+          taskName,
+          taskDescription,
+          taskDueDate,
+          formatTask,
+          triggerTaskDialog,
+          addTask,
+          onMove,
+          onChange,
+      }
+    },
+  })
 </script>
 
 <template>
