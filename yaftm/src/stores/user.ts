@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import router from '@/router'
 import axios from 'axios'
 
-import type { UserSession } from '@/types/user'
+import type { UserSession, User } from '@/types/user'
 
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
@@ -105,7 +105,7 @@ export const useUserStore = defineStore('user', () => {
 
   const user = ref({})
 
-  const getUser = async () : Promise<Object> => {
+  const getUser = async () : Promise<User> => {
     console.log('Get user - function')
     const token = localStorage.getItem('etm-token')
     if (!token) {
@@ -123,7 +123,7 @@ export const useUserStore = defineStore('user', () => {
       console.log('Response : ', response.data)
       user.value = response.data
       console.log('user:', response.data)
-      return response.data.activity
+      return response.data
     } catch (error) {
       console.error('Get user error:', error)
       throw new Error('get user failed')

@@ -31,8 +31,7 @@
   const fetchUser = async () => {
     try {
       isLoading.value = true
-      await userStore.getUser()
-      user.value = userStore.user
+      user.value = await userStore.getUser()
       if (user.value) {
         appStore.pageTitle = user.value.username
         Object.assign(userForm.value, user.value)

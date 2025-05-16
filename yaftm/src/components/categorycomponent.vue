@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { defineComponent, ref, onMounted, nextTick } from 'vue'
+  import { defineComponent, ref, onMounted } from 'vue'
   import { useCategoryStore } from '@/stores/category.ts'
   import { useTaskStore } from '@/stores/task.ts'
   import { useAppStore } from '@/stores/app.ts'
   import { useUserStore } from '@/stores/user.ts'
   import type { Category } from '@/types/category.ts'
-  import type { Task } from '@/types/task.ts'
+  import type { Task, NewTask } from '@/types/task.ts'
   import { VueDraggableNext} from 'vue-draggable-next'
 
   export default defineComponent({
@@ -15,12 +15,14 @@
       draggable: VueDraggableNext,
     },
     props: {
-    category: {
-      type: Object as () => Category,
-      required: true,
+      categoryID: {
+        type: Number,
+        required: true
+      },
+
     },
-  },
-  setup(props) {
+
+    setup(props) {
     const backlog = ref<Task[]>([])
     const urgentImportant = ref<Task[]>([])
     const nonUrgentImportant = ref<Task[]>([])
@@ -29,11 +31,11 @@
     const completedTasks = ref<Task[]>([])
 
     const taskDialog = ref(false)
-    const taskName = ref<String>('')
-    const taskDescription = ref<String>('')
+    const taskName = ref<string>('')
+    const taskDescription = ref<string>('')
     const taskDueDate = ref<Date>(new Date())
 
-    const message = ref<String>('')
+    const message = ref<string>('')
     const displaySnack = ref(false)
     const formatTask = (task: Task) => {
       return '<div class="task draggable" id="task-' + task.ID + '">' +
@@ -60,59 +62,32 @@
       taskDialog.value = false
       console.log(typeof taskDueDate.value)
       if (taskName.value && taskDescription.value && taskDueDate.value) {
-        const newTask: Task = {
+        const newTask: NewTask = {
           name: taskName.value,
-          description: taskDescription.value,
-          dueDate: taskDueDate.value.toISOString(),
-          categoryid: props.category.ID,
-          isbackLog: true,
+          comment: taskDescription.value,
+          duedate: taskDueDate.value.toISOString(),
+          categoryid: props.categoryID,
+          isbacklog: true,
         }
-        taskStore.addTask(newTask)
-        backlog.value.push(newTask)
+        const task: Task = {
+          ID: 0,
+          iscompleted: false,
+          urgency: false,
+          priority: false,
+
+          ...newTask,
+        }
+        backlog.value.push(task)
       }
     }
 
     const onChange = (evt: any) => {
       console.log("onChange: ", evt)
-      if (evt.removed !== undefined) {
-        const task: Task = evt.removed.element
-        message.value = "Task updated successfully"
-        // Remove the task from the original list
-        if (origin === "backlog") {
-          console.log("Backlog: ", backlog.value)
-          backlog.value = backlog.value.filter(t => t.ID !== task.ID)
-          console.log("Backlog: ", backlog.value)
-
-        } else if (origin === "completedTasks") {
-          console.log("Completed tasks: ", completedTasks.value)
-          completedTasks.value = completedTasks.value.filter(t => t.ID !== task.ID)
-          console.log("Completed tasks: ", completedTasks.value)
-        } else if (origin === "urgentImportant") {
-          console.log("Urgent Important: ", urgentImportant.value)
-          urgentImportant.value = urgentImportant.value.filter(t => t.ID !== task.ID)
-          console.log("Urgent Important: ", urgentImportant.value)
-        } else if (origin === "nonUrgentImportant") {
-          console.log("Non Urgent Important: ", nonUrgentImportant.value)
-          nonUrgentImportant.value = nonUrgentImportant.value.filter(t => t.ID !== task.ID)
-          console.log("Non Urgent Important: ", nonUrgentImportant.value)
-        } else if (origin === "urgentNonImportant") {
-          console.log("Urgent Non Important: ", urgentNonImportant.value)
-          urgentNonImportant.value = urgentNonImportant.value.filter(t => t.ID !== task.ID)
-          console.log("Urgent Non Important: ", urgentNonImportant.value)
-        } else if (origin === "nonUrgentNonImportant") {
-          console.log("Non Urgent Non Important: ", nonUrgentNonImportant.value)
-          nonUrgentNonImportant.value = nonUrgentNonImportant.value.filter(t => t.ID !== task.ID)
-          console.log("Non Urgent Non Important: ", nonUrgentNonImportant.value)
-        } else {
-          console.log("Oops, something went wrong")
-        }
-
-      }
-
     }
+
     const onMove = (evt: any) => {
       const task: Task = evt.draggedContext.element
-      const origin: String = evt.from.attributes.itemkey.nodeValue
+      // const origin: String = evt.from.attributes.itemkey.nodeValue
       const destination: String = evt.to.attributes.itemkey.nodeValue
       if (destination === "backlog") {
         task.isbacklog = true
@@ -156,7 +131,7 @@
 
     onMounted(async () => {
       // query tasks from the store
-      const tasks = await taskStore.getTasks(props.category.ID)
+      const tasks = await taskStore.getTasks(props.categoryID)
       // Parse tasks and add them to the respective lists
       tasks.forEach((task: Task) => {
         if (task.isbacklog) {

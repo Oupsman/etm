@@ -71,7 +71,7 @@
             v-for="category in categoriesDisplay"
             :key="category.ID"
           >
-            <CategoryComponent v-if="activeTab === category.ID" :category="category" />
+            <CategoryComponent v-if="activeTab === category.ID" :categoryID="category.ID" />
           </v-tab-item>
         </v-tabs-items>
       </v-col>
