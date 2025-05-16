@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { defineComponent, ref, onMounted } from 'vue';
-  import { useCategoryStore } from '@/stores/category.ts';
-  import { useTaskStore } from '@/stores/task.ts';
-  import { useAppStore } from '@/stores/app.ts';
-  import { useUserStore } from '@/stores/user.ts';
-  import type { Category } from '@/types/category.ts';
-  import type { Task } from '@/types/task.ts';
+  import { defineComponent, ref, onMounted, nextTick } from 'vue'
+  import { useCategoryStore } from '@/stores/category.ts'
+  import { useTaskStore } from '@/stores/task.ts'
+  import { useAppStore } from '@/stores/app.ts'
+  import { useUserStore } from '@/stores/user.ts'
+  import type { Category } from '@/types/category.ts'
+  import type { Task } from '@/types/task.ts'
   import { VueDraggableNext} from 'vue-draggable-next'
 
   export default defineComponent({
@@ -21,19 +21,19 @@
     },
   },
   setup(props) {
-    const backlog = ref<Task[]>([]);
-    const urgentImportant = ref<Task[]>([]);
-    const nonUrgentImportant = ref<Task[]>([]);
-    const nonUrgentNonImportant = ref<Task[]>([]);
-    const urgentNonImportant = ref<Task[]>([]);
-    const completedTasks = ref<Task[]>([]);
+    const backlog = ref<Task[]>([])
+    const urgentImportant = ref<Task[]>([])
+    const nonUrgentImportant = ref<Task[]>([])
+    const nonUrgentNonImportant = ref<Task[]>([])
+    const urgentNonImportant = ref<Task[]>([])
+    const completedTasks = ref<Task[]>([])
 
-    const taskDialog = ref(false);
-    const taskName = ref<String>('');
-    const taskDescription = ref<String>('');
-    const taskDueDate = ref<Date>(new Date());
+    const taskDialog = ref(false)
+    const taskName = ref<String>('')
+    const taskDescription = ref<String>('')
+    const taskDueDate = ref<Date>(new Date())
 
-    const message = ref<String>('');
+    const message = ref<String>('')
     const displaySnack = ref(false)
     const formatTask = (task: Task) => {
       return '<div class="task draggable" id="task-' + task.ID + '">' +
@@ -46,19 +46,19 @@
         '<label>Comment: </label><p>' + task.comment + '</p>' +
         '<label>Due Date: </label><p>' + task.duedate + '</p>' +
         '</div>' +
-        '</div>';
-    };
+        '</div>'
+    }
 
-    const categoryStore = useCategoryStore();
-    const taskStore = useTaskStore();
+    const categoryStore = useCategoryStore()
+    const taskStore = useTaskStore()
 
     const triggerTaskDialog = () => {
-      taskDialog.value = true;
-    };
+      taskDialog.value = true
+    }
 
     const addTask = () => {
-      taskDialog.value = false;
-      console.log(typeof taskDueDate.value);
+      taskDialog.value = false
+      console.log(typeof taskDueDate.value)
       if (taskName.value && taskDescription.value && taskDueDate.value) {
         const newTask: Task = {
           name: taskName.value,
@@ -66,133 +66,153 @@
           dueDate: taskDueDate.value.toISOString(),
           categoryid: props.category.ID,
           isbackLog: true,
-        };
-        taskStore.addTask(newTask);
-        backlog.value.push(newTask);
+        }
+        taskStore.addTask(newTask)
+        backlog.value.push(newTask)
       }
-    };
+    }
+
+    const onChange = (evt: any) => {
+      console.log("onChange: ", evt)
+      if (evt.removed !== undefined) {
+        const task: Task = evt.removed.element
+        message.value = "Task updated successfully"
+        // Remove the task from the original list
+        if (origin === "backlog") {
+          console.log("Backlog: ", backlog.value)
+          backlog.value = backlog.value.filter(t => t.ID !== task.ID)
+          console.log("Backlog: ", backlog.value)
+
+        } else if (origin === "completedTasks") {
+          console.log("Completed tasks: ", completedTasks.value)
+          completedTasks.value = completedTasks.value.filter(t => t.ID !== task.ID)
+          console.log("Completed tasks: ", completedTasks.value)
+        } else if (origin === "urgentImportant") {
+          console.log("Urgent Important: ", urgentImportant.value)
+          urgentImportant.value = urgentImportant.value.filter(t => t.ID !== task.ID)
+          console.log("Urgent Important: ", urgentImportant.value)
+        } else if (origin === "nonUrgentImportant") {
+          console.log("Non Urgent Important: ", nonUrgentImportant.value)
+          nonUrgentImportant.value = nonUrgentImportant.value.filter(t => t.ID !== task.ID)
+          console.log("Non Urgent Important: ", nonUrgentImportant.value)
+        } else if (origin === "urgentNonImportant") {
+          console.log("Urgent Non Important: ", urgentNonImportant.value)
+          urgentNonImportant.value = urgentNonImportant.value.filter(t => t.ID !== task.ID)
+          console.log("Urgent Non Important: ", urgentNonImportant.value)
+        } else if (origin === "nonUrgentNonImportant") {
+          console.log("Non Urgent Non Important: ", nonUrgentNonImportant.value)
+          nonUrgentNonImportant.value = nonUrgentNonImportant.value.filter(t => t.ID !== task.ID)
+          console.log("Non Urgent Non Important: ", nonUrgentNonImportant.value)
+        } else {
+          console.log("Oops, something went wrong")
+        }
+
+      }
+
+    }
     const onMove = (evt: any) => {
       const task: Task = evt.draggedContext.element
-
+      const origin: String = evt.from.attributes.itemkey.nodeValue
       const destination: String = evt.to.attributes.itemkey.nodeValue
-      console.log('To :', destination)
       if (destination === "backlog") {
-        console.log('Backlog');
-        task.isbacklog = true;
-        task.iscompleted = false;
-        task.urgency = false;
-        task.priority = false;
+        task.isbacklog = true
+        task.iscompleted = false
+        task.urgency = false
+        task.priority = false
       } else if (destination === "completedTasks") {
-
-        console.log("Completed Tasks");
-        task.isbacklog = false;
-        task.iscompleted = true;
-        task.urgency = false;
-        task.priority = false;
+        task.isbacklog = false
+        task.iscompleted = true
+        task.urgency = false
+        task.priority = false
       } else if (destination ===  "urgentImportant") {
-          console.log('Urgent Important');
-          task.isbacklog = false;
-          task.iscompleted = false;
-          task.urgency = true;
-          task.priority = true;
+          task.isbacklog = false
+          task.iscompleted = false
+          task.urgency = true
+          task.priority = true
       } else if (destination === "nonUrgentImportant") {
-
-        console.log("Non Urgent Important");
-        task.isbacklog = false;
-        task.iscompleted = false;
-        task.urgency = false;
-        task.priority = true;
+        task.isbacklog = false
+        task.iscompleted = false
+        task.urgency = false
+        task.priority = true
 
       } else if (destination === "urgentNonImportant") {
-
-        console.log('Urgent Non Important');
-        task.isbacklog = false;
-        task.iscompleted = false;
-        task.urgency = true;
-        task.priority = false;
+        task.isbacklog = false
+        task.iscompleted = false
+        task.urgency = true
+        task.priority = false
       } else if (destination === "nonUrgentNonImportant") {
-
-        console.log('Non Urgent Non Important');
-        task.isbacklog = false;
-        task.iscompleted = false;
-        task.urgency = false;
-        task.priority = false;
-      } else {
-        console.log('Unknown destination', typeof(destination));
-
+        task.isbacklog = false
+        task.iscompleted = false
+        task.urgency = false
+        task.priority = false
       }
        if (taskStore.updateTask(task.ID, task)) {
-         message.value = "Task updated successfully"
+
        } else {
           message.value = "Task update failed"
        }
-        displaySnack.value = true;
-      // Add logic to handle the move event if needed
-    };
-    const onDragEnd = (evt: any) => {
-      console.log('Drag ended ', evt, typeof evt);
-    };
+        displaySnack.value = true
+    }
 
     onMounted(async () => {
-      console.log("Category :" + JSON.stringify(props.category));
       // query tasks from the store
-      const tasks = await taskStore.getTasks(props.category.ID);
-      console.log("Tasks:", tasks);
+      const tasks = await taskStore.getTasks(props.category.ID)
       // Parse tasks and add them to the respective lists
       tasks.forEach((task: Task) => {
         if (task.isbacklog) {
-          backlog.value.push(task);
+          backlog.value.push(task)
         } else if (task.iscompleted) {
-          completedTasks.value.push(task);
+          completedTasks.value.push(task)
         } else if (task.urgency && task.priority) {
-          urgentImportant.value.push(task);
+          urgentImportant.value.push(task)
         } else if (!task.urgency && task.priority) {
-          nonUrgentImportant.value.push(task);
+          nonUrgentImportant.value.push(task)
         } else if (task.urgency && !task.priority) {
-          urgentNonImportant.value.push(task);
+          urgentNonImportant.value.push(task)
         } else {
-          nonUrgentNonImportant.value.push(task);
+          nonUrgentNonImportant.value.push(task)
         }
-      });
-    });
+      })
+    })
 
     return {
-      message,
-      displaySnack,
-      backlog,
-      urgentImportant,
-      nonUrgentImportant,
-      nonUrgentNonImportant,
-      urgentNonImportant,
-      completedTasks,
-      taskDialog,
-      taskName,
-      taskDescription,
-      taskDueDate,
-      formatTask,
-      triggerTaskDialog,
-      addTask,
-      onDragEnd,
-      onMove,
-    };
+
+        message,
+        displaySnack,
+        backlog,
+        urgentImportant,
+        nonUrgentImportant,
+        nonUrgentNonImportant,
+        urgentNonImportant,
+        completedTasks,
+        taskDialog,
+        taskName,
+        taskDescription,
+        taskDueDate,
+        formatTask,
+        triggerTaskDialog,
+        addTask,
+        onMove,
+        onChange,
+    }
   },
 })
 </script>
 
 <template>
-  <v-container class="fill-height" style="height: 90vh;">
+  <v-container class="fill-height" style="height: 90vh">
     <v-row class="fill-height">
       <!-- Backlog Column -->
-      <v-col cols="3" class="d-flex flex-column backlog fill-height" style="position: absolute; left: 0; height:80vh;">
+      <v-col cols="3" class="d-flex flex-column backlog fill-height" style="position: absolute left: 0 height:80vh">
         <h2>Backlog</h2>
         <v-btn @click="triggerTaskDialog">Add task</v-btn>
         <draggable group="tasks"
-                   :list="backlog"
+                   v-model="backlog"
                    itemKey="backlog"
-                   @change="onDragEnd"
-                   :move="onMove">
-          <v-card class="mb-2" v-if="backlog.length > 0" v-for="task in backlog" :key="task.ID">
-            {{ task.name }}
+                   :move="onMove"
+                   @change = "onChange">
+          <v-card class="mb-2 task" v-for="task in backlog" :key="task.ID">
+            <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon> {{ task.name }}
           </v-card>
         </draggable>
 
@@ -201,79 +221,70 @@
       <!-- Eisenhower Matrix -->
       <v-col cols="6" class="mx-auto fill-height d-flex flex-column " >
         <v-row class="d-flex">
-          <v-col class="mx-auto d-flex flex-column UrgentImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
+          <v-col class="mx-auto d-flex flex-column UrgentImportant" cols="6" style="position: relative left: 0 height: 40vh">
               <h2>Urgent et Important</h2>
               <draggable group="tasks"
-                         :list="urgentImportant"
+                         v-model="urgentImportant"
                          itemKey="urgentImportant"
-                         @change="onDragEnd"
-                         :move="onMove">
-                <v-list v-if="urgentImportant.length > 0">
-                  <v-list-item v-for="(task, index) in urgentImportant" :key="index">
-                    {{ task.name }}
-                  </v-list-item>
-                </v-list>
+                         :move="onMove"
+                         @change = "onChange">
+                <v-card class="mb-2 task" v-for="task in urgentImportant" :key="task.ID">
+                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                </v-card>
               </draggable>
           </v-col>
-          <v-col cols="6" class="mx-auto d-flex flex-column NotUrgentImportant" style="position: relative; left: 0; height: 40vh;">
+          <v-col cols="6" class="mx-auto d-flex flex-column NotUrgentImportant" style="position: relative left: 0 height: 40vh">
             <h2>Non Urgent et Important</h2>
             <draggable group="tasks"
-                       :list="nonUrgentImportant"
+                       v-model="nonUrgentImportant"
                        itemKey="nonUrgentImportant"
-                       @change="onDragEnd"
-                       :move="onMove">
-                <v-list v-if="nonUrgentImportant.length > 0">
-                  <v-list-item v-for="(task, index) in nonUrgentImportant" :key="index">
-                    {{ task.name }}
-                  </v-list-item>
-                </v-list>
+                       :move="onMove"
+                       @change = "onChange">
+
+                <v-card class="mb-2 task"  v-for="task in nonUrgentImportant" :key="task.ID">
+                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                </v-card>
             </draggable>
           </v-col>
-          <v-col cols="6" class="mx-auto d-flex flex-column UrgentNotImportant" style="position: relative; left: 0; height: 40vh;">
+          <v-col cols="6" class="mx-auto d-flex flex-column UrgentNotImportant" style="position: relative left: 0 height: 40vh">
               <h2>Urgent et Non Important</h2>
               <draggable group="tasks"
-                          :list="urgentNonImportant"
+                         v-model="urgentNonImportant"
                          itemKey="urgentNonImportant"
-                          @change="onDragEnd"
-                         :move="onMove">
-                <v-list v-if="urgentNonImportant.length > 0">
-                  <v-list-item v-for="(task, index) in urgentNonImportant" :key="index">
-                    {{ task.name }}
-                  </v-list-item>
-                </v-list>
+                         :move="onMove"
+                         @change = "onChange">
+                <v-card class="mb-2 task" v-for="task in urgentNonImportant" :key="task.ID">
+                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  </v-card>
               </draggable>
           </v-col>
-          <v-col cols="6" class="mx-auto d-flex flex-column " style="position: relative; left: 0; height: 40vh;">
+          <v-col cols="6" class="mx-auto d-flex flex-column NotUrgentNotImportant" style="position: relative left: 0 height: 40vh">
             <h2>Non Urgent et Non Important</h2>
               <draggable group="tasks"
-                         :list="nonUrgentNonImportant"
+                         v-model="nonUrgentNonImportant"
                          itemKey="nonUrgentNonImportant"
-                         @change="onDragEnd"
-                         :move="onMove">
-                <v-list v-if="nonUrgentNonImportant.length > 0">
-                  <v-list-item v-for="(task, index) in nonUrgentNonImportant" :key="index">
-                    {{ task.name }}
-                  </v-list-item>
-                </v-list>
+                         :move="onMove"
+                         @change = "onChange">
+
+                <v-card class="mb-2 task" v-for="task in nonUrgentNonImportant" :key="task.ID">
+                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  </v-card>
               </draggable>
           </v-col>
         </v-row>
       </v-col>
 
       <!-- Completed Tasks Column -->
-      <v-col cols="3" class="d-flex flex-column completed fill-height" style="position: absolute; right: 0; height: 80vh;">
+      <v-col cols="3" class="d-flex flex-column completed fill-height" style="position: absolute right: 0 height: 80vh">
           <v-card-title>Tâches Terminées</v-card-title>
           <draggable group="tasks"
-                     :list="completedTasks"
+                     v-model="completedTasks"
                      itemKey="completedTasks"
-                     @change="onDragEnd"
-                     :move="onMove">
-            <v-list v-if="completedTasks.length > 0">
-              <v-list-item v-for="(task, index) in completedTasks" :key="index">
-
-                {{ task.name }}
-              </v-list-item>
-            </v-list>
+                     :move="onMove"
+                     @change = "onChange">
+            <v-card class="mb-2 task" v-for="task in completedTasks" :key="task.ID">
+              <v-icon icon="mdi-checkbox-marked-outline" size="small"> </v-icon> {{ task.name }}
+            </v-card>
           </draggable>
       </v-col>
     </v-row>
@@ -352,5 +363,15 @@
 
   .NotUrgentImportant
     background-color: lightpink
+
+  .task
+    background-color: white
+    width: 95%
+    height: 40px
+    margin: 2px auto
+    padding: 2px
+    position: relative
+    text-align: left
+    border: 1px darkgrey solid
 
 </style>

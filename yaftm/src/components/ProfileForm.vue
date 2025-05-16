@@ -26,7 +26,7 @@
 
   const v$ = useVuelidate(rules, userForm)
 
-  const user = ref(<User>{})
+  const user = ref<User>()
 
   const fetchUser = async () => {
     try {
