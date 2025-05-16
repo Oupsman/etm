@@ -1,23 +1,18 @@
-<script lang="ts">
-  import { defineComponent, ref, onMounted } from 'vue'
+<script setup lang="ts">
+  import { defineProps, ref, onMounted } from 'vue'
   import { useCategoryStore } from '@/stores/category.ts'
   import { useTaskStore } from '@/stores/task.ts'
   import { useAppStore } from '@/stores/app.ts'
   import { useUserStore } from '@/stores/user.ts'
   import type { Task, NewTask } from '@/types/task.ts'
-  import { VueDraggableNext} from 'vue-draggable-next'
+  import { VueDraggableNext as draggable} from 'vue-draggable-next'
 
-  export default defineComponent({
-    props: {
+  const props = defineProps({
       categoryID: {
         type: Number,
         required: true
       },
-    },
-    components: {
-      draggable: VueDraggableNext,
-    },
-    setup(props) {
+    })
       const backlog = ref<Task[]>([])
       const urgentImportant = ref<Task[]>([])
       const nonUrgentImportant = ref<Task[]>([])
@@ -144,28 +139,6 @@
           }
         })
       })
-
-      return {
-          message,
-          displaySnack,
-          backlog,
-          urgentImportant,
-          nonUrgentImportant,
-          nonUrgentNonImportant,
-          urgentNonImportant,
-          completedTasks,
-          taskDialog,
-          taskName,
-          taskDescription,
-          taskDueDate,
-          formatTask,
-          triggerTaskDialog,
-          addTask,
-          onMove,
-          onChange,
-      }
-    },
-  })
 </script>
 
 <template>
