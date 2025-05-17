@@ -10,7 +10,7 @@ export const useTaskStore = defineStore('task', () => {
   const tasks = ref([] as Task[])
   const backlog = ref([] as Task[])
 
-  const addTask = (task: Task): void => {
+  const addTask = (task: Task): Task => {
     tasks.value.push(task)
     const token = localStorage.getItem('etm-token')
     if (!token) {
@@ -26,11 +26,12 @@ export const useTaskStore = defineStore('task', () => {
       token,
     }).then(response => {
       backlog.value.push(task)
-      console.log('TaskCard created:', response.data)
+      return response.data
     }).catch(error => {
       console.error('Create TaskCard error:', error)
       throw new Error('Create task failed')
     })
+    return task
   }
 
   const removeTask = (taskToDelete: Task): boolean => {
@@ -58,6 +59,7 @@ export const useTaskStore = defineStore('task', () => {
   }
 
   const updateTask = (taskId: number, updatedTask: Task): boolean => {
+    console.log('Store UpdateTask')
     const index = tasks.value.findIndex((task) => task.ID === taskId)
     if (index !== -1) {
       tasks.value[index] = { ...tasks.value[index], ...updatedTask }

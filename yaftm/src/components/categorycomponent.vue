@@ -6,7 +6,7 @@
   import { useUserStore } from '@/stores/user.ts'
   import type { Task, NewTask } from '@/types/task.ts'
   import { VueDraggableNext as draggable} from 'vue-draggable-next'
-
+  import TaskComponent from '@/components/taskcomponent.vue'
   const props = defineProps({
       categoryID: {
         type: Number,
@@ -27,6 +27,7 @@
 
       const message = ref<string>('')
       const displaySnack = ref(false)
+      const triggerDeleteAlert = ref(false)
 
       const categoryStore = useCategoryStore()
       const taskStore = useTaskStore()
@@ -54,7 +55,10 @@
 
             ...newTask,
           }
-          backlog.value.push(task)
+          if (taskStore.addTask(task)) {
+            backlog.value.push(task)
+          }
+
         }
       }
 
@@ -98,9 +102,7 @@
           task.urgency = false
           task.priority = false
         }
-         if (taskStore.updateTask(task.ID, task)) {
-
-         } else {
+         if (!taskStore.updateTask(task.ID, task)) {
             message.value = "Task update failed"
          }
           displaySnack.value = true
@@ -141,7 +143,7 @@
                    :move="onMove"
                    @change = "onChange">
           <v-card class="mb-2 task" v-for="task in backlog" :key="task.ID">
-            <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon> {{ task.name }}
+            <TaskComponent :task="task" />
           </v-card>
         </draggable>
 
@@ -158,7 +160,7 @@
                          :move="onMove"
                          @change = "onChange">
                 <v-card class="mb-2 task" v-for="task in urgentImportant" :key="task.ID">
-                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  <TaskComponent :task="task" />
                 </v-card>
               </draggable>
           </v-col>
@@ -171,7 +173,7 @@
                        @change = "onChange">
 
                 <v-card class="mb-2 task"  v-for="task in nonUrgentImportant" :key="task.ID">
-                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  <TaskComponent :task="task" />
                 </v-card>
             </draggable>
           </v-col>
@@ -183,7 +185,7 @@
                          :move="onMove"
                          @change = "onChange">
                 <v-card class="mb-2 task" v-for="task in urgentNonImportant" :key="task.ID">
-                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  <TaskComponent :task="task" />
                   </v-card>
               </draggable>
           </v-col>
@@ -196,7 +198,7 @@
                          @change = "onChange">
 
                 <v-card class="mb-2 task" v-for="task in nonUrgentNonImportant" :key="task.ID">
-                  <v-icon icon="mdi-checkbox-blank-outline" size="small"> </v-icon>  {{ task.name }}
+                  <TaskComponent :task="task" />
                   </v-card>
               </draggable>
           </v-col>
@@ -211,8 +213,8 @@
                      itemKey="completedTasks"
                      :move="onMove"
                      @change = "onChange">
-            <v-card class="mb-2 task" v-for="task in completedTasks" :key="task.ID">
-              <v-icon icon="mdi-checkbox-marked-outline" size="small"> </v-icon> {{ task.name }}
+            <v-card v-for="task in completedTasks" :key="task.ID" style="padding: 0;">
+              <TaskComponent :task="task" />
             </v-card>
           </draggable>
       </v-col>
