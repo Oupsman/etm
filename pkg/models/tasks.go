@@ -76,3 +76,11 @@ func (db *DB) GetActiveTasks() ([]Tasks, error) {
 	}
 	return tasks, nil
 }
+
+func (db *DB) DeleteTask(TaskID uint) error {
+	result := db.Delete(&Tasks{}, TaskID)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

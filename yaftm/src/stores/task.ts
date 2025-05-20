@@ -34,11 +34,8 @@ export const useTaskStore = defineStore('task', () => {
     return task
   }
 
-  const removeTask = (taskToDelete: Task): boolean => {
+  const deleteTask = (taskToDelete: Task): boolean => {
     tasks.value = tasks.value.filter((task) => task.ID !== taskToDelete.ID)
-
-    console.log('Delete task - function')
-    confirm('Are you sure you want to delete this task?')
     const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
@@ -106,5 +103,5 @@ export const useTaskStore = defineStore('task', () => {
       throw new Error('get tasks failed')
     }
   }
-  return { tasks, addTask, removeTask, updateTask, getTasks }
+  return { tasks, addTask, deleteTask, updateTask, getTasks }
 })

@@ -15,7 +15,10 @@
   const taskName = ref('')
   const taskDescription = ref('')
   const taskDueDate = ref<Date>()
-  const editTask = (task: Task): void => {
+  const triggerDeleteTask = ref(false)
+
+
+  const onEditTask = (task: Task): void => {
 
     console.log('Edit task ', task)
     taskName.value = task.name
@@ -24,8 +27,10 @@
     triggerEditTask.value = true
   }
 
-  const deleteTask = (task: Task): void => {
-    console.log('Delete task ', task)
+  const onDeleteTask = (task: Task): void => {
+    taskName.value = task.name
+    taskDescription.value = task.comment
+    triggerDeleteTask.value = true
   }
 
   const saveTask = (task: Task): void => {
@@ -39,14 +44,19 @@
       }
     }
   }
-
+  const deleteTask = (task: Task): void => {
+    console.log('Delete task: ', task)
+    if (taskStore.deleteTask(task)) {
+      triggerDeleteTask.value = false
+    }
+  }
 </script>
 
 <template>
   <v-card class="mb-2 task" style="margin: 0;">
     <v-icon icon="mdi-checkbox-marked-outline" size="small"> </v-icon> {{ props.task.name }}
-    <v-btn icon="mdi-pencil" @click="editTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
-    <v-btn icon="mdi-trash-can" @click="deleteTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
+    <v-btn icon="mdi-pencil" @click="onEditTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
+    <v-btn icon="mdi-trash-can" @click="onDeleteTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
   </v-card>
   <v-dialog v-model="triggerEditTask" persistent max-width="600px">
     <v-card>
@@ -91,6 +101,19 @@
     <v-btn @click="triggerEditTask = false">Cancel</v-btn>
       </v-card-actions>
 
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="triggerDeleteTask" persistent max-width="600px">
+    <v-card>
+      <v-card-title>Are you sure ?</v-card-title>
+      <v-card-text>Do you really want to delete this task ?
+        Name: {{ taskName }}
+      Description: {{ taskDescription }}</v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="deleteTask(props.task)">YES</v-btn>
+        <v-btn @click="triggerDeleteTask = false">NO</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

@@ -173,11 +173,12 @@ func DeleteTask(c *gin.Context) {
 	Task, err := db.GetTask(id)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
-	result := models2.Db.Delete(&Task)
-	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + result.Error.Error()})
+	err = db.DeleteTask(Task.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
