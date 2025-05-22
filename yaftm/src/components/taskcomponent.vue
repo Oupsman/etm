@@ -2,6 +2,9 @@
   import type { Task } from '@/types/task.ts'
   import { useTaskStore } from '@/stores/task.ts'
 
+
+  const emit = defineEmits(['updatecategory'])
+
   const taskStore = useTaskStore()
 
   const props = defineProps({
@@ -17,10 +20,7 @@
   const taskDueDate = ref<Date>()
   const triggerDeleteTask = ref(false)
 
-
   const onEditTask = (task: Task): void => {
-
-    console.log('Edit task ', task)
     taskName.value = task.name
     taskDescription.value = task.comment
     taskDueDate.value = new Date(task.duedate)
@@ -33,31 +33,59 @@
     triggerDeleteTask.value = true
   }
 
+  const onCompletedTask = (task: Task): void => {
+    if (task.iscompleted) {
+      task.iscompleted = true
+      task.priority = false
+      task.urgency = false
+      task.isbacklog = false
+    } else {
+      task.iscompleted = false
+      task.priority = false
+      task.urgency = false
+      task.isbacklog = true
+    }
+    taskStore.updateTask(task.ID, task)
+    emit('updatecategory')
+  }
+
+
   const saveTask = (task: Task): void => {
     console.log('Save task ', task)
     if (taskName.value && taskDescription.value && taskDueDate.value) {
       task.name = taskName.value
       task.comment = taskDescription.value
       task.duedate = taskDueDate.value.toISOString()
-      if (taskStore.updateTask(task.ID, task)) {
+
+      if ( taskStore.updateTask(task.ID, task)) {
         triggerEditTask.value = false
+        emit('updatecategory')
+
+        console.log('Event emitted')
       }
     }
   }
   const deleteTask = (task: Task): void => {
-    console.log('Delete task: ', task)
     if (taskStore.deleteTask(task)) {
       triggerDeleteTask.value = false
+      emit('updatecategory')
     }
   }
 </script>
 
 <template>
-  <v-card class="mb-2 task" style="margin: 0;">
-    <v-icon icon="mdi-checkbox-marked-outline" size="small"> </v-icon> {{ props.task.name }}
-    <v-btn icon="mdi-pencil" @click="onEditTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
-    <v-btn icon="mdi-trash-can" @click="onDeleteTask(props.task)" size="small" density="compact" :right="true" :absolute="true"> </v-btn>
-  </v-card>
+    <v-card class="task-card">
+      <v-checkbox
+        v-model="props.task.iscompleted"
+        class="status-checkbox"
+        @change="onCompletedTask(props.task)"
+      ></v-checkbox>
+      <div class="task-name">{{ props.task.name }}</div>
+      <div class="task-actions">
+        <v-btn class="edit-btn" icon="mdi-pencil" @click="onEditTask(props.task)" size="small"></v-btn>
+        <v-btn class="delete-btn" icon="mdi-trash-can" @click="onDeleteTask(props.task)" size="small"></v-btn>
+      </div>
+    </v-card>
   <v-dialog v-model="triggerEditTask" persistent max-width="600px">
     <v-card>
       <v-card-title>
@@ -119,5 +147,53 @@
 </template>
 
 <style scoped lang="sass">
+.task-card
+  width: 100%
+  height: 100%
+  margin: 0
+  padding: 0
+  border: none
+  box-shadow: none
+  display: flex
+  align-items: center
+  justify-content: center
+
+.task-card:hover
+  transform: translateY(-3px)
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15)
+
+.status-checkbox
+  display: flex
+  margin-right: 10px
+
+.task-name
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 600
+  color: #333
+  flex-grow: 1  // Permet au nom de prendre tout l'espace disponible
+  text-align: center  // Centre le texte
+  display: flex
+  align-items: center
+  justify-content: center
+
+
+.task-actions
+  display: flex
+  gap: 10px
+  justify-content: flex-end  // Alignement à droite
+
+.edit-btn, .delete-btn
+  background: none
+  border: none
+  cursor: pointer
+  font-size: 18px
+  transition: color 0.3s ease
+
+.edit-btn:hover
+  color: #3498db
+
+.delete-btn:hover
+  color: #e74c3c
 
 </style>

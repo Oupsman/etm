@@ -108,10 +108,17 @@
           displaySnack.value = true
       }
 
-      onMounted(async () => {
+      const parseTasks = async () => {
         // query tasks from the store
         const tasks = await taskStore.getTasks(props.categoryID)
         // Parse tasks and add them to the respective lists
+        backlog.value = []
+        completedTasks.value = []
+        urgentImportant.value = []
+        nonUrgentImportant.value = []
+        nonUrgentNonImportant.value = []
+        urgentNonImportant.value = []
+
         tasks.forEach((task: Task) => {
           if (task.isbacklog) {
             backlog.value.push(task)
@@ -127,6 +134,10 @@
             nonUrgentNonImportant.value.push(task)
           }
         })
+      }
+
+      onMounted(async () => {
+        parseTasks()
       })
 </script>
 
@@ -143,7 +154,7 @@
                    :move="onMove"
                    @change = "onChange">
           <v-card class="mb-2 task" v-for="task in backlog" :key="task.ID">
-            <TaskComponent :task="task" />
+            <TaskComponent :task="task" @updatecategory="parseTasks" />
           </v-card>
         </draggable>
 
@@ -160,7 +171,7 @@
                          :move="onMove"
                          @change = "onChange">
                 <v-card class="mb-2 task" v-for="task in urgentImportant" :key="task.ID">
-                  <TaskComponent :task="task" />
+                  <TaskComponent :task="task" @updatecategory="parseTasks" />
                 </v-card>
               </draggable>
           </v-col>
@@ -173,7 +184,7 @@
                        @change = "onChange">
 
                 <v-card class="mb-2 task"  v-for="task in nonUrgentImportant" :key="task.ID">
-                  <TaskComponent :task="task" />
+                  <TaskComponent :task="task" @updatecategory="parseTasks" />
                 </v-card>
             </draggable>
           </v-col>
@@ -185,7 +196,7 @@
                          :move="onMove"
                          @change = "onChange">
                 <v-card class="mb-2 task" v-for="task in urgentNonImportant" :key="task.ID">
-                  <TaskComponent :task="task" />
+                  <TaskComponent :task="task" @updatecategory="parseTasks" />
                   </v-card>
               </draggable>
           </v-col>
@@ -198,7 +209,7 @@
                          @change = "onChange">
 
                 <v-card class="mb-2 task" v-for="task in nonUrgentNonImportant" :key="task.ID">
-                  <TaskComponent :task="task" />
+                  <TaskComponent :task="task" @updatecategory="parseTasks" />
                   </v-card>
               </draggable>
           </v-col>
@@ -214,7 +225,7 @@
                      :move="onMove"
                      @change = "onChange">
             <v-card v-for="task in completedTasks" :key="task.ID" style="padding: 0;">
-              <TaskComponent :task="task" />
+              <TaskComponent :task="task" @updatecategory="parseTasks"/>
             </v-card>
           </draggable>
       </v-col>
@@ -274,35 +285,60 @@
 </template>
 
 <style scoped lang="sass">
-  .fill-height
-    height: 100%
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap')
 
-  .backlog
-    background-color: lightgrey
+.fill-height
+  height: 100%
 
-  .completed
-    background-color: lightgreen
+.backlog
+  background: linear-gradient(135deg, #bdc3c7, #eef2f7)
+  border-radius: 8px
+  padding: 15px
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1)
 
-  .UrgentImportant
-    background-color: lightsalmon
+.completed
+  background: linear-gradient(135deg, #2ecc71, #7ed56f)
+  border-radius: 8px
+  padding: 15px
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1)
 
-  .UrgentNotImportant
-    background-color: lightyellow
+.UrgentImportant
+  background: linear-gradient(135deg, #e74c3c, #ff6b6b)
+  border-radius: 8px
+  padding: 15px
+  transition: transform 0.3s ease, box-shadow 0.3s ease
 
-  .NotUrgentNotImportant
-    background-color: lightskyblue
+.UrgentNotImportant
+  background: linear-gradient(135deg, #f39c12, #ffba49)
+  border-radius: 8px
+  padding: 15px
+  transition: transform 0.3s ease, box-shadow 0.3s ease
 
-  .NotUrgentImportant
-    background-color: lightpink
+.NotUrgentNotImportant
+  background: linear-gradient(135deg, #3498db, #6ab0f3)
+  border-radius: 8px
+  padding: 15px
+  transition: transform 0.3s ease, box-shadow 0.3s ease
 
-  .task
-    background-color: white
-    width: 95%
-    height: 40px
-    margin: 2px auto
-    padding: 2px
-    position: relative
-    text-align: left
-    border: 1px darkgrey solid
+.NotUrgentImportant
+  background: linear-gradient(135deg, #9b59b6, #bb6bd9)
+  border-radius: 8px
+  padding: 15px
+  transition: transform 0.3s ease, box-shadow 0.3s ease
+
+.task
+  width: 100%
+  height: 100%
+  margin: 0
+  padding: 0
+  border: none
+  box-shadow: none
+  display: flex
+  align-items: center
+  justify-content: center
+
+.task:hover
+  transform: translateY(-5px)
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2)
 
 </style>
