@@ -37,8 +37,8 @@
       }
 
       const addTask = () => {
+        console.log('addTask')
         taskDialog.value = false
-        console.log(typeof taskDueDate.value)
         if (taskName.value && taskDescription.value && taskDueDate.value) {
           const newTask: NewTask = {
             name: taskName.value,
@@ -55,6 +55,7 @@
 
             ...newTask,
           }
+          console.log('task', task)
           if (taskStore.addTask(task)) {
             backlog.value.push(task)
           }
@@ -110,7 +111,9 @@
 
       const parseTasks = async () => {
         // query tasks from the store
+        console.log('Categpory ID: ', props.categoryID)
         const tasks = await taskStore.getTasks(props.categoryID)
+        console.log(tasks)
         // Parse tasks and add them to the respective lists
         backlog.value = []
         completedTasks.value = []
@@ -328,7 +331,8 @@
 
 .task
   width: 100%
-  height: 100%
+  height: 50px
+  min-height: 50px
   margin: 0
   padding: 0
   border: none

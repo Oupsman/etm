@@ -11,6 +11,7 @@ export const useTaskStore = defineStore('task', () => {
   const backlog = ref([] as Task[])
 
   const addTask = (task: Task): Task => {
+    console.log('Store addTask', task)
     tasks.value.push(task)
     const token = localStorage.getItem('etm-token')
     if (!token) {
