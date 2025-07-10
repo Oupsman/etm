@@ -7,7 +7,9 @@
   const password: Ref<string> = ref('')
 
   const login = () => {
+
     userStore.login(username.value, password.value)
+
   }
 </script>
 

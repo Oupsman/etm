@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-  import { useCategoryStore} from '@/stores/category.ts'
+  import { useUserStore } from '@/stores/user'
+  import { useAppStore } from '@/stores/app'
+
+  const userStore = useUserStore()
+  const appStore = useAppStore()
+  if (!userStore.userIsLoggedIn) {
+    // redirect to the login page
+    appStore.navigateToPage('/login')
+  }
 </script>
 
 <template>

@@ -32,7 +32,7 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   const removeCategory = (categoryToDelete: Category): boolean => {
-    categories.value = categories.value.filter((category) => category.ID !== categoryToDelete.ID)
+    categories.value = categories.value.filter(category => category.ID !== categoryToDelete.ID)
 
     console.log('Delete category - function')
     confirm('Are you sure you want to delete this category?')
@@ -56,7 +56,7 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   const updateCategory = (categoryId: number, updatedCategory: Category): boolean => {
-    const index = categories.value.findIndex((category) => category.ID === categoryId)
+    const index = categories.value.findIndex(category => category.ID === categoryId)
     if (index !== -1) {
       categories.value[index] = { ...categories.value[index], ...updatedCategory }
       console.log('categoryCard to save', updatedCategory)

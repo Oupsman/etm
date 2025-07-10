@@ -10,7 +10,7 @@
   const props = defineProps({
     task: {
       type: Object as PropType<Task>,
-      required: true
+      required: true,
     },
   })
 
@@ -74,19 +74,19 @@
 </script>
 
 <template>
-    <v-card class="task-card">
-      <v-checkbox
-        v-model="props.task.iscompleted"
-        class="status-checkbox"
-        @change="onCompletedTask(props.task)"
-      ></v-checkbox>
-      <div class="task-name">{{ props.task.name }}</div>
-      <div class="task-actions">
-        <v-btn class="edit-btn" icon="mdi-pencil" @click="onEditTask(props.task)" size="small"></v-btn>
-        <v-btn class="delete-btn" icon="mdi-trash-can" @click="onDeleteTask(props.task)" size="small"></v-btn>
-      </div>
-    </v-card>
-  <v-dialog v-model="triggerEditTask" persistent max-width="600px">
+  <v-card class="task-card">
+    <v-checkbox
+      v-model="props.task.iscompleted"
+      class="status-checkbox"
+      @change="onCompletedTask(props.task)"
+    />
+    <div class="task-name">{{ props.task.name }}</div>
+    <div class="task-actions">
+      <v-btn class="edit-btn" icon="mdi-pencil" size="small" @click="onEditTask(props.task)" />
+      <v-btn class="delete-btn" icon="mdi-trash-can" size="small" @click="onDeleteTask(props.task)" />
+    </div>
+  </v-card>
+  <v-dialog v-model="triggerEditTask" max-width="600px" persistent>
     <v-card>
       <v-card-title>
         <span class="headline">Edit task</span>
@@ -96,49 +96,49 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                label="Name"
                 v-model="taskName"
+                label="Name"
                 required
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="12">
               <v-text-field
-                label="Description"
                 v-model="taskDescription"
+                label="Description"
                 required
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
 
           <v-row>
             <v-col cols="12">
               <v-date-picker
-                label="Due Date"
                 v-model="taskDueDate"
+                label="Due Date"
                 required
-              ></v-date-picker>
+              />
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
-    <v-btn @click="saveTask(props.task)">Save</v-btn>
-    <v-btn @click="triggerEditTask = false">Cancel</v-btn>
+        <v-spacer />
+        <v-btn @click="saveTask(props.task)">Save</v-btn>
+        <v-btn @click="triggerEditTask = false">Cancel</v-btn>
       </v-card-actions>
 
     </v-card>
   </v-dialog>
-  <v-dialog v-model="triggerDeleteTask" persistent max-width="600px">
+  <v-dialog v-model="triggerDeleteTask" max-width="600px" persistent>
     <v-card>
       <v-card-title>Are you sure ?</v-card-title>
       <v-card-text>Do you really want to delete this task ?
         Name: {{ taskName }}
-      Description: {{ taskDescription }}</v-card-text>
+        Description: {{ taskDescription }}</v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn @click="deleteTask(props.task)">YES</v-btn>
         <v-btn @click="triggerDeleteTask = false">NO</v-btn>
       </v-card-actions>

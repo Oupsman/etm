@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import router from '@/router'
 import axios from 'axios'
 
-import type { UserSession, User } from '@/types/user'
+import type { User, UserSession } from '@/types/user'
 
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
@@ -20,6 +20,8 @@ export const useUserStore = defineStore('user', () => {
   const session: Ref<UserSession | null> = ref(null)
 
   const login = async (username: string, password:string, callback?: Function): Promise<void> => {
+    console.log(username, password)
+    console.log('Login in')
     axios.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/login', {
       username,
       password,
@@ -31,6 +33,7 @@ export const useUserStore = defineStore('user', () => {
           ...data,
           token: response.data.token,
         })
+        console.log('logged in')
         router.push('/')
       }
     }).catch(error => {
@@ -130,7 +133,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const updateUser = async (user: Object) : Promise<Object> => {
+  const updateUser = async (user: object) : Promise<boolean> => {
     console.log('user to save', user)
     const token = localStorage.getItem('etm-token')
     if (!token) {
@@ -153,18 +156,5 @@ export const useUserStore = defineStore('user', () => {
     return true
   }
 
-  const refreshDashboard = async (): Promise<void> => {
-    console.log('Get dashboard - function')
-    const token = localStorage.getItem('etm-token')
-    if (!token) {
-      throw new Error('No token')
-    }
-    const request = axios.create({
-      baseURL: import.meta.env.VITE_BACKEND_URL,
-      timeout: 30000,
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
-  }
-  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, refreshDashboard, user, getUser, updateUser }
+  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser }
 })

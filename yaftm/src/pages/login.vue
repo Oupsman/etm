@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import FormLogin from '@/components/LoginForm.vue'
+  import FormLogin from '@/components/LoginForm.vue'
 </script>
 
 <template>

@@ -36,7 +36,7 @@ export const useTaskStore = defineStore('task', () => {
   }
 
   const deleteTask = (taskToDelete: Task): boolean => {
-    tasks.value = tasks.value.filter((task) => task.ID !== taskToDelete.ID)
+    tasks.value = tasks.value.filter(task => task.ID !== taskToDelete.ID)
     const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
@@ -58,7 +58,7 @@ export const useTaskStore = defineStore('task', () => {
 
   const updateTask = (taskId: number, updatedTask: Task): boolean => {
     console.log('Store UpdateTask')
-    const index = tasks.value.findIndex((task) => task.ID === taskId)
+    const index = tasks.value.findIndex(task => task.ID === taskId)
     if (index !== -1) {
       tasks.value[index] = { ...tasks.value[index], ...updatedTask }
       console.log('TaskCard to save', updatedTask)

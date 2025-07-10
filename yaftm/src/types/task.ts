@@ -1,19 +1,19 @@
 export interface Task {
-  ID:          number,
-  name:        string,
-  comment:     string,
-  duedate:     string,
-  isbacklog:   boolean,
+  ID: number,
+  name: string,
+  comment: string,
+  duedate: string,
+  isbacklog: boolean,
   iscompleted: boolean,
-  priority:    boolean,
-  urgency:     boolean,
-  categoryid:  number,
+  priority: boolean,
+  urgency: boolean,
+  categoryid: number,
 }
 
 export interface NewTask {
-  name:        string,
-  comment:     string,
-  duedate:     string,
-  isbacklog:   boolean,
-  categoryid:  number,
+  name: string,
+  comment: string,
+  duedate: string,
+  isbacklog: boolean,
+  categoryid: number,
 }

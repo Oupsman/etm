@@ -1,10 +1,10 @@
 export interface Category {
-    ID: number,
-    name: string,
-    color: string,
+  ID: number,
+  name: string,
+  color: string,
 }
 
 export interface NewCategory {
-    name: string,
-    color: string,
+  name: string,
+  color: string,
 }

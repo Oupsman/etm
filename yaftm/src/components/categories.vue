@@ -10,15 +10,15 @@
   const categoryName = ref('')
   const categoryColor = ref('#000000')
   const activeTab = ref(0)
-  const category = ref({} as Category)
+
   onMounted(async () => {
     try {
       categories = await categoryStore.getCategories()
       categoriesDisplay.value = categories
-      console.log("Categories: ", categories)
+      console.log('Categories: ', categories)
       setActiveTab(categories[0].ID)
     } catch (error) {
-      console.log('Error fetching categories')
+      console.log('Error fetching categories: ', error)
     }
 
   })
@@ -38,7 +38,7 @@
   }
 
   const setActiveTab = (categoryId: number) => {
-    console.log("Switching active tab to category ID: " + categoryId)
+    console.log('Switching active tab to category ID: ' + categoryId)
     activeTab.value = categoryId
   }
 
@@ -71,13 +71,13 @@
             v-for="category in categoriesDisplay"
             :key="category.ID"
           >
-            <CategoryComponent v-if="activeTab === category.ID" :categoryID="category.ID" />
+            <CategoryComponent v-if="activeTab === category.ID" :category-i-d="category.ID" />
           </v-tab-item>
         </v-tabs-items>
       </v-col>
     </v-row>
 
-    <v-dialog v-model="dialog" persistent max-width="600px">
+    <v-dialog v-model="dialog" max-width="600px" persistent>
       <v-card>
         <v-card-title>
           <span class="headline">Add a new category</span>
@@ -87,24 +87,24 @@
             <v-row>
               <v-col cols="12">
                 <v-text-field
-                  label="Name"
                   v-model="categoryName"
+                  label="Name"
                   required
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  label="Color"
                   v-model="categoryColor"
-                  type="color"
+                  label="Color"
                   required
-                ></v-text-field>
+                  type="color"
+                />
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn color="blue darken-1" text @click="dialog = false">
             Cancel
           </v-btn>
