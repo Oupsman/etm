@@ -3,4 +3,5 @@
 .fleet/
 /etm.sql
 .vscode/
-.env
+/.env
+/ETM
