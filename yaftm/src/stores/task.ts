@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 

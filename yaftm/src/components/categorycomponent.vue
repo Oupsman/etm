@@ -1,11 +1,24 @@
 <script setup lang="ts">
   import { defineProps, onMounted, ref } from 'vue'
-  import { useCategoryStore } from '@/stores/category.ts'
   import { useTaskStore } from '@/stores/task.ts'
 
   import type { NewTask, Task } from '@/types/task.ts'
   import { VueDraggableNext as draggable } from 'vue-draggable-next'
   import TaskComponent from '@/components/taskcomponent.vue'
+
+  interface DragEvent {
+    draggedContext: {
+      element: Task;
+    };
+    to: {
+      attributes: {
+        itemkey: {
+          nodeValue: string;
+        };
+      };
+    };
+  }
+
   const props = defineProps({
     categoryID: {
       type: Number,
@@ -26,7 +39,6 @@
 
   const message = ref<string>('')
   const displaySnack = ref(false)
-  const triggerDeleteAlert = ref(false)
 
   const taskStore = useTaskStore()
 
@@ -61,11 +73,11 @@
     }
   }
 
-  const onChange = (evt: any) => {
+  const onChange = (evt: Event) => {
     console.log('onChange: ', evt)
   }
 
-  const onMove = (evt: any) => {
+  const onMove = (evt: DragEvent) => {
     const task: Task = evt.draggedContext.element
     // const origin: String = evt.from.attributes.itemkey.nodeValue
     const destination: string = evt.to.attributes.itemkey.nodeValue

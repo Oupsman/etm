@@ -19,7 +19,7 @@ function parseJwt (token: string) {
 export const useUserStore = defineStore('user', () => {
   const session: Ref<UserSession | null> = ref(null)
 
-  const login = async (username: string, password:string, callback?: Function): Promise<void> => {
+  const login = async (username: string, password:string): Promise<void> => {
     console.log(username, password)
     console.log('Login in')
     axios.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/login', {
@@ -77,7 +77,7 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
-  const setUserSession = (data: UserSession | any): void => {
+  const setUserSession = (data: UserSession): void => {
     session.value = data
   }
 
