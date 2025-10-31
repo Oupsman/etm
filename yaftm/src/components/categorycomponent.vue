@@ -80,6 +80,7 @@
   const onMove = (evt: DragEvent) => {
     const task: Task = evt.draggedContext.element
     // const origin: String = evt.from.attributes.itemkey.nodeValue
+    console.log(evt)
     const destination: string = evt.to.attributes.itemkey.nodeValue
     if (destination === 'backlog') {
       task.isbacklog = true
@@ -164,7 +165,7 @@
         <draggable
           v-model="backlog"
           group="tasks"
-          item-key="backlog"
+          itemkey="backlog"
           :move="onMove"
           @change="onChange"
         >
@@ -183,7 +184,7 @@
             <draggable
               v-model="urgentImportant"
               group="tasks"
-              item-key="urgentImportant"
+              itemkey="urgentImportant"
               :move="onMove"
               @change="onChange"
             >
@@ -197,7 +198,7 @@
             <draggable
               v-model="nonUrgentImportant"
               group="tasks"
-              item-key="nonUrgentImportant"
+              itemkey="nonUrgentImportant"
               :move="onMove"
               @change="onChange"
             >
@@ -212,7 +213,7 @@
             <draggable
               v-model="urgentNonImportant"
               group="tasks"
-              item-key="urgentNonImportant"
+              itemkey="urgentNonImportant"
               :move="onMove"
               @change="onChange"
             >
@@ -226,7 +227,7 @@
             <draggable
               v-model="nonUrgentNonImportant"
               group="tasks"
-              item-key="nonUrgentNonImportant"
+              itemkey="nonUrgentNonImportant"
               :move="onMove"
               @change="onChange"
             >
@@ -245,7 +246,7 @@
         <draggable
           v-model="completedTasks"
           group="tasks"
-          item-key="completedTasks"
+          itemkey="completedTasks"
           :move="onMove"
           @change="onChange"
         >

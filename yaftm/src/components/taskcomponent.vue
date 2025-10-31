@@ -57,7 +57,7 @@
       task.comment = taskDescription.value
       task.duedate = taskDueDate.value.toISOString()
 
-      if ( taskStore.updateTask(task.ID, task)) {
+      if ( taskStore.addTask(task)) {
         triggerEditTask.value = false
         emit('updatecategory')
 
