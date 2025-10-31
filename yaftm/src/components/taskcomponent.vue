@@ -50,14 +50,14 @@
   }
 
 
-  const saveTask = (task: Task): void => {
+  const saveTask = (ID: number, task: Task): void => {
     console.log('Save task ', task)
-    if (taskName.value && taskDescription.value && taskDueDate.value) {
+    if (taskName.value && taskDueDate.value) {
       task.name = taskName.value
       task.comment = taskDescription.value
       task.duedate = taskDueDate.value.toISOString()
 
-      if ( taskStore.addTask(task)) {
+      if ( taskStore.updateTask(ID, task)) {
         triggerEditTask.value = false
         emit('updatecategory')
 
@@ -125,7 +125,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="saveTask(props.task)">Save</v-btn>
+        <v-btn @click="saveTask(props.task.ID,props.task)">Save</v-btn>
         <v-btn @click="triggerEditTask = false">Cancel</v-btn>
       </v-card-actions>
 

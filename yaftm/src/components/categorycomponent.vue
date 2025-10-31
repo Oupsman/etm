@@ -49,7 +49,7 @@
   const addTask = () => {
     console.log('addTask')
     taskDialog.value = false
-    if (taskName.value && taskDescription.value && taskDueDate.value) {
+    if (taskName.value && taskDueDate.value) {
       const newTask: NewTask = {
         name: taskName.value,
         comment: taskDescription.value,
