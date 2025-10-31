@@ -36,7 +36,3 @@
     </v-card>
   </v-container>
 </template>
-
-<style scoped lang="sass">
-
-</style>
