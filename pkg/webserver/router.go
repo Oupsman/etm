@@ -3,8 +3,9 @@ package webserver
 import (
 	"ETM/pkg/app"
 	controllers2 "ETM/pkg/controllers"
-	"github.com/gin-gonic/contrib/cors"
 	"net/http"
+
+	"github.com/gin-gonic/contrib/cors"
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -30,21 +31,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 
 	httpRouter.Use(static.Serve("/static", static.LocalFile("./static", true)))
 	httpRouter.Use(AppHandler(App))
-	httpRouter.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"title": "Eisenhower TaskCard Manager",
-		})
-	})
-
-	httpRouter.GET("/signup", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "signup.tmpl", gin.H{
-			"title": "Eisenhower TaskCard Manager - Sign up",
-		})
-	})
-	// Serve frontend static files
-
-	httpRouter.StaticFile("/service-worker.js", "./resources/service-worker.js")
-
+	httpRouter.Use(static.Serve("/", static.LocalFile("./yaftm/dist", true)))
 	apiV1 := httpRouter.Group("/api/v1")
 	{
 		apiV1.GET("/", controllers2.IsAuthorized(), func(c *gin.Context) {
