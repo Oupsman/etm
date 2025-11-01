@@ -6,10 +6,11 @@ import (
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
 	"ETM/pkg/vars"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 func Login(c *gin.Context) {
@@ -40,7 +41,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(30 * 24 * time.Hour)
 
 	claims := jwt.MapClaims{
 		"authorized": true,
