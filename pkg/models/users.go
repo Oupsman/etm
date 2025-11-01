@@ -2,17 +2,18 @@ package models
 
 import (
 	"ETM/pkg/types"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 )
 
 type Users struct {
 	gorm.Model
 	UUID     uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
-	Name     string    `json:"username"`
+	Username string    `json:"username"`
 	Password string    `json:"password"`
 	Gid      uint64    `json:"gid"`
 	IsAdmin  string    `json:"isadmin"`
@@ -69,7 +70,7 @@ func (db *DB) GetUser(userID uint) (Users, error) {
 
 func (db *DB) CreateUser(user types.UserBody) error {
 	var newUser = Users{
-		Name:     user.Username,
+		Username: user.Username,
 		Password: user.Password,
 		Email:    user.Email,
 	}

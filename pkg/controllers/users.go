@@ -27,7 +27,7 @@ func Login(c *gin.Context) {
 
 	var existingUser models.Users
 
-	db.Debug().Where("name = ?", user.Name).First(&existingUser)
+	db.Debug().Where("name = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})
@@ -73,7 +73,7 @@ func Register(c *gin.Context) {
 
 	var existingUser models.Users
 
-	models.Db.Where("name = ?", user.Name).First(&existingUser)
+	models.Db.Where("name = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID != 0 {
 		c.JSON(409, gin.H{"error": "user already exists"})
@@ -199,7 +199,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	updatedUser.Email = user.Email
-	updatedUser.Name = currentUser.Name
+	updatedUser.Username = currentUser.Username
 	if user.Password != "" {
 		newHash, err := utils.GenerateHashPassword(user.Password)
 		if err != nil {
