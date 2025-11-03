@@ -26,7 +26,7 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 	var categories []models.Category
-	categories, err = db.GetCategories(user.UUID)
+	categories, err = db.GetCategories(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

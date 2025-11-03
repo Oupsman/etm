@@ -3,7 +3,7 @@ package models
 // Package model for Categories
 import (
 	"ETM/pkg/types"
-	"github.com/google/uuid"
+
 	"gorm.io/gorm"
 )
 
@@ -16,10 +16,10 @@ type Category struct {
 	User   Users
 }
 
-func (db *DB) GetCategories(UserUUID uuid.UUID) ([]Category, error) {
+func (db *DB) GetCategories(UserID uint) ([]Category, error) {
 	// var Db = ConnectToDb()
 	var Categories = []Category{}
-	result := db.Find(&Categories).Where("useruuid = ?", UserUUID)
+	result := db.Find(&Categories).Where("user_id = ?", UserID)
 
 	if result.Error != nil {
 		return nil, result.Error
