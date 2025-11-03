@@ -27,7 +27,7 @@ func Login(c *gin.Context) {
 
 	var existingUser models.Users
 
-	db.Debug().Where("name = ?", user.Username).First(&existingUser)
+	db.Debug().Where("username = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})
@@ -63,8 +63,10 @@ func Login(c *gin.Context) {
 }
 
 func Register(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
 
-	var user models.Users
+	var user types.UserBody
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -73,7 +75,7 @@ func Register(c *gin.Context) {
 
 	var existingUser models.Users
 
-	models.Db.Where("name = ?", user.Username).First(&existingUser)
+	db.Debug().Where("username = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID != 0 {
 		c.JSON(409, gin.H{"error": "user already exists"})
@@ -88,8 +90,10 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	models.Db.Create(&user)
-
+	err := db.CreateUser(user)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "could not create user"})
+	}
 	c.JSON(201, gin.H{"success": "user registered"})
 }
 
