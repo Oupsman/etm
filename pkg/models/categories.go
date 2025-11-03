@@ -19,7 +19,7 @@ type Category struct {
 func (db *DB) GetCategories(UserID uint) ([]Category, error) {
 	// var Db = ConnectToDb()
 	var Categories = []Category{}
-	result := db.Find(&Categories).Where("user_id = ?", UserID)
+	result := db.Debug().Where("user_id = ?", UserID).Find(&Categories)
 
 	if result.Error != nil {
 		return nil, result.Error
