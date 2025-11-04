@@ -8,7 +8,7 @@ import type { Category, NewCategory } from '@/types/category'
 export const useCategoryStore = defineStore('category', () => {
   const categories = ref([] as Category[])
   let activeCategoryID = localStorage.getItem('etm-active-category-id') || '-1'
-  const addCategory = (category: NewCategory): void => {
+  const addCategory = (category: Category): void => {
     const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
@@ -23,7 +23,7 @@ export const useCategoryStore = defineStore('category', () => {
       token,
     }).then(response => {
       console.log('categoryCard created:', response.data)
-
+      categories.value.push(category)
     }).catch(error => {
       console.error('Create categoryCard error:', error)
       throw new Error('Create category failed')

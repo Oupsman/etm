@@ -29,11 +29,17 @@
   const addCategory = () => {
     dialog.value = false
     if (categoryName.value && categoryColor.value) {
-      const newCategory:NewCategory = {
+      const newCategory:Category = {
+        ID:0,
         name: categoryName.value,
         color: categoryColor.value,
       }
-      categoryStore.addCategory(newCategory)
+      try {
+        categoryStore.addCategory(newCategory)
+      } catch(error) {
+        console.log('Error adding category: ', error)
+      }
+
     }
   }
 
