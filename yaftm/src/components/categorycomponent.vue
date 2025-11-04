@@ -5,6 +5,7 @@
   import type { NewTask, Task } from '@/types/task.ts'
   import { VueDraggableNext as draggable } from 'vue-draggable-next'
   import TaskComponent from '@/components/taskcomponent.vue'
+  import { useSnackbarStore } from '@/stores/snackbar';
 
   interface DragEvent {
     draggedContext: {
@@ -41,6 +42,7 @@
   const displaySnack = ref(false)
 
   const taskStore = useTaskStore()
+  const snackbar = useSnackbarStore();
 
   const triggerTaskDialog = () => {
     taskDialog.value = true
@@ -114,40 +116,43 @@
       task.urgency = false
       task.priority = false
     }
-    if (!taskStore.updateTask(task.ID, task)) {
-      message.value = 'Task update failed'
-    }
-    displaySnack.value = true
+    taskStore.updateTask(task.ID, task)
   }
 
   const parseTasks = async () => {
-    // query tasks from the store
-    console.log('Categpory ID: ', props.categoryID)
-    const tasks = await taskStore.getTasks(props.categoryID)
-    console.log(tasks)
-    // Parse tasks and add them to the respective lists
+    // query tasks from the store then parse tasks and add them to the respective lists
     backlog.value = []
     completedTasks.value = []
     urgentImportant.value = []
     nonUrgentImportant.value = []
     nonUrgentNonImportant.value = []
     urgentNonImportant.value = []
-
-    tasks.forEach((task: Task) => {
-      if (task.isbacklog) {
-        backlog.value.push(task)
-      } else if (task.iscompleted) {
-        completedTasks.value.push(task)
-      } else if (task.urgency && task.priority) {
-        urgentImportant.value.push(task)
-      } else if (!task.urgency && task.priority) {
-        nonUrgentImportant.value.push(task)
-      } else if (task.urgency && !task.priority) {
-        urgentNonImportant.value.push(task)
-      } else {
-        nonUrgentNonImportant.value.push(task)
+    await taskStore.getTasks(props.categoryID).then(tasks => {
+      tasks.forEach((task: Task) => {
+        if (task.isbacklog) {
+          backlog.value.push(task)
+        } else if (task.iscompleted) {
+          completedTasks.value.push(task)
+        } else if (task.urgency && task.priority) {
+          urgentImportant.value.push(task)
+        } else if (!task.urgency && task.priority) {
+          nonUrgentImportant.value.push(task)
+        } else if (task.urgency && !task.priority) {
+          urgentNonImportant.value.push(task)
+        } else {
+          nonUrgentNonImportant.value.push(task)
+        }
+      })
       }
+    ).catch(error => {
+      snackbar.showSnackbar({
+        message: 'Unable to get the task list ' + error.message,
+        color: 'error',
+      });
     })
+
+
+
   }
 
   onMounted(async () => {

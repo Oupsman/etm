@@ -1,14 +1,15 @@
 <script setup lang="ts">
   import { useUserStore } from '@/stores/user'
 
-  const userStore = useUserStore()
 
+  const userStore = useUserStore()
   const username: Ref<string> = ref('')
   const password: Ref<string> = ref('')
 
-  const login = () => {
+  const login =  () => {
 
-    userStore.login(username.value, password.value)
+   userStore.login(username.value, password.value)
+
 
   }
 </script>

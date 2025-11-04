@@ -8,7 +8,7 @@
   const categoriesDisplay = ref<Category[]>([])
   const dialog = ref(false)
   const categoryName = ref('')
-  const categoryColor = ref('#000000')
+  const categoryColor = ref('#EE2222')
   const activeTab = ref(0)
 
   onMounted(async () => {

@@ -1,6 +1,8 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useSnackbarStore } from '@/stores/snackbar';
+const snackbar = useSnackbarStore();
 
 import type { Task } from '@/types/task'
 
@@ -26,9 +28,16 @@ export const useTaskStore = defineStore('task', () => {
       token,
     }).then(response => {
       backlog.value.push(task)
+      snackbar.showSnackbar({
+        message: 'Task added successfully.',
+        color: 'success',
+      });
       return response.data
     }).catch(error => {
-      console.error('Create TaskCard error:', error)
+      snackbar.showSnackbar({
+        message: 'Unable to add a task ' + error.message,
+        color: 'error',
+      });
       throw new Error('Create task failed')
     })
     return task
@@ -46,10 +55,16 @@ export const useTaskStore = defineStore('task', () => {
       headers: { Authorization: `Bearer ${token}` },
     })
     request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.ID).then(response => {
-      console.log('task deleted:', response.data)
+      snackbar.showSnackbar({
+        message: 'Task deleted successfully ',
+        color: 'success',
+      });
       return true
     }).catch(error => {
-      console.error('Delete task error:', error)
+      snackbar.showSnackbar({
+        message: 'Unable to delete a task ' + error.message,
+        color: 'error',
+      });
       throw new Error('delete task')
     })
     return true
@@ -59,7 +74,6 @@ export const useTaskStore = defineStore('task', () => {
     console.log('Store UpdateTask')
     const index = tasks.value.findIndex(task => task.ID === taskId)
     if (index !== -1) {
-      tasks.value[index] = { ...tasks.value[index], ...updatedTask }
       console.log('TaskCard to save', updatedTask)
       const token = localStorage.getItem('etm-token')
       if (!token) {
@@ -73,10 +87,17 @@ export const useTaskStore = defineStore('task', () => {
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskId, {
         ...updatedTask,
       }).then(response => {
-        console.log('TaskCard updated:', response.data)
+        tasks.value[index] = { ...tasks.value[index], ...updatedTask }
+        snackbar.showSnackbar({
+          message: 'Task updated successfully ',
+          color: 'success',
+        });
         return true
       }).catch(error => {
-        console.error('Update TaskCard error:', error)
+        snackbar.showSnackbar({
+          message: 'Unable to update a task ' + error.message,
+          color: 'error',
+        });
         throw new Error('update TaskCard')
       })
       return true
@@ -99,7 +120,6 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value = response.data
       return response.data
     } catch (error) {
-      console.error('Get tasks error:', error)
       throw new Error('get tasks failed')
     }
   }

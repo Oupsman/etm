@@ -51,7 +51,6 @@
 
 
   const saveTask = (ID: number, task: Task): void => {
-    console.log('Save task ', task)
     if (taskName.value && taskDueDate.value) {
       task.name = taskName.value
       task.comment = taskDescription.value
@@ -60,16 +59,13 @@
       if ( taskStore.updateTask(ID, task)) {
         triggerEditTask.value = false
         emit('updatecategory')
-
-        console.log('Event emitted')
       }
     }
   }
   const deleteTask = (task: Task): void => {
     if (taskStore.deleteTask(task)) {
       triggerDeleteTask.value = false
-      emit('updatecategory')
-    }
+      }
   }
 </script>
 

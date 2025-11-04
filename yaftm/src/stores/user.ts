@@ -3,7 +3,8 @@ import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import router from '@/router'
 import axios from 'axios'
-
+import { useSnackbarStore } from '@/stores/snackbar';
+const snackbar = useSnackbarStore();
 import type { User, UserSession } from '@/types/user'
 
 function parseJwt (token: string) {
@@ -37,7 +38,12 @@ export const useUserStore = defineStore('user', () => {
         router.push('/')
       }
     }).catch(error => {
-      console.error('Login error:', error)
+
+      const snackbar = useSnackbarStore();
+      snackbar.showSnackbar({
+        message: 'Login failed! ' + error.message,
+        color: 'error',
+      });
       throw new Error('Login failed')
     })
   }
@@ -71,8 +77,16 @@ export const useUserStore = defineStore('user', () => {
       email,
     }).then(response => {
       console.log('Signup response:', response)
+      snackbar.showSnackbar({
+        message: 'Signup successfull',
+        color: 'success',
+      });
+      router.push('/login')
     }).catch(error => {
-      console.error('Signup error:', error)
+      snackbar.showSnackbar({
+        message: 'Signup failed! ' + error.message,
+        color: 'error',
+      });
       throw new Error('Signup failed')
     })
   }
