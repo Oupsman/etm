@@ -67,11 +67,13 @@
 
         ...newTask,
       }
-      console.log('task', task)
-      if (taskStore.addTask(task)) {
-        backlog.value.push(task)
-      }
+      taskStore.addTask(task).then(responseTask => {
+        console.log("Response from server: ", responseTask)
+        backlog.value.push(responseTask)
 
+      }).catch (error =>  {
+        console.log(error)
+      })
     }
   }
 
@@ -81,8 +83,7 @@
 
   const onMove = (evt: DragEvent) => {
     const task: Task = evt.draggedContext.element
-    // const origin: String = evt.from.attributes.itemkey.nodeValue
-    console.log(evt)
+
     const destination: string = evt.to.attributes.itemkey.nodeValue
     if (destination === 'backlog') {
       task.isbacklog = true
@@ -150,9 +151,6 @@
         color: 'error',
       });
     })
-
-
-
   }
 
   onMounted(async () => {

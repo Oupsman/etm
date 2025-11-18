@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Tasks struct {
@@ -43,7 +44,7 @@ func (db *DB) GetTask(TaskID int) (*Tasks, error) {
 	return &task, nil
 }
 
-func (db *DB) CreateTask(task Tasks) error {
+func (db *DB) CreateTask(task *Tasks) error {
 
 	result := db.Create(&task)
 	if result.Error != nil {

@@ -7,11 +7,12 @@ import (
 	"ETM/pkg/utils"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetTasks(c *gin.Context) {
@@ -108,7 +109,7 @@ func CreateTask(c *gin.Context) {
 		UserID:     UserID,
 	}
 
-	err = db.CreateTask(task)
+	err = db.CreateTask(&task)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

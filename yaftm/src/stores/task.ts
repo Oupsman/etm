@@ -9,39 +9,38 @@ import type { Task } from '@/types/task'
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([] as Task[])
-  const backlog = ref([] as Task[])
 
-  const addTask = (task: Task): Task => {
-    console.log('Store addTask', task)
-    tasks.value.push(task)
-    const token = localStorage.getItem('etm-token')
-    if (!token) {
-      throw new Error('No token')
-    }
-    const request = axios.create({
-      baseURL: import.meta.env.VITE_BACKEND_URL,
-      timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task', {
-      ...task,
-      token,
-    }).then(response => {
-      backlog.value.push(task)
-      snackbar.showSnackbar({
-        message: 'Task added successfully.',
-        color: 'success',
+  const addTask = (task: Task): Promise<Task> => {
+    return new Promise((resolve, reject) => {
+      const token = localStorage.getItem('etm-token');
+      if (!token) {
+        reject(new Error('No token'));
+        return;
+      }
+      const request = axios.create({
+        baseURL: import.meta.env.VITE_BACKEND_URL,
+        timeout: 1000,
+        headers: { Authorization: `Bearer ${token}` },
       });
-      return response.data
-    }).catch(error => {
-      snackbar.showSnackbar({
-        message: 'Unable to add a task ' + error.message,
-        color: 'error',
+      request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task', {
+        ...task,
+        token,
+      }).then(response => {
+        snackbar.showSnackbar({
+          message: 'Task added successfully.',
+          color: 'success',
+        })
+        tasks.value.push(task)
+        resolve(response.data);
+      }).catch(error => {
+        snackbar.showSnackbar({
+          message: 'Unable to add a task ' + error.message,
+          color: 'error',
+        });
+        reject(new Error('Create task failed'));
       });
-      throw new Error('Create task failed')
-    })
-    return task
-  }
+    });
+  };
 
   const deleteTask = (taskToDelete: Task): boolean => {
     tasks.value = tasks.value.filter(task => task.ID !== taskToDelete.ID)
