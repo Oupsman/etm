@@ -1,11 +1,12 @@
-import { computed, ref } from 'vue'
-import type { Ref } from 'vue'
-import { defineStore } from 'pinia'
+import type {Ref} from 'vue'
+import {computed, ref} from 'vue'
+import {defineStore} from 'pinia'
 import router from '@/router'
 import axios from 'axios'
-import { useSnackbarStore } from '@/stores/snackbar';
+import {useSnackbarStore} from '@/stores/snackbar';
+import type {User, UserSession} from '@/types/user'
+
 const snackbar = useSnackbarStore();
-import type { User, UserSession } from '@/types/user'
 
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
@@ -96,6 +97,10 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const userIsLoggedIn = computed(() => {
+    const token = localStorage.getItem('etm-token')
+    if (!session.value && token) {
+      session.value = parseJwt(token)
+    }
     if (session.value?.exp) {
       const expiresAt = new Date(0).setUTCSeconds(session.value.exp)
       const now = new Date().getSeconds()
