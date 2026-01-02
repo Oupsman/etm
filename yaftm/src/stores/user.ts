@@ -1,10 +1,10 @@
-import type {Ref} from 'vue'
-import {computed, ref} from 'vue'
-import {defineStore} from 'pinia'
+import type { Ref } from 'vue'
+import { computed, ref } from 'vue'
+import { defineStore } from 'pinia'
 import router from '@/router'
 import axios from 'axios'
-import {useSnackbarStore} from '@/stores/snackbar';
-import type {User, UserSession} from '@/types/user'
+import { useSnackbarStore } from '@/stores/snackbar';
+import type { User, UserSession } from '@/types/user'
 
 const snackbar = useSnackbarStore();
 
