@@ -26,7 +26,7 @@
     dialog.value = true
   }
 
-  const addCategory = () => {
+  const addCategory = async () => {
     dialog.value = false
     if (categoryName.value && categoryColor.value) {
       const newCategory:Category = {
@@ -36,6 +36,8 @@
       }
       try {
         categoryStore.addCategory(newCategory)
+        categories = await categoryStore.getCategories()
+        categoriesDisplay.value = categories
       } catch(error) {
         console.log('Error adding category: ', error)
       }

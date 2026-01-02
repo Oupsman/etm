@@ -65,7 +65,7 @@
   const deleteTask = (task: Task): void => {
     if (taskStore.deleteTask(task)) {
       triggerDeleteTask.value = false
-      }
+    }
   }
 </script>
 

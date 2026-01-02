@@ -68,10 +68,10 @@
         ...newTask,
       }
       taskStore.addTask(task).then(responseTask => {
-        console.log("Response from server: ", responseTask)
+        console.log('Response from server: ', responseTask)
         backlog.value.push(responseTask)
 
-      }).catch (error =>  {
+      }).catch (error => {
         console.log(error)
       })
     }
@@ -144,7 +144,7 @@
           nonUrgentNonImportant.value.push(task)
         }
       })
-      }
+    }
     ).catch(error => {
       snackbar.showSnackbar({
         message: 'Unable to get the task list ' + error.message,
@@ -162,7 +162,7 @@
   <v-container class="fill-height" style="height: 90vh">
     <v-row class="fill-height">
       <!-- Backlog Column -->
-      <v-col class="d-flex flex-column backlog fill-height" cols="3" style="position: absolute left: 0 height:80vh">
+      <v-col class="d-flex flex-column backlog fill-height" cols="3" style="position: absolute; left: 0; height:80vh;">
         <h2>Backlog</h2>
         <v-btn @click="triggerTaskDialog">Add task</v-btn>
         <draggable
@@ -182,7 +182,7 @@
       <!-- Eisenhower Matrix -->
       <v-col class="mx-auto fill-height d-flex flex-column " cols="6">
         <v-row class="d-flex">
-          <v-col class="mx-auto d-flex flex-column UrgentImportant" cols="6" style="position: relative left: 0 height: 40vh">
+          <v-col class="mx-auto d-flex flex-column UrgentImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
             <h2>Urgent et Important</h2>
             <draggable
               v-model="urgentImportant"
@@ -196,7 +196,7 @@
               </v-card>
             </draggable>
           </v-col>
-          <v-col class="mx-auto d-flex flex-column NotUrgentImportant" cols="6" style="position: relative left: 0 height: 40vh">
+          <v-col class="mx-auto d-flex flex-column NotUrgentImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
             <h2>Non Urgent et Important</h2>
             <draggable
               v-model="nonUrgentImportant"
@@ -211,7 +211,7 @@
               </v-card>
             </draggable>
           </v-col>
-          <v-col class="mx-auto d-flex flex-column UrgentNotImportant" cols="6" style="position: relative left: 0 height: 40vh">
+          <v-col class="mx-auto d-flex flex-column UrgentNotImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
             <h2>Urgent et Non Important</h2>
             <draggable
               v-model="urgentNonImportant"
@@ -225,7 +225,7 @@
               </v-card>
             </draggable>
           </v-col>
-          <v-col class="mx-auto d-flex flex-column NotUrgentNotImportant" cols="6" style="position: relative left: 0 height: 40vh">
+          <v-col class="mx-auto d-flex flex-column NotUrgentNotImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
             <h2>Non Urgent et Non Important</h2>
             <draggable
               v-model="nonUrgentNonImportant"
@@ -244,7 +244,7 @@
       </v-col>
 
       <!-- Completed Tasks Column -->
-      <v-col class="d-flex flex-column completed fill-height" cols="3" style="position: absolute right: 0 height: 80vh">
+      <v-col class="d-flex flex-column completed fill-height" cols="3" style="position: absolute; right: 0; height: 80vh;">
         <v-card-title>Tâches Terminées</v-card-title>
         <draggable
           v-model="completedTasks"
