@@ -2,12 +2,12 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSnackbarStore } from '@/stores/snackbar';
-const snackbar = useSnackbarStore();
 
 import type { Task } from '@/types/task'
 
 
 export const useTaskStore = defineStore('task', () => {
+  const snackbar = useSnackbarStore();
   const tasks = ref([] as Task[])
 
   const addTask = (task: Task): Promise<Task> => {

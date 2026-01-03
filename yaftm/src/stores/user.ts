@@ -6,7 +6,6 @@ import axios from 'axios'
 import { useSnackbarStore } from '@/stores/snackbar';
 import type { User, UserSession } from '@/types/user'
 
-const snackbar = useSnackbarStore();
 
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
@@ -19,6 +18,7 @@ function parseJwt (token: string) {
 }
 
 export const useUserStore = defineStore('user', () => {
+  const snackbar = useSnackbarStore();
   const session: Ref<UserSession | null> = ref(null)
 
   const login = async (username: string, password:string): Promise<void> => {
@@ -104,6 +104,7 @@ export const useUserStore = defineStore('user', () => {
     if (session.value?.exp) {
       const expiresAt = new Date(0).setUTCSeconds(session.value.exp)
       const now = new Date().getSeconds()
+      console.log(expiresAt, now, expiresAt > now)
       return now < expiresAt
     }
     return false
