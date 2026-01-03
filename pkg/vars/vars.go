@@ -4,9 +4,10 @@ package vars
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 var Host string
@@ -20,10 +21,6 @@ var SecretKey string
 var Dsn string
 
 func getEnv(key, fallback string) string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	value, exists := os.LookupEnv(key)
 	if !exists {
 		value = fallback
@@ -32,6 +29,15 @@ func getEnv(key, fallback string) string {
 }
 
 func Init() {
+	// Check if a critical variable is missing from the system environment
+	if _, exists := os.LookupEnv("DB_HOST"); !exists {
+		// If not found, try to load the .env file
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("No .env file found, relying on system environment variables")
+		}
+	}
+
 	Host = getEnv("HOST", "")
 	Port = getEnv("PORT", "8080")
 	DbHost = getEnv("DB_HOST", "127.0.0.1")

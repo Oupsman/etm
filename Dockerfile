@@ -1,5 +1,5 @@
 # Start from the latest Golang base image
-FROM golang:1.22.2 AS base
+FROM golang:1.25.5-trixie AS base
 
 # Add Maintainer Info
 LABEL maintainer="Oupsman <oupsman@oupsman.fr>"
@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -o main /app/cmd/etm/main.go
 
 FROM builder AS runner
 
