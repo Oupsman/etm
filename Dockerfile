@@ -7,6 +7,10 @@ LABEL maintainer="Oupsman <oupsman@oupsman.fr>"
 
 FROM base AS builder
 
+# Installing nodejs and npm to build the frontend
+RUN apt update
+RUN apt install -y nodejs npm
+
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
@@ -21,6 +25,12 @@ COPY . .
 
 # Build the Go app
 RUN go build -o main /app/cmd/etm/main.go
+
+# Build the frontend
+WORKDIR /app/yaftm
+RUN npm install
+RUN npm run build
+
 
 FROM builder AS runner
 
