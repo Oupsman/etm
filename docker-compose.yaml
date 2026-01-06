@@ -1,0 +1,28 @@
+services:
+  etm:
+    image: "oupsman/etm"
+    restart: "unless-stopped"
+    ports:
+      - "8084:8080"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DATABASE: etm
+      DB_USERNAME: etmuser
+      DB_PASSWORD: etmpass
+      SECRET_KEY: <generate a key with dd if=/dev/random bs=512 count=1 | sha256sum>
+    networks:
+      - etm
+  postgres:
+    image: postgres:18.1-trixie
+    restart: "unless-stopped"
+    environment:
+      POSTGRES_USER: etmuser
+      POSTGRES_PASSWORD: etmpass
+    networks:
+      - etm
+networks:
+  etm:
+    driver: bridge
