@@ -35,3 +35,8 @@ type CategoryBody struct {
 	Color  string `json:"color"`
 	Active bool   `json:"active"`
 }
+
+type DeviceBody struct {
+	DeviceID string `json:"deviceid"`
+	UserID   uint   `json:"userid"`
+}

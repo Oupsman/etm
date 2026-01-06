@@ -6,6 +6,7 @@ import (
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
 	"ETM/pkg/vars"
+	"net/http"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ func Login(c *gin.Context) {
 
 	var existingUser models.Users
 
-	db.Debug().Where("username = ?", user.Username).First(&existingUser)
+	db.Where("username = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})
@@ -41,14 +42,23 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(30 * 24 * time.Hour)
+	expirationTime := time.Now().Add(30 * time.Minute)
 
+	// Getting the deviceID
+	deviceID := c.GetHeader("X-Device-ID")
+	if deviceID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Device ID is required"})
+		return
+	}
+
+	// Create JWT
 	claims := jwt.MapClaims{
 		"authorized": true,
 		"exp":        expirationTime.Unix(),
 		"iss":        "etm",
 		"sub":        existingUser.ID,
 		"uuid":       existingUser.UUID.String(),
+		"deviceid":   deviceID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -261,4 +271,23 @@ func UpdateUserSubscription(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"message": "user updated successfully"})
 
+}
+
+func GetUserDevices(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+	bearerToken := c.Request.Header.Get("Authorization")
+	UserUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := db.GetUserByUUID(UserUUID)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": "user not found"})
+		return
+	}
+	c.JSON(200, user)
 }

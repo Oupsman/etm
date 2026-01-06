@@ -1,6 +1,21 @@
 <!-- App.vue -->
 <template>
   <v-app>
+    <v-menu>
+      <template #activator="{ props }">
+        <v-btn v-bind="props" icon>
+          <v-icon>mdi-account</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item>
+          <v-list-item-title>Connected as {{ authStore.userID }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="authStore.logout()">
+          <v-list-item-title>Logout</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -29,6 +44,9 @@
 </template>
 
 <script setup lang="ts">
-import { useSnackbarStore } from '@/stores/snackbar';
-const snackbar = useSnackbarStore();
+  import { useSnackbarStore } from '@/stores/snackbar';
+  import { useAuthStore } from '@/stores/auth';
+
+  const snackbar = useSnackbarStore();
+  const authStore = useAuthStore();
 </script>

@@ -46,25 +46,26 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/getvapidkey", controllers2.IsAuthorized(), controllers2.GetVAPIDKey)
 
 	// Categories endpoints
-	apiV1.GET("/categories", controllers2.GetCategories)
-	apiV1.POST("/category", controllers2.CreateCategory)
+	apiV1.GET("/categories", controllers2.IsAuthorized(), controllers2.GetCategories)
+	apiV1.POST("/category", controllers2.IsAuthorized(), controllers2.CreateCategory)
 
 	// Tasks Endpoints
 
-	apiV1.GET("/tasks/:categoryId", controllers2.GetTasks)
-	apiV1.POST("/task", controllers2.CreateTask)
-	apiV1.POST("/task/:taskId", controllers2.UpdateTask)
-	apiV1.GET("/task/:taskId", controllers2.GetTask)
-	apiV1.DELETE("/task/:taskId", controllers2.DeleteTask)
+	apiV1.GET("/tasks/:categoryId", controllers2.IsAuthorized(), controllers2.GetTasks)
+	apiV1.POST("/task", controllers2.IsAuthorized(), controllers2.CreateTask)
+	apiV1.POST("/task/:taskId", controllers2.IsAuthorized(), controllers2.UpdateTask)
+	apiV1.GET("/task/:taskId", controllers2.IsAuthorized(), controllers2.GetTask)
+	apiV1.DELETE("/task/:taskId", controllers2.IsAuthorized(), controllers2.DeleteTask)
 
 	// User endpoints
 	apiV1.GET("/user/logout", controllers2.Logout)
 	apiV1.POST("/user/login", controllers2.Login)
 	apiV1.POST("/user/register", controllers2.Register)
-	apiV1.POST("/user", controllers2.UpdateUser)
-	apiV1.GET("/user", controllers2.GetUser)
-	apiV1.GET("/user/refreshtoken", controllers2.RefreshToken)
-	apiV1.POST("/user/updatesubscription", controllers2.UpdateUserSubscription)
+	apiV1.POST("/user", controllers2.IsAuthorized(), controllers2.UpdateUser)
+	apiV1.GET("/user", controllers2.IsAuthorized(), controllers2.GetUser)
+	apiV1.GET("/user/device", controllers2.IsAuthorized(), controllers2.GetUserDevices)
+	apiV1.GET("/user/refreshtoken", controllers2.IsAuthorized(), controllers2.RefreshToken)
+	apiV1.POST("/user/updatesubscription", controllers2.IsAuthorized(), controllers2.UpdateUserSubscription)
 
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

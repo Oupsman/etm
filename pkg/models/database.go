@@ -3,9 +3,10 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
 )
 
 type DB struct {
@@ -55,7 +56,7 @@ func (db *DB) Ping() error {
 }
 
 func CreateOrMigrate(db *DB) error {
-	err := db.AutoMigrate(&Users{}, &Category{}, &Tasks{}, &Keys{})
+	err := db.AutoMigrate(&Users{}, &Category{}, &Tasks{}, &Keys{}, &Devices{})
 	if err != nil {
 		return err
 	}
