@@ -66,7 +66,9 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/user/device", controllers2.IsAuthorized(), controllers2.GetUserDevices)
 	apiV1.GET("/user/refreshtoken", controllers2.IsAuthorized(), controllers2.RefreshToken)
 	apiV1.POST("/user/updatesubscription", controllers2.IsAuthorized(), controllers2.UpdateUserSubscription)
-
+	apiV1.GET("/user/devices", controllers2.IsAuthorized(), controllers2.GetUserDevices)
+	apiV1.GET("/user/tokens", controllers2.IsAuthorized(), controllers2.GetUserTokens)
+	apiV1.POST("/user/devices", controllers2.IsAuthorized(), controllers2.CreateUserDevice)
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",

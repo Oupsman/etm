@@ -291,3 +291,31 @@ func GetUserDevices(c *gin.Context) {
 	}
 	c.JSON(200, user)
 }
+
+func CreateUserDevice(c *gin.Context) {
+	App := c.MustGet("App")
+	db := App.(*app.App).DB
+
+	var device types.DeviceBody
+	if err := c.ShouldBindJSON(&device); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	userID, err := utils.GetUserID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	device.UserID = userID
+
+	err = db.CreateDevice(device)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create device"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"success": "device created"})
+}

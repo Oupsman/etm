@@ -14,6 +14,8 @@ type Devices struct {
 	User       Users
 	UserID     uint      `json:"userid"`
 	DeviceID   string    `json:"deviceid"`
+	DeviceName string    `json:"devicename"`
+	Trusted    bool      `json:"trusted"`
 	LastUsedAt time.Time `json:"lastusedat"`
 }
 

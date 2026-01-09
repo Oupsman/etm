@@ -56,7 +56,7 @@ func (db *DB) Ping() error {
 }
 
 func CreateOrMigrate(db *DB) error {
-	err := db.AutoMigrate(&Users{}, &Category{}, &Tasks{}, &Keys{}, &Devices{})
+	err := db.AutoMigrate(&Users{}, &Category{}, &Tasks{}, &Keys{}, &Devices{}, &Tokens{})
 	if err != nil {
 		return err
 	}
