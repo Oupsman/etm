@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 const deviceStorageKey = 'etm-deviceID';
 const trustedStorageKey = 'etm-deviceIsTrusted';
+
 export const useDeviceStore = defineStore('device', {
   state: () => ({
     deviceID: localStorage.getItem(deviceStorageKey) || '',
@@ -15,7 +16,7 @@ export const useDeviceStore = defineStore('device', {
 
   actions: {
     async generateDeviceID () {
-      if (this.deviceID) return this.deviceID; // Déjà généré
+      if (this.deviceID) return this.deviceID;
 
       const fp = await FingerprintJS.load();
       const { visitorId } = await fp.get();
@@ -40,7 +41,6 @@ export const useDeviceStore = defineStore('device', {
       if (trusted) this.isTrusted = trusted === 'true';
     },
 
-    // Efface le deviceID (ex: déconnexion)
     clearDevice () {
       this.deviceID = '';
       this.isTrusted = false;
