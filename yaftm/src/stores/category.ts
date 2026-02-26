@@ -3,12 +3,14 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 import type { Category, NewCategory } from '@/types/category'
-
+import { useDeviceStore } from '@/stores/device'
 
 export const useCategoryStore = defineStore('category', () => {
   const categories = ref([] as Category[])
   let activeCategoryID = localStorage.getItem('etm-active-category-id') || '-1'
+  const deviceStore = useDeviceStore()
   const addCategory = (category: Category): void => {
+
     const token = localStorage.getItem('etm-token')
     if (!token) {
       throw new Error('No token')
@@ -16,7 +18,10 @@ export const useCategoryStore = defineStore('category', () => {
     const request = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL,
       timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Device-ID': deviceStore.deviceID,
+      },
     })
     request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/category', {
       ...category,
@@ -42,7 +47,10 @@ export const useCategoryStore = defineStore('category', () => {
     const request = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL,
       timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Device-ID': deviceStore.deviceID,
+      },
     })
     request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/category/' + categoryToDelete.ID).then(response => {
       console.log('category deleted:', response.data)
@@ -66,7 +74,10 @@ export const useCategoryStore = defineStore('category', () => {
       const request = axios.create({
         baseURL: import.meta.env.VITE_BACKEND_URL,
         timeout: 1000,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-Device-ID': deviceStore.deviceID,
+        },
       })
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/category/' + categoryId, {
         ...updatedCategory,
@@ -91,7 +102,10 @@ export const useCategoryStore = defineStore('category', () => {
     const request = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL,
       timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Device-ID': deviceStore.deviceID,
+      },
     })
     try {
       const response = await request.get('/api/v1/categories')

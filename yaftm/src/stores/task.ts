@@ -4,15 +4,16 @@ import axios from 'axios'
 import { useSnackbarStore } from '@/stores/snackbar';
 
 import type { Task } from '@/types/task'
-
+import { useDeviceStore } from '@/stores/device'
 
 export const useTaskStore = defineStore('task', () => {
   const snackbar = useSnackbarStore();
   const tasks = ref([] as Task[])
-
+  const deviceStore = useDeviceStore();
   const addTask = (task: Task): Promise<Task> => {
     return new Promise((resolve, reject) => {
       const token = localStorage.getItem('etm-token');
+
       if (!token) {
         reject(new Error('No token'));
         return;
@@ -20,7 +21,10 @@ export const useTaskStore = defineStore('task', () => {
       const request = axios.create({
         baseURL: import.meta.env.VITE_BACKEND_URL,
         timeout: 1000,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-Device-ID': deviceStore.deviceID,
+        },
       });
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task', {
         ...task,
@@ -51,7 +55,10 @@ export const useTaskStore = defineStore('task', () => {
     const request = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL,
       timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Device-ID': deviceStore.deviceID,
+      },
     })
     request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.ID).then(response => {
       snackbar.showSnackbar({
@@ -81,7 +88,10 @@ export const useTaskStore = defineStore('task', () => {
       const request = axios.create({
         baseURL: import.meta.env.VITE_BACKEND_URL,
         timeout: 1000,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-Device-ID': deviceStore.deviceID,
+        },
       })
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskId, {
         ...updatedTask,
@@ -112,7 +122,10 @@ export const useTaskStore = defineStore('task', () => {
     const request = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL,
       timeout: 1000,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Device-ID': deviceStore.deviceID,
+      },
     })
     try {
       const response = await request.get('/api/v1/tasks/' + categoryID)

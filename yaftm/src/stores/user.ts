@@ -5,7 +5,7 @@ import router from '@/router'
 import axios from 'axios'
 import { useSnackbarStore } from '@/stores/snackbar';
 import type { User, UserSession } from '@/types/user'
-
+import { useDeviceStore } from '@/stores/device'
 
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
@@ -22,12 +22,18 @@ export const useUserStore = defineStore('user', () => {
   const session: Ref<UserSession | null> = ref(null)
 
   const login = async (username: string, password:string): Promise<void> => {
-    console.log(username, password)
-    console.log('Login in')
-    axios.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/login', {
-      username,
-      password,
-    }).then(response => {
+    const deviceStore = useDeviceStore()
+    await deviceStore.initDevice()
+
+    await axios.post(
+      import.meta.env.VITE_BACKEND_URL + '/api/v1/user/login',
+      { username, password },
+      {
+        headers: {
+          'X-Device-ID': deviceStore.deviceID,
+        },
+      }
+    ).then(response => {
       if (response.data.token) {
         localStorage.setItem('etm-token', response.data.token)
         const data = parseJwt(response.data.token)
@@ -176,5 +182,27 @@ export const useUserStore = defineStore('user', () => {
     return true
   }
 
-  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser }
+  const trustUserDevice = async (user: object): Promise<boolean> => {
+    const token = localStorage.getItem('etm-token')
+    if (!token) {
+      throw new Error('No token')
+    }
+    const request = axios.create({
+      baseURL: import.meta.env.VITE_BACKEND_URL,
+      timeout: 30000,
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/devices', {
+      ...user,
+    }).then(response => {
+      console.log('User updated:', response.data)
+      return true
+    }).catch(error => {
+      console.error('Update user error:', error)
+      throw new Error('update user')
+    })
+
+    return true
+  }
+  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser, trustUserDevice }
 })
