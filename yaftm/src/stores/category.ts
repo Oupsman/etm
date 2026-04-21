@@ -2,13 +2,13 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-import type { Category, NewCategory } from '@/types/category'
-import { useDeviceStore } from '@/stores/device'
+import type { Category } from '@/types/category'
+// import { useDeviceStore } from '@/stores/device'
 
 export const useCategoryStore = defineStore('category', () => {
   const categories = ref([] as Category[])
   let activeCategoryID = localStorage.getItem('etm-active-category-id') || '-1'
-  const deviceStore = useDeviceStore()
+  // const deviceStore = useDeviceStore()
   const addCategory = (category: Category): void => {
 
     const token = localStorage.getItem('etm-token')
@@ -20,7 +20,7 @@ export const useCategoryStore = defineStore('category', () => {
       timeout: 1000,
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-Device-ID': deviceStore.deviceID,
+      //  'X-Device-ID': deviceStore.deviceID,
       },
     })
     request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/category', {
@@ -49,7 +49,7 @@ export const useCategoryStore = defineStore('category', () => {
       timeout: 1000,
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-Device-ID': deviceStore.deviceID,
+        //'X-Device-ID': deviceStore.deviceID,
       },
     })
     request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/category/' + categoryToDelete.ID).then(response => {
@@ -76,7 +76,7 @@ export const useCategoryStore = defineStore('category', () => {
         timeout: 1000,
         headers: {
           Authorization: `Bearer ${token}`,
-          'X-Device-ID': deviceStore.deviceID,
+          //'X-Device-ID': deviceStore.deviceID,
         },
       })
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/category/' + categoryId, {
@@ -104,7 +104,7 @@ export const useCategoryStore = defineStore('category', () => {
       timeout: 1000,
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-Device-ID': deviceStore.deviceID,
+        //'X-Device-ID': deviceStore.deviceID,
       },
     })
     try {

@@ -46,7 +46,12 @@
 <script setup lang="ts">
   import { useSnackbarStore } from '@/stores/snackbar';
   import { useAuthStore } from '@/stores/auth';
+  import { useAppStore } from '@/stores/app';
 
   const snackbar = useSnackbarStore();
   const authStore = useAuthStore();
+  const appStore = useAppStore();
+  if (!authStore.isAuthenticated) {
+    appStore.navigateToPage('/login')
+  }
 </script>

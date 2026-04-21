@@ -43,14 +43,14 @@ func Login(c *gin.Context) {
 	}
 
 	expirationTime := time.Now().Add(30 * time.Minute)
-
-	// Getting the deviceID
-	deviceID := c.GetHeader("X-Device-ID")
-	if deviceID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Device ID is required"})
-		return
-	}
-
+	/*
+		// Getting the deviceID
+		deviceID := c.GetHeader("X-Device-ID")
+		if deviceID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Device ID is required"})
+			return
+		}
+	*/
 	// Create JWT
 	claims := jwt.MapClaims{
 		"authorized": true,
@@ -58,7 +58,7 @@ func Login(c *gin.Context) {
 		"iss":        "etm",
 		"sub":        existingUser.ID,
 		"uuid":       existingUser.UUID.String(),
-		"deviceid":   deviceID,
+		//		"deviceid":   deviceID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

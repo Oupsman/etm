@@ -9,32 +9,6 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-/*
-func IsAuthorized() gin.HandlerFunc {
-
-		return func(c *gin.Context) {
-
-			bearerToken := c.GetHeader("Authorization")
-			reqToken := strings.Split(bearerToken, " ")[1]
-			_, err := utils.ParseToken(reqToken)
-
-			if err != nil {
-				if err == jwt.ErrSignatureInvalid {
-					c.JSON(http.StatusUnauthorized, gin.H{
-						"message": "unauthorized",
-					})
-					return
-				}
-				c.JSON(http.StatusBadRequest, gin.H{
-					"message": "bad request",
-				})
-				return
-			}
-
-			c.Next()
-		}
-	}
-*/
 func IsAuthorized() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1. Validate the JWT token
@@ -61,24 +35,24 @@ func IsAuthorized() gin.HandlerFunc {
 			}
 			return
 		}
+		/*
+			// 2. Getting and validating the deviceID
+			deviceID := c.GetHeader("X-Device-ID")
+			if deviceID == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"message": "Device ID is required"})
+				return
+			}
 
-		// 2. Getting and validating the deviceID
-		deviceID := c.GetHeader("X-Device-ID")
-		if deviceID == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Device ID is required"})
-			return
-		}
-
-		// Verifying the deviceID
-		tokenDeviceID, ok := claims["deviceID"].(string)
-		if !ok || tokenDeviceID != deviceID {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid device"})
-			return
-		}
-
+			// Verifying the deviceID
+			tokenDeviceID, ok := claims["deviceID"].(string)
+			if !ok || tokenDeviceID != deviceID {
+				c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid device"})
+				return
+			}
+		*/
 		// 3. Store info in context for further use
 		c.Set("userID", claims["userID"])
-		c.Set("deviceID", deviceID)
+		//		c.Set("deviceID", deviceID)
 
 		c.Next()
 	}

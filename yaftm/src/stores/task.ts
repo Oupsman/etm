@@ -4,12 +4,12 @@ import axios from 'axios'
 import { useSnackbarStore } from '@/stores/snackbar';
 
 import type { Task } from '@/types/task'
-import { useDeviceStore } from '@/stores/device'
+//import { useDeviceStore } from '@/stores/device'
 
 export const useTaskStore = defineStore('task', () => {
   const snackbar = useSnackbarStore();
   const tasks = ref([] as Task[])
-  const deviceStore = useDeviceStore();
+  //const deviceStore = useDeviceStore();
   const addTask = (task: Task): Promise<Task> => {
     return new Promise((resolve, reject) => {
       const token = localStorage.getItem('etm-token');
@@ -23,7 +23,7 @@ export const useTaskStore = defineStore('task', () => {
         timeout: 1000,
         headers: {
           Authorization: `Bearer ${token}`,
-          'X-Device-ID': deviceStore.deviceID,
+          //'X-Device-ID': deviceStore.deviceID,
         },
       });
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task', {
@@ -57,7 +57,7 @@ export const useTaskStore = defineStore('task', () => {
       timeout: 1000,
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-Device-ID': deviceStore.deviceID,
+        //'X-Device-ID': deviceStore.deviceID,
       },
     })
     request.delete(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskToDelete.ID).then(response => {
@@ -90,7 +90,7 @@ export const useTaskStore = defineStore('task', () => {
         timeout: 1000,
         headers: {
           Authorization: `Bearer ${token}`,
-          'X-Device-ID': deviceStore.deviceID,
+          //'X-Device-ID': deviceStore.deviceID,
         },
       })
       request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/task/' + taskId, {
@@ -124,7 +124,7 @@ export const useTaskStore = defineStore('task', () => {
       timeout: 1000,
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-Device-ID': deviceStore.deviceID,
+        //'X-Device-ID': deviceStore.deviceID,
       },
     })
     try {

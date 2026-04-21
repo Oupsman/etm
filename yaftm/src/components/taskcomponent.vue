@@ -164,11 +164,11 @@
 
 .task-name
   font-family: 'Poppins', sans-serif
-  font-size: 16px
+  font-size: 12px
   font-weight: 600
   color: #333
-  flex-grow: 1  // Permet au nom de prendre tout l'espace disponible
-  text-align: center  // Centre le texte
+  flex-grow: 1
+  text-align: center
   display: flex
   align-items: center
   justify-content: center
@@ -177,7 +177,7 @@
 .task-actions
   display: flex
   gap: 10px
-  justify-content: flex-end  // Alignement à droite
+  justify-content: flex-end
 
 .edit-btn, .delete-btn
   background: none
