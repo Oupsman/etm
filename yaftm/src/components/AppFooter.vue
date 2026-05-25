@@ -1,7 +1,5 @@
 <template>
   <v-footer
-    app
-    height="40"
   >
     Yet Another F*cking Task Manager
   </v-footer>
