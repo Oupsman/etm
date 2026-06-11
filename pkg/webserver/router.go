@@ -69,6 +69,11 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/user/devices", controllers2.IsAuthorized(), controllers2.GetUserDevices)
 	apiV1.GET("/user/tokens", controllers2.IsAuthorized(), controllers2.GetUserTokens)
 	apiV1.POST("/user/devices", controllers2.IsAuthorized(), controllers2.CreateUserDevice)
+
+	// OIDC endpoints
+	apiV1.GET("/auth/oidc/login", controllers2.OIDCLogin)
+	apiV1.GET("/auth/oidc/callback", controllers2.OIDCCallback)
+
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",

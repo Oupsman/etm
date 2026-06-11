@@ -19,6 +19,11 @@ var Username string
 var Password string
 var SecretKey string
 var Dsn string
+var OIDCEnabled string
+var OIDCIssuerURL string
+var OIDCClientID string
+var OIDCClientSecret string
+var OIDCRedirectURL string
 
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
@@ -46,6 +51,11 @@ func Init() {
 	Username = getEnv("DB_USERNAME", "etm")
 	Password = getEnv("DB_PASSWORD", "etmpass")
 	SecretKey = getEnv("SECRET_KEY", "")
+	OIDCEnabled = getEnv("OIDC_ENABLED", "false")
+	OIDCIssuerURL = getEnv("OIDC_ISSUER_URL", "")
+	OIDCClientID = getEnv("OIDC_CLIENT_ID", "")
+	OIDCClientSecret = getEnv("OIDC_CLIENT_SECRET", "")
+	OIDCRedirectURL = getEnv("OIDC_REDIRECT_URL", "")
 	Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DbHost, Username, Password, Database, DbPort)
 	fmt.Println("DSN: ", Dsn)
 }

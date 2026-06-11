@@ -19,6 +19,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', name: 'index', component: Index },
   { path: '/login', name: 'login', component: Login },
   { path: '/signup', name: 'signup', component: Signup },
+  { path: '/auth/callback', component: () => import('../views/OIDCCallback.vue') },
 ]
 
 const router = createRouter({

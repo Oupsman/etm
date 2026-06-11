@@ -12,14 +12,16 @@ import (
 
 type Users struct {
 	gorm.Model
-	UUID     uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
-	Username string    `json:"username"`
-	Password string    `json:"password"`
-	Gid      uint64    `json:"gid"`
-	IsAdmin  string    `json:"isadmin"`
-	Telegram string    `json:"telegramconf"`
-	Browser  string    `json:"browserconf"`
-	Email    string    `json:"email"`
+	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	Username     string    `json:"username"`
+	Password     string    `json:"password"`
+	Gid          uint64    `json:"gid"`
+	IsAdmin      string    `json:"isadmin"`
+	Telegram     string    `json:"telegramconf"`
+	Browser      string    `json:"browserconf"`
+	Email        string    `json:"email"`
+	OIDCSubject  string    `json:"oidc_subject,omitempty"  gorm:"index"`
+	OIDCProvider string    `json:"oidc_provider,omitempty"`
 }
 
 type Groups struct {

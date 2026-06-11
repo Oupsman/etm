@@ -2,6 +2,7 @@ package main
 
 import (
 	"ETM/pkg/app"
+	"ETM/pkg/controllers"
 	"ETM/pkg/vars"
 	"ETM/pkg/webserver"
 	"fmt"
@@ -54,7 +55,9 @@ func main() {
 				time.Sleep(12 * time.Hour)
 			}
 		}()*/
-
+	if err := controllers.InitOIDC(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize OIDC")
+	}
 	fmt.Printf("Listening on %s:%s\n", vars.Host, vars.Port)
 
 	addr := net.JoinHostPort(vars.Host, vars.Port)
