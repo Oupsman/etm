@@ -19,25 +19,23 @@ func Login(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
 
-	var user models.Users
+	var creds types.UserBody
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&creds); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	var existingUser models.Users
 
-	db.Where("username = ?", user.Username).First(&existingUser)
+	db.Where("username = ?", creds.Username).First(&existingUser)
 
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})
 		return
 	}
 
-	errHash := utils.CompareHashPassword(user.Password, existingUser.Password)
-
-	if !errHash {
+	if !utils.CompareHashPassword(creds.Password, existingUser.Password) {
 		c.JSON(400, gin.H{"error": "invalid password"})
 		return
 	}

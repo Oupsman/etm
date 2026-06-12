@@ -12,7 +12,7 @@ import (
 
 type Users struct {
 	gorm.Model
-	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	UUID         uuid.UUID `gorm:"type:uuid"`
 	Username     string    `json:"username"`
 	Password     string    `json:"-"`
 	Gid          uint64    `json:"gid"`
@@ -22,6 +22,13 @@ type Users struct {
 	Email        string    `json:"email"`
 	OIDCSubject  string    `json:"oidc_subject,omitempty"  gorm:"column:oidc_subject;index"`
 	OIDCProvider string    `json:"oidc_provider,omitempty" gorm:"column:oidc_provider"`
+}
+
+func (u *Users) BeforeCreate(_ *gorm.DB) error {
+	if u.UUID == (uuid.UUID{}) {
+		u.UUID = uuid.New()
+	}
+	return nil
 }
 
 func (db *DB) GetGroupUsers(c *gin.Context) ([]Users, error) {

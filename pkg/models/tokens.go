@@ -7,13 +7,20 @@ import (
 
 type Tokens struct {
 	gorm.Model
-	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	UUID         uuid.UUID `gorm:"type:uuid"`
 	User         Users
 	UserID       uint   `json:"userid"`
 	DeviceID     string `json:"deviceid"`
 	Device       Devices
 	RefreshToken string `json:"refresh_token"`
 	Country      string `json:"country"`
+}
+
+func (t *Tokens) BeforeCreate(_ *gorm.DB) error {
+	if t.UUID == (uuid.UUID{}) {
+		t.UUID = uuid.New()
+	}
+	return nil
 }
 
 func (db *DB) CreateToken(token *Tokens) error {

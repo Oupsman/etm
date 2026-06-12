@@ -10,13 +10,20 @@ import (
 
 type Devices struct {
 	gorm.Model
-	UUID       uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	UUID       uuid.UUID `gorm:"type:uuid"`
 	User       Users
 	UserID     uint      `json:"userid"`
 	DeviceID   string    `json:"deviceid"`
 	DeviceName string    `json:"devicename"`
 	Trusted    bool      `json:"trusted"`
 	LastUsedAt time.Time `json:"lastusedat"`
+}
+
+func (d *Devices) BeforeCreate(_ *gorm.DB) error {
+	if d.UUID == (uuid.UUID{}) {
+		d.UUID = uuid.New()
+	}
+	return nil
 }
 
 func (db *DB) CreateDevice(device types.DeviceBody) error {
