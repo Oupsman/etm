@@ -12,7 +12,7 @@ import (
 
 type Users struct {
 	gorm.Model
-	UUID         uuid.UUID `gorm:"type:uuid"`
+	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 	Username     string    `json:"username"`
 	Password     string    `json:"-"`
 	Gid          uint64    `json:"gid"`

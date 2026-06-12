@@ -20,7 +20,7 @@ func ConnectToDB(driver string, dsn string) (*DB, error) {
 	var sqlDB *sql.DB
 	var db *gorm.DB
 
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: true})
 
 	if err != nil {
 		return nil, err

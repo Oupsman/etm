@@ -10,7 +10,7 @@ import (
 
 type Devices struct {
 	gorm.Model
-	UUID       uuid.UUID `gorm:"type:uuid"`
+	UUID       uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 	User       Users
 	UserID     uint      `json:"userid"`
 	DeviceID   string    `json:"deviceid"`

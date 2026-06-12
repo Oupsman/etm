@@ -25,8 +25,10 @@ func RunHttp(listenAddr string, App *app.App) error {
 	config := cors.DefaultConfig()
 	if vars.AllowedOrigin == "*" {
 		config.AllowAllOrigins = true
+		config.AllowedOrigins = nil
 	} else {
 		config.AllowedOrigins = []string{vars.AllowedOrigin}
+		config.AllowAllOrigins = false
 	}
 	config.AddAllowedMethods("OPTIONS")
 	config.AllowedHeaders = []string{"Authorization", "Content-Type"}

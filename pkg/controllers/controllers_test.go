@@ -31,18 +31,71 @@ func init() {
 
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
+// sqliteSchema mirrors the production schema without PostgreSQL-specific
+// DEFAULT expressions (gen_random_uuid()) that SQLite cannot parse.
+// BeforeCreate hooks handle UUID generation in Go, so no DB default is needed.
+var sqliteSchema = []string{
+	`CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		uuid TEXT, username TEXT, password TEXT, gid INTEGER,
+		is_admin TEXT, telegram TEXT, browser TEXT, email TEXT,
+		oidc_subject TEXT, oidc_provider TEXT
+	)`,
+	`CREATE TABLE IF NOT EXISTS groups (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		name TEXT, owner_id INTEGER
+	)`,
+	`CREATE TABLE IF NOT EXISTS user_groups (
+		user_id INTEGER NOT NULL, group_id INTEGER NOT NULL, role TEXT,
+		PRIMARY KEY (user_id, group_id)
+	)`,
+	`CREATE TABLE IF NOT EXISTS categories (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		name TEXT, color TEXT, user_id INTEGER, active INTEGER
+	)`,
+	`CREATE TABLE IF NOT EXISTS category_groups (
+		category_id INTEGER NOT NULL, group_id INTEGER NOT NULL,
+		PRIMARY KEY (category_id, group_id)
+	)`,
+	`CREATE TABLE IF NOT EXISTS tasks (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		name TEXT, comment TEXT, is_completed INTEGER, is_back_log INTEGER,
+		category_id INTEGER, priority INTEGER, urgency INTEGER,
+		due_date DATETIME, user_id INTEGER
+	)`,
+	`CREATE TABLE IF NOT EXISTS keys (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		pubkey TEXT, privkey TEXT
+	)`,
+	`CREATE TABLE IF NOT EXISTS devices (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		uuid TEXT, user_id INTEGER, device_id TEXT, device_name TEXT,
+		trusted INTEGER, last_used_at DATETIME
+	)`,
+	`CREATE TABLE IF NOT EXISTS tokens (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		uuid TEXT, user_id INTEGER, device_id TEXT,
+		refresh_token TEXT, country TEXT
+	)`,
+}
+
 func newTestApp(t *testing.T) *app.App {
 	t.Helper()
 	gdb, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("open test db: %v", err)
 	}
-	if err := gdb.AutoMigrate(
-		&models.Users{}, &models.Groups{}, &models.UserGroup{},
-		&models.Category{}, &models.CategoryGroup{},
-		&models.Tasks{}, &models.Keys{}, &models.Devices{}, &models.Tokens{},
-	); err != nil {
-		t.Fatalf("migrate: %v", err)
+	for _, sql := range sqliteSchema {
+		if err := gdb.Exec(sql).Error; err != nil {
+			t.Fatalf("create table: %v\nSQL: %s", err, sql)
+		}
 	}
 	db := models.DB{DB: *gdb}
 	return &app.App{DB: db, Logger: zerolog.Nop()}
