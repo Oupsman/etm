@@ -44,6 +44,11 @@ func InitOIDC() error {
 	return nil
 }
 
+// OIDCStatus returns whether OIDC login is available.
+func OIDCStatus(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"enabled": vars.OIDCEnabled == "true"})
+}
+
 // OIDCLogin redirects the browser to the provider's login page.
 func OIDCLogin(c *gin.Context) {
 	if vars.OIDCEnabled != "true" {
@@ -112,6 +117,7 @@ func OIDCCallback(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	user, err := App.DB.FindOrCreateOIDCUser(claims.Sub, claims.Email, username)
 	if err != nil {
+		App.Logger.Error().Err(err).Str("sub", claims.Sub).Str("email", claims.Email).Str("username", username).Msg("OIDC FindOrCreateOIDCUser error")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not find or create user"})
 		return
 	}
@@ -134,5 +140,5 @@ func OIDCCallback(c *gin.Context) {
 
 	// Redirect the frontend with the token in the URL fragment
 	// Adjust the path to match your Vue router's callback route
-	c.Redirect(http.StatusFound, "/#/auth/callback?token="+tokenString)
+	c.Redirect(http.StatusFound, "/auth/callback?token="+tokenString)
 }

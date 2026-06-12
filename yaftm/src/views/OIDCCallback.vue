@@ -1,13 +1,16 @@
 <script setup lang="ts">
   import { onMounted } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
+  const authStore = useAuthStore()
+
   onMounted(() => {
-    const params = new URLSearchParams(window.location.hash.split('?')[1])
+    const params = new URLSearchParams(globalThis.location.search)
     const token = params.get('token')
     if (token) {
-      localStorage.setItem('token', token) // use whatever key your app already uses
+      authStore.setTokens(token, '')
       router.push('/')
     } else {
       router.push('/login?error=oidc_failed')

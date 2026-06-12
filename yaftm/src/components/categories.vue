@@ -1,8 +1,12 @@
 <script setup lang="ts">
+  import { ref, watch } from 'vue'
   import CategoryComponent from '@/components/categorycomponent.vue'
   import { useCategoryStore } from '@/stores/category.ts'
-  import type { Category, NewCategory } from '@/types/category.ts'
+  import { useAuthStore } from '@/stores/auth'
+  import type { Category } from '@/types/category.ts'
+
   const categoryStore = useCategoryStore()
+  const authStore = useAuthStore()
 
   let categories:Category[] = []
   const categoriesDisplay = ref<Category[]>([])
@@ -11,17 +15,19 @@
   const categoryColor = ref('#EE2222')
   const activeTab = ref(0)
 
-  onMounted(async () => {
+  const loadCategories = async () => {
     try {
       categories = await categoryStore.getCategories()
       categoriesDisplay.value = categories
-      console.log('Categories: ', categories)
-      setActiveTab(categories[0].ID)
+      if (categories.length > 0) setActiveTab(categories[0].ID)
     } catch (error) {
       console.log('Error fetching categories: ', error)
     }
+  }
 
-  })
+  watch(() => authStore.isAuthenticated, (isAuth) => {
+    if (isAuth) loadCategories()
+  }, { immediate: true })
   const triggerDialogCategory = () => {
     dialog.value = true
   }
@@ -35,9 +41,8 @@
         color: categoryColor.value,
       }
       try {
-        categoryStore.addCategory(newCategory)
-        categories = await categoryStore.getCategories()
-        categoriesDisplay.value = categories
+        await categoryStore.addCategory(newCategory)
+        await loadCategories()
       } catch(error) {
         console.log('Error adding category: ', error)
       }
@@ -54,14 +59,19 @@
 </script>
 
 <template>
-  <v-container style="position: relative; top: 0; left: 0; height: 100vh;">
-    <v-row style="position: relative; top: 0; left: 0; height: 5vh;">
-      <v-col>
-        <v-tabs v-model="activeTab">
+  <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+    <div style="flex: 0 0 auto;">
+      <v-tabs v-model="activeTab">
           <v-tab
             v-for="category in categoriesDisplay"
             :key="category.ID"
-            :style="{ backgroundColor: category.color }"
+            :value="category.ID"
+            :style="{
+              backgroundColor: category.color,
+              opacity: activeTab === category.ID ? 1 : 0.55,
+              fontWeight: activeTab === category.ID ? '700' : '400',
+              borderBottom: activeTab === category.ID ? '3px solid rgba(0,0,0,0.4)' : '3px solid transparent',
+            }"
             @click="setActiveTab(category.ID)"
           >
             {{ category.name }}
@@ -70,20 +80,16 @@
             Add
           </v-btn>
         </v-tabs>
-      </v-col>
-    </v-row>
-    <v-row style="position: relative; top: 0; left: 0; height: 80vh;">
-      <v-col>
-        <v-tabs-items v-model="activeTab">
-          <v-tab-item
-            v-for="category in categoriesDisplay"
-            :key="category.ID"
-          >
-            <CategoryComponent v-if="activeTab === category.ID" :category-i-d="category.ID" />
-          </v-tab-item>
-        </v-tabs-items>
-      </v-col>
-    </v-row>
+    </div>
+    <div style="flex: 1; min-height: 0; overflow: hidden; position: relative;">
+      <template v-for="category in categoriesDisplay" :key="category.ID">
+        <CategoryComponent
+          v-if="activeTab === category.ID"
+          :category-i-d="category.ID"
+          style="height: 100%;"
+        />
+      </template>
+    </div>
 
     <v-dialog v-model="dialog" max-width="600px" persistent>
       <v-card>
@@ -122,7 +128,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <style scoped lang="sass">

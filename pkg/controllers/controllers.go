@@ -14,13 +14,13 @@ func IsAuthorized() gin.HandlerFunc {
 		// 1. Validate the JWT token
 		bearerToken := c.GetHeader("Authorization")
 		if bearerToken == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Authorization header is required"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Authorization header is required"})
 			return
 		}
 
 		reqToken := strings.Split(bearerToken, " ")
 		if len(reqToken) != 2 || reqToken[0] != "Bearer" {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid authorization format"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid authorization format"})
 			return
 		}
 
@@ -29,9 +29,9 @@ func IsAuthorized() gin.HandlerFunc {
 		if err != nil {
 			switch err {
 			case jwt.ErrSignatureInvalid:
-				c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid token signature"})
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid token signature"})
 			default:
-				c.JSON(http.StatusBadRequest, gin.H{"message": "Bad request"})
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Bad request"})
 			}
 			return
 		}
@@ -51,8 +51,8 @@ func IsAuthorized() gin.HandlerFunc {
 			}
 		*/
 		// 3. Store info in context for further use
-		c.Set("userID", claims["userID"])
-		//		c.Set("deviceID", deviceID)
+		c.Set("userID", claims["sub"])
+		c.Set("uuid", claims["uuid"])
 
 		c.Next()
 	}

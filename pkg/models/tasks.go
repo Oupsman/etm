@@ -78,6 +78,12 @@ func (db *DB) GetActiveTasks() ([]Tasks, error) {
 	return tasks, nil
 }
 
+func (db *DB) GetTasksByCategory(categoryID uint) ([]Tasks, error) {
+	var tasks []Tasks
+	result := db.Where("category_id = ?", categoryID).Find(&tasks)
+	return tasks, result.Error
+}
+
 func (db *DB) DeleteTask(TaskID uint) error {
 	result := db.Delete(&Tasks{}, TaskID)
 	if result.Error != nil {

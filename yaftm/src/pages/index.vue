@@ -11,12 +11,7 @@
 </script>
 
 <template>
-  <v-container class="margin-initial" style="position: relative; top: 0; left: 0; height: 100vh;">
+  <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
     <Categories />
-  </v-container>
+  </div>
 </template>
-
-<style scoped lang="sass">
-  margin-initial
-    margin: initial
-</style>

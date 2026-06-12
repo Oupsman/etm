@@ -14,27 +14,21 @@ type Users struct {
 	gorm.Model
 	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 	Username     string    `json:"username"`
-	Password     string    `json:"password"`
+	Password     string    `json:"-"`
 	Gid          uint64    `json:"gid"`
 	IsAdmin      string    `json:"isadmin"`
 	Telegram     string    `json:"telegramconf"`
 	Browser      string    `json:"browserconf"`
 	Email        string    `json:"email"`
-	OIDCSubject  string    `json:"oidc_subject,omitempty"  gorm:"index"`
-	OIDCProvider string    `json:"oidc_provider,omitempty"`
-}
-
-type Groups struct {
-	gorm.Model
-	Name  string `json:"name"`
-	Users []Users
+	OIDCSubject  string    `json:"oidc_subject,omitempty"  gorm:"column:oidc_subject;index"`
+	OIDCProvider string    `json:"oidc_provider,omitempty" gorm:"column:oidc_provider"`
 }
 
 func (db *DB) GetGroupUsers(c *gin.Context) ([]Users, error) {
 	// var Db = ConnectToDb()
 	var Users = []Users{}
 	GroupID, _ := strconv.Atoi(c.Param("groupId"))
-	result := Db.Where("category_id = ?", GroupID).Find(&Users)
+	result := db.Where("category_id = ?", GroupID).Find(&Users)
 	if result.Error != nil {
 		return nil, result.Error
 	}

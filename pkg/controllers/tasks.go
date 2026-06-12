@@ -6,7 +6,6 @@ import (
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -16,89 +15,116 @@ import (
 )
 
 func GetTasks(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
 
-	App := c.MustGet("App")
-	db := App.(*app.App).DB
+	categoryID, err := strconv.Atoi(c.Param("categoryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
+		return
+	}
 
-	CategoryID, err := strconv.Atoi(c.Param("categoryId"))
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserUUID, err := utils.GetUserUUID(bearerToken)
-	User, err := db.GetUserByUUID(UserUUID)
+	userUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	tasks, err := db.GetTasks(User.ID, CategoryID)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Unable to list tasks"})
+	if !db.CanUserViewCategory(user.ID, uint(categoryID)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
-	c.JSON(200, tasks)
+	tasks, err := db.GetTasksByCategory(uint(categoryID))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unable to list tasks"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
 func GetTask(c *gin.Context) {
-	App := c.MustGet("App")
-	db := App.(*app.App).DB
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
 
-	TaskID, err := strconv.Atoi(c.Param("taskId"))
+	taskID, err := strconv.Atoi(c.Param("taskId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid task id"})
+		return
+	}
+
 	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
+	userUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	task, err := db.GetTask(TaskID)
+	task, err := db.GetTask(taskID)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
 		return
 	}
-	if task.UserID != UserID {
-		c.JSON(403, gin.H{"error": "You do not have access to this task"})
+
+	if !db.CanUserViewCategory(user.ID, task.CategoryID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
 	}
-	c.JSON(200, task)
+	c.JSON(http.StatusOK, task)
 }
 
 func CreateTask(c *gin.Context) {
-	App := c.MustGet("App")
-	db := App.(*app.App).DB
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	taskBody := types.TaskBody{}
-	var dueDate time.Time
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
 	err = c.ShouldBindJSON(&taskBody)
-
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
 	switch {
 	case errors.Is(err, io.EOF):
-		fmt.Println("Error :", err)
+		App.Logger.Error().Err(err).Msg("CreateTask: missing request body")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request body"})
 		return
 	case err != nil:
-		fmt.Println("Error :", err)
+		App.Logger.Error().Err(err).Msg("CreateTask: failed to bind JSON")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	dueDate, err = time.Parse(time.RFC3339, taskBody.DueDate)
+	if !db.CanUserEditCategory(user.ID, taskBody.CategoryID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	dueDate, err := time.Parse(time.RFC3339, taskBody.DueDate)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid due date format, expected RFC3339"})
 		return
 	}
 
-	var task = models2.Tasks{
+	task := models2.Tasks{
 		Name:       taskBody.Name,
 		Comment:    taskBody.Comment,
 		IsBackLog:  true,
@@ -106,47 +132,67 @@ func CreateTask(c *gin.Context) {
 		Urgency:    false,
 		CategoryID: taskBody.CategoryID,
 		DueDate:    dueDate,
-		UserID:     UserID,
+		UserID:     user.ID,
 	}
 
-	err = db.CreateTask(&task)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := db.CreateTask(&task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(201, gin.H{
-		"task": task,
-	})
+	c.JSON(http.StatusCreated, gin.H{"task": task})
 }
 
 func UpdateTask(c *gin.Context) {
-	App := c.MustGet("App")
-	db := App.(*app.App).DB
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
 
-	var dueDate time.Time
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	taskID, err := strconv.Atoi(c.Param("taskId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid task id"})
+		return
+	}
 
 	taskBody := types.TaskBody{}
-
-	err := c.ShouldBindJSON(&taskBody)
+	err = c.ShouldBindJSON(&taskBody)
 	switch {
 	case errors.Is(err, io.EOF):
-		fmt.Println("Error :", err)
+		App.Logger.Error().Err(err).Msg("UpdateTask: missing request body")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request body"})
 		return
 	case err != nil:
-		fmt.Println("Error :", err)
+		App.Logger.Error().Err(err).Msg("UpdateTask: failed to bind JSON")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	dueDate, _ = time.Parse(time.RFC3339, taskBody.DueDate)
-
-	task, err := db.GetTask(taskBody.Id)
+	task, err := db.GetTask(taskID)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "task not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
 		return
 	}
 
+	if !db.CanUserEditCategory(user.ID, task.CategoryID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	dueDate, err := time.Parse(time.RFC3339, taskBody.DueDate)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid due date format, expected RFC3339"})
+		return
+	}
 	task.Comment = taskBody.Comment
 	task.Name = taskBody.Name
 	task.DueDate = dueDate
@@ -155,39 +201,53 @@ func UpdateTask(c *gin.Context) {
 	task.IsCompleted = taskBody.IsCompleted
 	task.IsBackLog = taskBody.IsBackLog
 
-	err = db.UpdateTask(task)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := db.UpdateTask(task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{
-		"task": task,
-	})
+	c.JSON(http.StatusOK, gin.H{"task": task})
 }
 
 func DeleteTask(c *gin.Context) {
-	App := c.MustGet("App")
-	db := App.(*app.App).DB
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
 
-	id, _ := strconv.Atoi(c.Param("taskId"))
-
-	Task, err := db.GetTask(id)
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = db.DeleteTask(Task.ID)
+	id, err := strconv.Atoi(c.Param("taskId"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error deleting task from database" + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid task id"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "task deleted successfully",
-	})
+
+	task, err := db.GetTask(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if !db.CanUserEditCategory(user.ID, task.CategoryID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	if err := db.DeleteTask(task.ID); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not delete task"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "task deleted successfully"})
 }
 
 func CheckTasks() error {
-
 	return nil
 }

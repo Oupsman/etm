@@ -14,6 +14,15 @@
     },
   })
 
+  const dueDateStyle = computed(() => {
+    if (!props.task.duedate || props.task.iscompleted) return {}
+    const days = Math.ceil((new Date(props.task.duedate).getTime() - Date.now()) / 86_400_000)
+    if (days < 0)  return { borderLeft: '4px solid #e74c3c' }  // overdue
+    if (days <= 3) return { borderLeft: '4px solid #f39c12' }  // due within 3 days
+    if (days <= 7) return { borderLeft: '4px solid #f1c40f' }  // due this week
+    return {}
+  })
+
   const triggerEditTask = ref(false)
   const taskName = ref('')
   const taskDescription = ref('')
@@ -33,44 +42,40 @@
     triggerDeleteTask.value = true
   }
 
-  const onCompletedTask = (task: Task): void => {
-    if (task.iscompleted) {
-      task.iscompleted = true
-      task.priority = false
-      task.urgency = false
-      task.isbacklog = false
-    } else {
-      task.iscompleted = false
-      task.priority = false
-      task.urgency = false
-      task.isbacklog = true
+  const onCompletedTask = async (task: Task): Promise<void> => {
+    const updated: Task = {
+      ...task,
+      // v-model already flipped iscompleted; derive the rest from that new value
+      priority:    false,
+      urgency:     false,
+      isbacklog:   !task.iscompleted,
     }
-    taskStore.updateTask(task.ID, task)
+    await taskStore.updateTask(task.ID, updated)
     emit('updatecategory')
   }
 
-
-  const saveTask = (ID: number, task: Task): void => {
-    if (taskName.value && taskDueDate.value) {
-      task.name = taskName.value
-      task.comment = taskDescription.value
-      task.duedate = taskDueDate.value.toISOString()
-
-      if ( taskStore.updateTask(ID, task)) {
-        triggerEditTask.value = false
-        emit('updatecategory')
-      }
+  const saveTask = async (): Promise<void> => {
+    if (!taskName.value || !taskDueDate.value) return
+    const updated: Task = {
+      ...props.task,
+      name:    taskName.value,
+      comment: taskDescription.value,
+      duedate: taskDueDate.value.toISOString(),
     }
+    await taskStore.updateTask(props.task.ID, updated)
+    triggerEditTask.value = false
+    emit('updatecategory')
   }
-  const deleteTask = (task: Task): void => {
-    if (taskStore.deleteTask(task)) {
-      triggerDeleteTask.value = false
-    }
+
+  const deleteTask = async (): Promise<void> => {
+    await taskStore.deleteTask(props.task)
+    triggerDeleteTask.value = false
+    emit('updatecategory')
   }
 </script>
 
 <template>
-  <v-card class="task-card">
+  <v-card class="task-card" :style="dueDateStyle">
     <v-checkbox
       v-model="props.task.iscompleted"
       class="status-checkbox"
@@ -121,7 +126,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="saveTask(props.task.ID,props.task)">Save</v-btn>
+        <v-btn @click="saveTask()">Save</v-btn>
         <v-btn @click="triggerEditTask = false">Cancel</v-btn>
       </v-card-actions>
 
@@ -135,7 +140,7 @@
         Description: {{ taskDescription }}</v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="deleteTask(props.task)">YES</v-btn>
+        <v-btn @click="deleteTask()">YES</v-btn>
         <v-btn @click="triggerDeleteTask = false">NO</v-btn>
       </v-card-actions>
     </v-card>

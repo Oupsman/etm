@@ -57,3 +57,12 @@ func (db *DB) GetTokensByUserID(userID uint) ([]Tokens, error) {
 	}
 	return tokens, nil
 }
+
+func (db *DB) GetTokenByID(tokenID uint) (*Tokens, error) {
+	var token Tokens
+	result := db.First(&token, tokenID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &token, nil
+}

@@ -22,10 +22,10 @@ type TaskBody struct {
 	Name        string `json:"name"`
 	Comment     string `json:"comment"`
 	DueDate     string `json:"duedate"`
-	IsBackLog   bool   `json:"isbacklog,omitempty"`
-	IsCompleted bool   `json:"iscompleted,omitempty"`
-	Priority    bool   `json:"priority,omitempty"`
-	Urgency     bool   `json:"urgency,omitempty"`
+	IsBackLog   bool   `json:"isbacklog"`
+	IsCompleted bool   `json:"iscompleted"`
+	Priority    bool   `json:"priority"`
+	Urgency     bool   `json:"urgency"`
 	CategoryID  uint   `json:"categoryid,omitempty"`
 }
 
@@ -39,4 +39,17 @@ type CategoryBody struct {
 type DeviceBody struct {
 	DeviceID string `json:"deviceid"`
 	UserID   uint   `json:"userid"`
+}
+
+type GroupBody struct {
+	Name string `json:"name" binding:"required"`
+}
+
+type GroupMemberBody struct {
+	UserID uint   `json:"user_id" binding:"required"`
+	Role   string `json:"role" binding:"required"`
+}
+
+type CategoryShareBody struct {
+	GroupID uint `json:"group_id" binding:"required"`
 }

@@ -1,11 +1,11 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"errors"
 
-// Call this from CreateOrMigrate in database.go alongside existing AutoMigrate calls
-func MigrateOIDC(db *gorm.DB) error {
-	return db.AutoMigrate(&Users{})
-}
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 // FindOrCreateOIDCUser looks up a user by their OIDC subject claim,
 // creating them if they don't exist yet.
@@ -17,12 +17,13 @@ func (db *DB) FindOrCreateOIDCUser(subject, email, username string) (Users, erro
 		// Existing OIDC user
 		return user, nil
 	}
-	if result.Error != gorm.ErrRecordNotFound {
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return Users{}, result.Error
 	}
 
 	// First login: create the user (no password)
 	user = Users{
+		UUID:         uuid.New(),
 		Username:     username,
 		Email:        email,
 		OIDCSubject:  subject,

@@ -3,6 +3,7 @@ package controllers
 import (
 	"ETM/pkg/models"
 	"ETM/pkg/types"
+	"ETM/pkg/vars"
 	"encoding/json"
 	"errors"
 	"github.com/SherClockHolmes/webpush-go"
@@ -83,7 +84,7 @@ func BrowserSend(message string, browserConfig string) error {
 
 	// Send notification
 	response, err := webpush.SendNotification([]byte(message), s, &webpush.Options{
-		Subscriber:      "oupsman@oupsman.fr", // Do not include "mailto:"
+		Subscriber:      vars.VAPIDSubscriber,
 		VAPIDPublicKey:  keys.Pubkey,
 		VAPIDPrivateKey: keys.Privkey,
 		//		Topic:           "Game changed price",

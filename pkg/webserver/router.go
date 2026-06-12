@@ -3,11 +3,10 @@ package webserver
 import (
 	"ETM/pkg/app"
 	controllers2 "ETM/pkg/controllers"
+	"ETM/pkg/vars"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/cors"
-
-	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,14 +23,26 @@ func RunHttp(listenAddr string, App *app.App) error {
 
 	//	httpRouter.LoadHTMLGlob("templates/*")
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
+	if vars.AllowedOrigin == "*" {
+		config.AllowAllOrigins = true
+	} else {
+		config.AllowedOrigins = []string{vars.AllowedOrigin}
+	}
 	config.AddAllowedMethods("OPTIONS")
 	config.AllowedHeaders = []string{"Authorization", "Content-Type"}
 	httpRouter.Use(cors.New(config))
 
-	httpRouter.Use(static.Serve("/static", static.LocalFile("./static", true)))
 	httpRouter.Use(AppHandler(App))
-	httpRouter.Use(static.Serve("/", static.LocalFile("./yaftm/dist", true)))
+
+	// Serve compiled frontend assets directly; everything else falls to NoRoute.
+	httpRouter.Static("/assets", "./yaftm/dist/assets")
+	httpRouter.StaticFile("/favicon.ico", "./yaftm/dist/favicon.ico")
+
+	// SPA fallback: any unmatched path (including /, /login, /auth/callback …)
+	// gets index.html so Vue Router can take over client-side.
+	httpRouter.NoRoute(func(c *gin.Context) {
+		c.File("./yaftm/dist/index.html")
+	})
 	apiV1 := httpRouter.Group("/api/v1")
 	{
 		apiV1.GET("/", controllers2.IsAuthorized(), func(c *gin.Context) {
@@ -48,6 +59,18 @@ func RunHttp(listenAddr string, App *app.App) error {
 	// Categories endpoints
 	apiV1.GET("/categories", controllers2.IsAuthorized(), controllers2.GetCategories)
 	apiV1.POST("/category", controllers2.IsAuthorized(), controllers2.CreateCategory)
+	apiV1.POST("/category/:categoryId/share", controllers2.IsAuthorized(), controllers2.ShareCategory)
+	apiV1.DELETE("/category/:categoryId/share/:groupId", controllers2.IsAuthorized(), controllers2.UnshareCategory)
+	apiV1.GET("/category/:categoryId/shares", controllers2.IsAuthorized(), controllers2.GetCategoryShares)
+
+	// Group endpoints
+	apiV1.POST("/group", controllers2.IsAuthorized(), controllers2.CreateGroup)
+	apiV1.GET("/groups", controllers2.IsAuthorized(), controllers2.GetGroups)
+	apiV1.GET("/group/:groupId", controllers2.IsAuthorized(), controllers2.GetGroup)
+	apiV1.DELETE("/group/:groupId", controllers2.IsAuthorized(), controllers2.DeleteGroup)
+	apiV1.POST("/group/:groupId/member", controllers2.IsAuthorized(), controllers2.AddGroupMember)
+	apiV1.PUT("/group/:groupId/member/:userId", controllers2.IsAuthorized(), controllers2.UpdateGroupMember)
+	apiV1.DELETE("/group/:groupId/member/:userId", controllers2.IsAuthorized(), controllers2.RemoveGroupMember)
 
 	// Tasks Endpoints
 
@@ -71,6 +94,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.POST("/user/devices", controllers2.IsAuthorized(), controllers2.CreateUserDevice)
 
 	// OIDC endpoints
+	apiV1.GET("/auth/oidc/status", controllers2.OIDCStatus)
 	apiV1.GET("/auth/oidc/login", controllers2.OIDCLogin)
 	apiV1.GET("/auth/oidc/callback", controllers2.OIDCCallback)
 

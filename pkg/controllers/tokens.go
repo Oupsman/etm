@@ -14,7 +14,7 @@ func GetUserTokens(c *gin.Context) {
 	db := App.(*app.App).DB
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Utilisateur non identifié"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
@@ -22,7 +22,7 @@ func GetUserTokens(c *gin.Context) {
 
 	tokens, err := db.GetTokensByUserID(uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des jetons"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not retrieve tokens"})
 		return
 	}
 
@@ -32,16 +32,29 @@ func GetUserTokens(c *gin.Context) {
 func GetTokenByUUID(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
+
+	userID, ok := c.Get("userID")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	uid := uint(userID.(float64))
+
 	uuidParam := c.Param("uuid")
 	tokenUUID, err := uuid.Parse(uuidParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Format d'UUID invalide"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid UUID"})
 		return
 	}
 
 	token, err := db.GetTokenByUUID(tokenUUID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Jeton introuvable"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "token not found"})
+		return
+	}
+
+	if token.UserID != uid {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
@@ -51,18 +64,35 @@ func GetTokenByUUID(c *gin.Context) {
 func DeleteToken(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
+
+	userID, ok := c.Get("userID")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	uid := uint(userID.(float64))
+
 	idParam := c.Param("id")
 	tokenID, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid token ID"})
 		return
 	}
 
-	err = db.DeleteToken(uint(tokenID))
+	token, err := db.GetTokenByID(uint(tokenID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression du jeton"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "token not found"})
+		return
+	}
+	if token.UserID != uid {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Jeton supprimé avec succès"})
+	if err := db.DeleteToken(uint(tokenID)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not delete token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "token deleted"})
 }

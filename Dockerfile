@@ -34,6 +34,8 @@ RUN npm run build
 
 FROM builder AS runner
 
+WORKDIR /app
+
 ENV PORT=8080
 
 # Expose port 8080 to the outside

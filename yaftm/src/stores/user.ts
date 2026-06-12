@@ -3,7 +3,9 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import router from '@/router'
 import axios from 'axios'
-import { useSnackbarStore } from '@/stores/snackbar';
+import { useSnackbarStore } from '@/stores/snackbar'
+import { useAuthStore } from '@/stores/auth'
+import { axiosInstance } from '@/plugins/axios'
 import type { User, UserSession } from '@/types/user'
 import { useDeviceStore } from '@/stores/device'
 
@@ -13,89 +15,56 @@ function parseJwt (token: string) {
   const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
   }).join(''))
-
   return JSON.parse(jsonPayload)
 }
 
 export const useUserStore = defineStore('user', () => {
-  const snackbar = useSnackbarStore();
+  const snackbar = useSnackbarStore()
   const session: Ref<UserSession | null> = ref(null)
 
-  const login = async (username: string, password:string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<void> => {
+    const authStore = useAuthStore()
     const deviceStore = useDeviceStore()
     await deviceStore.initDevice()
 
-    await axios.post(
-      import.meta.env.VITE_BACKEND_URL + '/api/v1/user/login',
-      { username, password },
-      {
-        headers: {
-          'X-Device-ID': deviceStore.deviceID,
-        },
-      }
-    ).then(response => {
+    try {
+      const response = await axios.post(
+        '/api/v1/user/login',
+        { username, password },
+        { headers: { 'X-Device-ID': deviceStore.deviceID } }
+      )
       if (response.data.token) {
-        localStorage.setItem('etm-token', response.data.token)
-        const data = parseJwt(response.data.token)
-        setUserSession({
-          ...data,
-          token: response.data.token,
-        })
-        console.log('logged in')
+        authStore.setTokens(response.data.token, '')
+        setUserSession({ ...parseJwt(response.data.token), token: response.data.token })
         router.push('/')
       }
-    }).catch(error => {
-
-      const snackbar = useSnackbarStore();
-      snackbar.showSnackbar({
-        message: 'Login failed! ' + error.message,
-        color: 'error',
-      });
+    } catch (error: any) {
+      snackbar.showSnackbar({ message: 'Login failed! ' + error.message, color: 'error' })
       throw new Error('Login failed')
-    })
+    }
   }
 
   const logout = async (): Promise<void> => {
-    const token = localStorage.getItem('etm-token')
-    axios.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/logout', {
-      token,
-    }).then(response => {
-      if (response.data.token) {
-        localStorage.removeItem('etm-token')
-        session.value = null
-        router.push('/')
-      }
-    }).catch(error => {
-      console.error('Login error:', error)
-      throw new Error('Login failed')
-    })
+    const authStore = useAuthStore()
+    try {
+      await axiosInstance.get('/api/v1/user/logout')
+    } catch {
+      // ignore logout errors
+    }
+    authStore.logout()
+    session.value = null
+    router.push('/login')
   }
+
   const signup = async (username: string, password: string, email: string): Promise<void> => {
-    const request = axios.create(
-      {
-        baseURL: import.meta.env.VITE_BACKEND_URL,
-        timeout: 1000,
-        withCredentials: false,
-      }
-    )
-    request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/register', {
-      username,
-      password,
-      email,
-    }).then(response => {
-      console.log('Signup response:', response)
-      snackbar.showSnackbar({
-        message: 'Signup successfull',
-        color: 'success',
-      });
+    try {
+      await axios.post('/api/v1/user/register', { username, password, email })
+      snackbar.showSnackbar({ message: 'Signup successful', color: 'success' })
       router.push('/login')
-    }).catch(error => {
-      snackbar.showSnackbar({
-        message: 'Signup failed! ' + error.message,
-        color: 'error',
-      });
+    } catch (error: any) {
+      snackbar.showSnackbar({ message: 'Signup failed! ' + error.message, color: 'error' })
       throw new Error('Signup failed')
-    })
+    }
   }
 
   const setUserSession = (data: UserSession): void => {
@@ -103,106 +72,50 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const userIsLoggedIn = computed(() => {
-    const token = localStorage.getItem('etm-token')
+    const authStore = useAuthStore()
+    const token = authStore.token
     if (!session.value && token) {
       session.value = parseJwt(token)
     }
     if (session.value?.exp) {
       const expiresAt = new Date(0).setUTCSeconds(session.value.exp)
-      const now = new Date().getSeconds()
-      console.log(expiresAt, now, expiresAt > now)
-      return now < expiresAt
+      return Date.now() < expiresAt
     }
     return false
   })
-  // checks if the JWT token is still valid
+
   const checkToken = computed((): boolean => {
-    const token = localStorage.getItem('etm-token')
+    const authStore = useAuthStore()
+    const token = authStore.token
     if (token) {
       const decoded = parseJwt(token)
       if (decoded.exp < Date.now() / 1000) {
-        // Token is expired
-        localStorage.removeItem('etm-token')
+        authStore.logout()
         session.value = null
         return false
-      } else {
-        session.value = decoded
       }
+      session.value = decoded
     }
     return true
   })
 
   const user = ref({})
 
-  const getUser = async () : Promise<User> => {
-    console.log('Get user - function')
-    const token = localStorage.getItem('etm-token')
-    if (!token) {
-      throw new Error('No token')
-    }
-
-    try {
-      const request = axios.create({
-        baseURL: import.meta.env.VITE_BACKEND_URL,
-        timeout: 1000,
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const response = await request.get(`/api/v1/user`)
-      console.log('Response : ', response.data)
-      user.value = response.data
-      console.log('user:', response.data)
-      return response.data
-    } catch (error) {
-      console.error('Get user error:', error)
-      throw new Error('get user failed')
-    }
+  const getUser = async (): Promise<User> => {
+    const response = await axiosInstance.get('/api/v1/user')
+    user.value = response.data
+    return response.data
   }
 
-  const updateUser = async (user: object) : Promise<boolean> => {
-    console.log('user to save', user)
-    const token = localStorage.getItem('etm-token')
-    if (!token) {
-      throw new Error('No token')
-    }
-    const request = axios.create({
-      baseURL: import.meta.env.VITE_BACKEND_URL,
-      timeout: 30000,
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user', {
-      ...user,
-    }).then(response => {
-      console.log('User updated:', response.data)
-      return true
-    }).catch(error => {
-      console.error('Update user error:', error)
-      throw new Error('update user')
-    })
+  const updateUser = async (userData: object): Promise<boolean> => {
+    await axiosInstance.post('/api/v1/user', userData)
     return true
   }
 
-  const trustUserDevice = async (user: object): Promise<boolean> => {
-    const token = localStorage.getItem('etm-token')
-    if (!token) {
-      throw new Error('No token')
-    }
-    const request = axios.create({
-      baseURL: import.meta.env.VITE_BACKEND_URL,
-      timeout: 30000,
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    request.post(import.meta.env.VITE_BACKEND_URL + '/api/v1/user/devices', {
-      ...user,
-    }).then(response => {
-      console.log('User updated:', response.data)
-      return true
-    }).catch(error => {
-      console.error('Update user error:', error)
-      throw new Error('update user')
-    })
-
+  const trustUserDevice = async (userData: object): Promise<boolean> => {
+    await axiosInstance.post('/api/v1/user/devices', userData)
     return true
   }
+
   return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser, trustUserDevice }
 })

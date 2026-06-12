@@ -2,10 +2,12 @@ package utils
 
 import (
 	"ETM/pkg/vars"
+	"fmt"
+	"strings"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"strings"
 )
 
 func GenerateHashPassword(password string) (string, error) {
@@ -20,6 +22,9 @@ func CompareHashPassword(password, hash string) bool {
 
 func ParseToken(tokenString string) (claims jwt.MapClaims, err error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return []byte(vars.SecretKey), nil
 	})
 
@@ -28,10 +33,6 @@ func ParseToken(tokenString string) (claims jwt.MapClaims, err error) {
 	}
 
 	claims = token.Claims.(jwt.MapClaims)
-	/*if !ok {
-		return nil, err
-	}*/
-
 	return claims, nil
 }
 

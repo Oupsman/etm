@@ -85,7 +85,7 @@ func Register(c *gin.Context) {
 
 	var existingUser models.Users
 
-	db.Debug().Where("username = ?", user.Username).First(&existingUser)
+	db.Where("username = ?", user.Username).First(&existingUser)
 
 	if existingUser.ID != 0 {
 		c.JSON(409, gin.H{"error": "user already exists"})
@@ -114,36 +114,36 @@ func Logout(c *gin.Context) {
 
 func RefreshToken(c *gin.Context) {
 	bearerToken := c.Request.Header.Get("Authorization")
-	reqToken := strings.Split(bearerToken, " ")[1]
-
-	claims, err := utils.ParseToken(reqToken)
-
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	parts := strings.Split(bearerToken, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid authorization header"})
 		return
 	}
 
-	expirationTime := time.Now().Add(24 * time.Hour)
+	claims, err := utils.ParseToken(parts[1])
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	expirationTime := time.Now().Add(30 * time.Minute)
 
 	newClaims := jwt.MapClaims{
-
 		"authorized": true,
-		"role":       claims["role"],
-		"iss":        "switchdb",
+		"iss":        "etm",
 		"sub":        claims["sub"],
+		"uuid":       claims["uuid"],
 		"exp":        expirationTime.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
 	tokenString, err := token.SignedString([]byte(vars.SecretKey))
-
 	if err != nil {
-		c.JSON(500, gin.H{"error": "could not generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
 
-	c.SetCookie("token", tokenString, int(expirationTime.Unix()), "/", "localhost", false, true)
-	c.JSON(200, gin.H{"token": tokenString})
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
 
 func WhoAmI(c *gin.Context) {

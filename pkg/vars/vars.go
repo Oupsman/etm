@@ -1,5 +1,3 @@
-// Global variales
-
 package vars
 
 import (
@@ -24,6 +22,8 @@ var OIDCIssuerURL string
 var OIDCClientID string
 var OIDCClientSecret string
 var OIDCRedirectURL string
+var AllowedOrigin string
+var VAPIDSubscriber string
 
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
@@ -34,9 +34,7 @@ func getEnv(key, fallback string) string {
 }
 
 func Init() {
-	// Check if a critical variable is missing from the system environment
 	if _, exists := os.LookupEnv("DB_HOST"); !exists {
-		// If not found, try to load the .env file
 		err := godotenv.Load()
 		if err != nil {
 			log.Println("No .env file found, relying on system environment variables")
@@ -56,6 +54,11 @@ func Init() {
 	OIDCClientID = getEnv("OIDC_CLIENT_ID", "")
 	OIDCClientSecret = getEnv("OIDC_CLIENT_SECRET", "")
 	OIDCRedirectURL = getEnv("OIDC_REDIRECT_URL", "")
+	AllowedOrigin = getEnv("ALLOWED_ORIGIN", "*")
+	VAPIDSubscriber = getEnv("VAPID_SUBSCRIBER", "")
 	Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DbHost, Username, Password, Database, DbPort)
-	fmt.Println("DSN: ", Dsn)
+
+	if SecretKey == "" {
+		log.Println("WARNING: SECRET_KEY is not set — JWT tokens will use an empty secret and can be trivially forged")
+	}
 }

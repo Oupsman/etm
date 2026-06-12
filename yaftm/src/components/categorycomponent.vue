@@ -7,17 +7,20 @@
   import TaskComponent from '@/components/taskcomponent.vue'
   import { useSnackbarStore } from '@/stores/snackbar';
 
-  interface DragEvent {
-    draggedContext: {
-      element: Task;
-    };
-    to: {
-      attributes: {
-        itemkey: {
-          nodeValue: string;
-        };
-      };
-    };
+  interface DropEvent {
+    added?: { element: Task; newIndex: number }
+    removed?: { element: Task; oldIndex: number }
+    moved?: { element: Task; newIndex: number; oldIndex: number }
+  }
+
+  // Maps each draggable list name to the flags it represents
+  const FLAG_MAP: Record<string, Pick<Task, 'isbacklog' | 'iscompleted' | 'urgency' | 'priority'>> = {
+    backlog:               { isbacklog: true,  iscompleted: false, urgency: false, priority: false },
+    completedTasks:        { isbacklog: false, iscompleted: true,  urgency: false, priority: false },
+    urgentImportant:       { isbacklog: false, iscompleted: false, urgency: true,  priority: true  },
+    nonUrgentImportant:    { isbacklog: false, iscompleted: false, urgency: false, priority: true  },
+    urgentNonImportant:    { isbacklog: false, iscompleted: false, urgency: true,  priority: false },
+    nonUrgentNonImportant: { isbacklog: false, iscompleted: false, urgency: false, priority: false },
   }
 
   const props = defineProps({
@@ -77,47 +80,11 @@
     }
   }
 
-  const onChange = (evt: Event) => {
-    console.log('onChange: ', evt)
-  }
-
-  const onMove = (evt: DragEvent) => {
-    const task: Task = evt.draggedContext.element
-
-    const destination: string = evt.to.attributes.itemkey.nodeValue
-    if (destination === 'backlog') {
-      task.isbacklog = true
-      task.iscompleted = false
-      task.urgency = false
-      task.priority = false
-    } else if (destination === 'completedTasks') {
-      task.isbacklog = false
-      task.iscompleted = true
-      task.urgency = false
-      task.priority = false
-    } else if (destination === 'urgentImportant') {
-      task.isbacklog = false
-      task.iscompleted = false
-      task.urgency = true
-      task.priority = true
-    } else if (destination === 'nonUrgentImportant') {
-      task.isbacklog = false
-      task.iscompleted = false
-      task.urgency = false
-      task.priority = true
-
-    } else if (destination === 'urgentNonImportant') {
-      task.isbacklog = false
-      task.iscompleted = false
-      task.urgency = true
-      task.priority = false
-    } else if (destination === 'nonUrgentNonImportant') {
-      task.isbacklog = false
-      task.iscompleted = false
-      task.urgency = false
-      task.priority = false
-    }
-    taskStore.updateTask(task.ID, task)
+  // Called once after each drop. Only cross-list moves (evt.added) change flags.
+  const onDrop = (evt: DropEvent, destination: string) => {
+    if (!evt.added) return
+    const updated: Task = { ...evt.added.element, ...FLAG_MAP[destination] }
+    taskStore.updateTask(updated.ID, updated)
   }
 
   const parseTasks = async () => {
@@ -159,106 +126,89 @@
 </script>
 
 <template>
-  <v-container class="fill-height" style="height: 90vh">
-    <v-row class="fill-height">
-      <!-- Backlog Column -->
-      <v-col class="d-flex flex-column backlog fill-height" cols="3" style="position: absolute; left: 0; height:80vh;">
-        <h2>Backlog</h2>
-        <v-btn @click="triggerTaskDialog">Add task</v-btn>
+  <!-- Single root so that style="height:100%" from the parent is applied here -->
+  <div style="height: 100%; display: flex; overflow: hidden;">
+
+    <!-- Backlog Column -->
+    <div class="backlog" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
+      <h2>Backlog</h2>
+      <v-btn @click="triggerTaskDialog">Add task</v-btn>
+      <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="backlog"
           group="tasks"
           itemkey="backlog"
-          :move="onMove"
-          @change="onChange"
+          @change="(e) => onDrop(e, 'backlog')"
         >
           <v-card v-for="task in backlog" :key="task.ID" class="mb-2 task">
             <TaskComponent :task="task" @updatecategory="parseTasks" />
           </v-card>
         </draggable>
+      </div>
+    </div>
 
-      </v-col>
+    <!-- Eisenhower Matrix: 2×2 grid that fills remaining width and full height -->
+    <div style="flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden;">
+      <div class="UrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
+        <h2>Urgent et Important</h2>
+        <div style="flex: 1; min-height: 0; overflow-y: auto;">
+          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" @change="(e) => onDrop(e, 'urgentImportant')">
+            <v-card v-for="task in urgentImportant" :key="task.ID" class="mb-2 task">
+              <TaskComponent :task="task" @updatecategory="parseTasks" />
+            </v-card>
+          </draggable>
+        </div>
+      </div>
+      <div class="NotUrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
+        <h2>Non Urgent et Important</h2>
+        <div style="flex: 1; min-height: 0; overflow-y: auto;">
+          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" @change="(e) => onDrop(e, 'nonUrgentImportant')">
+            <v-card v-for="task in nonUrgentImportant" :key="task.ID" class="mb-2 task">
+              <TaskComponent :task="task" @updatecategory="parseTasks" />
+            </v-card>
+          </draggable>
+        </div>
+      </div>
+      <div class="UrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
+        <h2>Urgent et Non Important</h2>
+        <div style="flex: 1; min-height: 0; overflow-y: auto;">
+          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" @change="(e) => onDrop(e, 'urgentNonImportant')">
+            <v-card v-for="task in urgentNonImportant" :key="task.ID" class="mb-2 task">
+              <TaskComponent :task="task" @updatecategory="parseTasks" />
+            </v-card>
+          </draggable>
+        </div>
+      </div>
+      <div class="NotUrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
+        <h2>Non Urgent et Non Important</h2>
+        <div style="flex: 1; min-height: 0; overflow-y: auto;">
+          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
+            <v-card v-for="task in nonUrgentNonImportant" :key="task.ID" class="mb-2 task">
+              <TaskComponent :task="task" @updatecategory="parseTasks" />
+            </v-card>
+          </draggable>
+        </div>
+      </div>
+    </div>
 
-      <!-- Eisenhower Matrix -->
-      <v-col class="mx-auto fill-height d-flex flex-column " cols="6">
-        <v-row class="d-flex">
-          <v-col class="mx-auto d-flex flex-column UrgentImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
-            <h2>Urgent et Important</h2>
-            <draggable
-              v-model="urgentImportant"
-              group="tasks"
-              itemkey="urgentImportant"
-              :move="onMove"
-              @change="onChange"
-            >
-              <v-card v-for="task in urgentImportant" :key="task.ID" class="mb-2 task">
-                <TaskComponent :task="task" @updatecategory="parseTasks" />
-              </v-card>
-            </draggable>
-          </v-col>
-          <v-col class="mx-auto d-flex flex-column NotUrgentImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
-            <h2>Non Urgent et Important</h2>
-            <draggable
-              v-model="nonUrgentImportant"
-              group="tasks"
-              itemkey="nonUrgentImportant"
-              :move="onMove"
-              @change="onChange"
-            >
-
-              <v-card v-for="task in nonUrgentImportant" :key="task.ID" class="mb-2 task">
-                <TaskComponent :task="task" @updatecategory="parseTasks" />
-              </v-card>
-            </draggable>
-          </v-col>
-          <v-col class="mx-auto d-flex flex-column UrgentNotImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
-            <h2>Urgent et Non Important</h2>
-            <draggable
-              v-model="urgentNonImportant"
-              group="tasks"
-              itemkey="urgentNonImportant"
-              :move="onMove"
-              @change="onChange"
-            >
-              <v-card v-for="task in urgentNonImportant" :key="task.ID" class="mb-2 task">
-                <TaskComponent :task="task" @updatecategory="parseTasks" />
-              </v-card>
-            </draggable>
-          </v-col>
-          <v-col class="mx-auto d-flex flex-column NotUrgentNotImportant" cols="6" style="position: relative; left: 0; height: 40vh;">
-            <h2>Non Urgent et Non Important</h2>
-            <draggable
-              v-model="nonUrgentNonImportant"
-              group="tasks"
-              itemkey="nonUrgentNonImportant"
-              :move="onMove"
-              @change="onChange"
-            >
-
-              <v-card v-for="task in nonUrgentNonImportant" :key="task.ID" class="mb-2 task">
-                <TaskComponent :task="task" @updatecategory="parseTasks" />
-              </v-card>
-            </draggable>
-          </v-col>
-        </v-row>
-      </v-col>
-
-      <!-- Completed Tasks Column -->
-      <v-col class="d-flex flex-column completed fill-height" cols="3" style="position: absolute; right: 0; height: 80vh;">
-        <v-card-title>Tâches Terminées</v-card-title>
+    <!-- Completed Tasks Column -->
+    <div class="completed" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
+      <h3>Tâches Terminées</h3>
+      <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="completedTasks"
           group="tasks"
           itemkey="completedTasks"
-          :move="onMove"
-          @change="onChange"
+          @change="(e) => onDrop(e, 'completedTasks')"
         >
-          <v-card v-for="task in completedTasks" :key="task.ID" style="padding: 0;">
+          <v-card v-for="task in completedTasks" :key="task.ID" class="mb-2 task">
             <TaskComponent :task="task" @updatecategory="parseTasks" />
           </v-card>
         </draggable>
-      </v-col>
-    </v-row>
+      </div>
+    </div>
+
+    <!-- Dialogs are teleported by Vuetify; placing them inside the root is fine -->
     <v-dialog v-model="taskDialog" max-width="600px" persistent>
       <v-card>
         <v-card-title>
@@ -268,49 +218,31 @@
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field
-                  v-model="taskName"
-                  label="Name"
-                  required
-                />
+                <v-text-field v-model="taskName" label="Name" required />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-text-field
-                  v-model="taskDescription"
-                  label="Description"
-                  required
-                />
+                <v-text-field v-model="taskDescription" label="Description" required />
               </v-col>
             </v-row>
-
             <v-row>
               <v-col cols="12">
-                <v-date-picker
-                  v-model="taskDueDate"
-                  label="Due Date"
-                  required
-                />
+                <v-date-picker v-model="taskDueDate" label="Due Date" required />
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="blue darken-1" text @click="taskDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn color="blue darken-1" text @click="addTask">
-            Add
-          </v-btn>
+          <v-btn color="blue darken-1" text @click="taskDialog = false">Cancel</v-btn>
+          <v-btn color="blue darken-1" text @click="addTask">Add</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-snackbar v-model="displaySnack" timeout="3000">
-      {{ message }}
-    </v-snackbar>
-  </v-container>
+    <v-snackbar v-model="displaySnack" timeout="3000">{{ message }}</v-snackbar>
+
+  </div>
 </template>
 
 <style scoped lang="sass">

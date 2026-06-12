@@ -1,21 +1,6 @@
 <!-- App.vue -->
 <template>
   <v-app>
-    <v-menu>
-      <template #activator="{ props }">
-        <v-btn v-bind="props" icon>
-          <v-icon>mdi-account</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item>
-          <v-list-item-title>Connected as {{ authStore.userID }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="authStore.logout()">
-          <v-list-item-title>Logout</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -31,12 +16,7 @@
         >
           {{ snackbar.actionText }}
         </v-btn>
-        <v-btn
-          variant="text"
-          @click="snackbar.closeSnackbar"
-        >
-          Close
-        </v-btn>
+        <v-btn variant="text" @click="snackbar.closeSnackbar">Close</v-btn>
       </template>
     </v-snackbar>
     <router-view />
@@ -51,7 +31,7 @@
   const snackbar = useSnackbarStore();
   const authStore = useAuthStore();
   const appStore = useAppStore();
-  if (!authStore.isAuthenticated) {
+  if (!authStore.isAuthenticated && !globalThis.location.pathname.startsWith('/auth/')) {
     appStore.navigateToPage('/login')
   }
 </script>

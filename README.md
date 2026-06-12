@@ -46,5 +46,9 @@ sudo docker build . -t oupsman/etm`
 To run the image :
 
 ```
-
+docker run -d \
+  --env-file .env \
+  -p 8083:8080 \
+  --name etm \
+  oupsman/etm
 ```
