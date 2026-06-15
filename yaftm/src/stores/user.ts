@@ -112,10 +112,14 @@ export const useUserStore = defineStore('user', () => {
     return true
   }
 
+  const saveActiveCategory = async (categoryID: number): Promise<void> => {
+    await axiosInstance.patch('/api/v1/user/preferences', { active_category_id: categoryID })
+  }
+
   const trustUserDevice = async (userData: object): Promise<boolean> => {
     await axiosInstance.post('/api/v1/user/devices', userData)
     return true
   }
 
-  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser, trustUserDevice }
+  return { session, userIsLoggedIn, login, logout, setUserSession, checkToken, signup, user, getUser, updateUser, trustUserDevice, saveActiveCategory }
 })

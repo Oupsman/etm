@@ -12,16 +12,17 @@ import (
 
 type Users struct {
 	gorm.Model
-	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
-	Username     string    `json:"username"`
-	Password     string    `json:"-"`
-	Gid          uint64    `json:"gid"`
-	IsAdmin      string    `json:"isadmin"`
-	Telegram     string    `json:"telegramconf"`
-	Browser      string    `json:"browserconf"`
-	Email        string    `json:"email"`
-	OIDCSubject  string    `json:"oidc_subject,omitempty"  gorm:"column:oidc_subject;index"`
-	OIDCProvider string    `json:"oidc_provider,omitempty" gorm:"column:oidc_provider"`
+	UUID             uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	Username         string    `json:"username"`
+	Password         string    `json:"-"`
+	Gid              uint64    `json:"gid"`
+	IsAdmin          string    `json:"isadmin"`
+	Telegram         string    `json:"telegramconf"`
+	Browser          string    `json:"browserconf"`
+	Email            string    `json:"email"`
+	OIDCSubject      string    `json:"oidc_subject,omitempty"  gorm:"column:oidc_subject;index"`
+	OIDCProvider     string    `json:"oidc_provider,omitempty" gorm:"column:oidc_provider"`
+	ActiveCategoryID uint      `json:"active_category_id"`
 }
 
 func (u *Users) BeforeCreate(_ *gorm.DB) error {

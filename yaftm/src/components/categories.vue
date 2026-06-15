@@ -3,10 +3,12 @@
   import CategoryComponent from '@/components/categorycomponent.vue'
   import { useCategoryStore } from '@/stores/category.ts'
   import { useAuthStore } from '@/stores/auth'
+  import { useUserStore } from '@/stores/user'
   import type { Category } from '@/types/category.ts'
 
   const categoryStore = useCategoryStore()
   const authStore = useAuthStore()
+  const userStore = useUserStore()
 
   let categories:Category[] = []
   const categoriesDisplay = ref<Category[]>([])
@@ -19,7 +21,12 @@
     try {
       categories = await categoryStore.getCategories()
       categoriesDisplay.value = categories
-      if (categories.length > 0) setActiveTab(categories[0].ID)
+      if (categories.length === 0) return
+
+      const userData = await userStore.getUser()
+      const savedId = userData.active_category_id
+      const exists = savedId > 0 && categories.some(c => c.ID === savedId)
+      setActiveTab(exists ? savedId : categories[0].ID, false)
     } catch (error) {
       console.log('Error fetching categories: ', error)
     }
@@ -28,6 +35,7 @@
   watch(() => authStore.isAuthenticated, (isAuth) => {
     if (isAuth) loadCategories()
   }, { immediate: true })
+
   const triggerDialogCategory = () => {
     dialog.value = true
   }
@@ -50,9 +58,9 @@
     }
   }
 
-  const setActiveTab = (categoryId: number) => {
-    console.log('Switching active tab to category ID: ' + categoryId)
+  const setActiveTab = (categoryId: number, persist = true) => {
     activeTab.value = categoryId
+    if (persist) userStore.saveActiveCategory(categoryId)
   }
 
 

@@ -9,12 +9,15 @@
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 // Pages
 import Index from '@/pages/index.vue'
 import Login from '@/pages/login.vue'
 import Signup from '@/pages/signup.vue'
 import Profile from '@/pages/profile.vue'
+
+const PUBLIC_ROUTES = new Set(['/login', '/signup', '/auth/callback'])
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'index', component: Index },
@@ -27,6 +30,13 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: setupLayouts(routes),
+})
+
+router.beforeEach(to => {
+  const authStore = useAuthStore()
+  if (!PUBLIC_ROUTES.has(to.path) && !authStore.isAuthenticated) {
+    return { name: 'login' }
+  }
 })
 
 router.isReady().then(() => {

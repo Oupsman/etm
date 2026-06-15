@@ -1,6 +1,7 @@
 // plugins/axios.ts
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
+import router from '@/router';
 
 export const axiosInstance = axios.create();
 
@@ -18,14 +19,16 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     const authStore = useAuthStore();
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const newToken = await authStore.refreshAccessToken();
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        return Promise.reject(refreshError);
+      } catch {
+        authStore.logout();
+        router.push('/login');
+        return Promise.reject(error);
       }
     }
     return Promise.reject(error);

@@ -298,6 +298,37 @@ func SendTestNotification(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "test notification sent"})
 }
 
+func UpdateUserPreferences(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	var prefs types.UserPreferencesBody
+	if err := c.ShouldBindJSON(&prefs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	user.ActiveCategoryID = prefs.ActiveCategoryID
+	if err := db.UpdateUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "preferences updated"})
+}
+
 func GetUserDevices(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB

@@ -30,6 +30,10 @@ type TaskBody struct {
 	CategoryID  uint   `json:"categoryid,omitempty"`
 }
 
+type UserPreferencesBody struct {
+	ActiveCategoryID uint `json:"active_category_id"`
+}
+
 type CategoryBody struct {
 	Id     int    `json:"id,omitempty"`
 	Name   string `json:"name"`

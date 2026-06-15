@@ -11,4 +11,5 @@ export interface UserSession {
 export interface User {
   ID: number,
   username: string,
+  active_category_id: number,
 }
