@@ -4,7 +4,11 @@
     @mouseenter="cancelHide"
     @mouseleave="scheduleHide"
   >
-    <v-app-bar-title>Eisenhower Matrix Task Manager</v-app-bar-title>
+    <v-app-bar-title>
+      <RouterLink to="/" style="text-decoration: none; color: inherit;">
+        Eisenhower Matrix Task Manager
+      </RouterLink>
+    </v-app-bar-title>
     <v-spacer />
     <v-menu>
       <template #activator="{ props }">
@@ -15,6 +19,9 @@
       <v-list>
         <v-list-item>
           <v-list-item-title>Connected as {{ authStore.userID }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item :to="{ name: 'profile' }">
+          <v-list-item-title>Profile</v-list-item-title>
         </v-list-item>
         <v-list-item @click="authStore.logout()">
           <v-list-item-title>Logout</v-list-item-title>

@@ -65,6 +65,7 @@
       const task: Task = {
         ID: 0,
         iscompleted: false,
+        isstarted: false,
         urgency: false,
         priority: false,
 

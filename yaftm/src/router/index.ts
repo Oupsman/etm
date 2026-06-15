@@ -14,11 +14,13 @@ import type { RouteRecordRaw } from 'vue-router'
 import Index from '@/pages/index.vue'
 import Login from '@/pages/login.vue'
 import Signup from '@/pages/signup.vue'
+import Profile from '@/pages/profile.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'index', component: Index },
   { path: '/login', name: 'login', component: Login },
   { path: '/signup', name: 'signup', component: Signup },
+  { path: '/profile', name: 'profile', component: Profile },
   { path: '/auth/callback', component: () => import('../views/OIDCCallback.vue') },
 ]
 

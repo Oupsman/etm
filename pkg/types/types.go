@@ -24,6 +24,7 @@ type TaskBody struct {
 	DueDate     string `json:"duedate"`
 	IsBackLog   bool   `json:"isbacklog"`
 	IsCompleted bool   `json:"iscompleted"`
+	IsStarted   bool   `json:"isstarted"`
 	Priority    bool   `json:"priority"`
 	Urgency     bool   `json:"urgency"`
 	CategoryID  uint   `json:"categoryid,omitempty"`

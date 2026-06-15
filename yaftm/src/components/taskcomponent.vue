@@ -14,13 +14,14 @@
     },
   })
 
-  const dueDateStyle = computed(() => {
-    if (!props.task.duedate || props.task.iscompleted) return {}
+  const dueDateInfo = computed(() => {
+    if (!props.task.duedate || props.task.iscompleted) return null
     const days = Math.ceil((new Date(props.task.duedate).getTime() - Date.now()) / 86_400_000)
-    if (days < 0)  return { borderLeft: '4px solid #e74c3c' }  // overdue
-    if (days <= 3) return { borderLeft: '4px solid #f39c12' }  // due within 3 days
-    if (days <= 7) return { borderLeft: '4px solid #f1c40f' }  // due this week
-    return {}
+    if (days < 0)   return { icon: 'mdi-fire',                color: '#e74c3c', text: 'Overdue' }
+    if (days === 0) return { icon: 'mdi-alarm',               color: '#e74c3c', text: 'Due today!' }
+    if (days <= 3)  return { icon: 'mdi-clock-alert-outline', color: '#f39c12', text: `${days} day${days === 1 ? '' : 's'} left` }
+    if (days <= 7)  return { icon: 'mdi-clock-outline',       color: '#f1c40f', text: `${days} days left` }
+    return          { icon: 'mdi-calendar-check',             color: '#2ecc71', text: `${days} days left` }
   })
 
   const triggerEditTask = ref(false)
@@ -48,7 +49,17 @@
       // v-model already flipped iscompleted; derive the rest from that new value
       priority:    false,
       urgency:     false,
+      isstarted:   false,
       isbacklog:   !task.iscompleted,
+    }
+    await taskStore.updateTask(task.ID, updated)
+    emit('updatecategory')
+  }
+
+  const onStartedTask = async (task: Task): Promise<void> => {
+    const updated: Task = {
+      ...task,
+      isstarted: !task.isstarted,
     }
     await taskStore.updateTask(task.ID, updated)
     emit('updatecategory')
@@ -75,7 +86,7 @@
 </script>
 
 <template>
-  <v-card class="task-card" :style="dueDateStyle">
+  <v-card class="task-card" :class="{ 'task-started': props.task.isstarted }">
     <v-checkbox
       v-model="props.task.iscompleted"
       class="status-checkbox"
@@ -83,6 +94,23 @@
     />
     <div class="task-name">{{ props.task.name }}</div>
     <div class="task-actions">
+      <v-tooltip v-if="dueDateInfo" :text="dueDateInfo.text" location="top">
+        <template #activator="{ props: tooltipProps }">
+          <v-icon v-bind="tooltipProps" :icon="dueDateInfo.icon" :color="dueDateInfo.color" size="small" />
+        </template>
+      </v-tooltip>
+      <v-tooltip :text="props.task.isstarted ? 'Mark as not started' : 'Mark as started'" location="top">
+        <template #activator="{ props: tooltipProps }">
+          <v-btn
+            v-bind="tooltipProps"
+            class="start-btn"
+            :icon="props.task.isstarted ? 'mdi-play-circle' : 'mdi-play-circle-outline'"
+            :color="props.task.isstarted ? '#27ae60' : undefined"
+            size="small"
+            @click="onStartedTask(props.task)"
+          />
+        </template>
+      </v-tooltip>
       <v-btn class="edit-btn" icon="mdi-pencil" size="small" @click="onEditTask(props.task)" />
       <v-btn class="delete-btn" icon="mdi-trash-can" size="small" @click="onDeleteTask(props.task)" />
     </div>
@@ -157,7 +185,6 @@
   box-shadow: none
   display: flex
   align-items: center
-  justify-content: center
 
 .task-card:hover
   transform: translateY(-3px)
@@ -184,7 +211,10 @@
   gap: 10px
   justify-content: flex-end
 
-.edit-btn, .delete-btn
+.task-started
+  border-left: 3px solid #27ae60
+
+.edit-btn, .delete-btn, .start-btn
   background: none
   border: none
   cursor: pointer

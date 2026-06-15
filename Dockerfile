@@ -42,7 +42,7 @@ ENV PORT=8080
 EXPOSE ${PORT}
 
 # Healthcheck
-HEALTHCHECK --interval=10s --timeout=3s --start-period=20s \
+HEALTHCHECK --interval=60s --timeout=3s --start-period=20s \
   CMD wget --no-verbose --tries=1 --no-check-certificate http://localhost:${PORT}/api/v1/healthcheck || exit 1
 
 # Command to run the executable

@@ -39,6 +39,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 	// Serve compiled frontend assets directly; everything else falls to NoRoute.
 	httpRouter.Static("/assets", "./yaftm/dist/assets")
 	httpRouter.StaticFile("/favicon.ico", "./yaftm/dist/favicon.ico")
+	httpRouter.StaticFile("/sw.js", "./yaftm/dist/sw.js")
 
 	// SPA fallback: any unmatched path (including /, /login, /auth/callback …)
 	// gets index.html so Vue Router can take over client-side.
@@ -90,6 +91,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/user", controllers2.IsAuthorized(), controllers2.GetUser)
 	apiV1.GET("/user/device", controllers2.IsAuthorized(), controllers2.GetUserDevices)
 	apiV1.GET("/user/refreshtoken", controllers2.IsAuthorized(), controllers2.RefreshToken)
+	apiV1.POST("/user/testnotification", controllers2.IsAuthorized(), controllers2.SendTestNotification)
 	apiV1.POST("/user/updatesubscription", controllers2.IsAuthorized(), controllers2.UpdateUserSubscription)
 	apiV1.GET("/user/devices", controllers2.IsAuthorized(), controllers2.GetUserDevices)
 	apiV1.GET("/user/tokens", controllers2.IsAuthorized(), controllers2.GetUserTokens)

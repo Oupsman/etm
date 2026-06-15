@@ -1,11 +1,13 @@
 <script setup lang="ts">
   import { useUserStore } from '@/stores/user'
   import { useAppStore } from '@/stores/app'
+  import { useNotificationStore } from '@/stores/notification'
   import { useVuelidate } from '@vuelidate/core'
   import { minLength, required, sameAs } from '@vuelidate/validators'
   import type { User } from '@/types/user'
   const userStore = useUserStore()
   const appStore = useAppStore()
+  const notifStore = useNotificationStore()
 
   const isLoading = ref(true)
   const showPassword = ref(false)
@@ -43,7 +45,10 @@
     }
   }
 
-  onMounted(fetchUser)
+  onMounted(async () => {
+    await fetchUser()
+    await notifStore.check()
+  })
 
   const save = async () => {
     const isValid = await v$.value.$validate()
@@ -90,6 +95,38 @@
 
         <v-btn color="primary" :disabled="v$.$invalid" type="submit">Save</v-btn>
       </v-form>
+
+      <v-divider class="my-4" />
+
+      <div class="text-subtitle-1 mb-2">Browser Notifications</div>
+      <template v-if="!notifStore.isSupported">
+        <v-alert type="warning" density="compact">
+          Push notifications are not supported in this browser.
+        </v-alert>
+      </template>
+      <template v-else-if="notifStore.permissionDenied">
+        <v-alert type="error" density="compact">
+          Notifications are blocked. Reset permissions in your browser settings and reload.
+        </v-alert>
+      </template>
+      <template v-else>
+        <v-switch
+          :model-value="notifStore.isSubscribed"
+          color="primary"
+          :label="notifStore.isSubscribed ? 'Notifications enabled' : 'Notifications disabled'"
+          hide-details
+          @update:model-value="notifStore.toggle()"
+        />
+        <v-btn
+          v-if="notifStore.isSubscribed"
+          variant="outlined"
+          size="small"
+          class="mt-2"
+          @click="notifStore.sendTest()"
+        >
+          Send test notification
+        </v-btn>
+      </template>
     </v-container>
   </div>
   <div v-else>User not found</div>

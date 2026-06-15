@@ -11,6 +11,7 @@ type Tasks struct {
 	Name        string `json:"name"`
 	Comment     string `json:"comment"`
 	IsCompleted bool   `json:"iscompleted"`
+	IsStarted   bool   `json:"isstarted"`
 	IsBackLog   bool   `json:"isbacklog"`
 	CategoryID  uint   `json:"category-id"`
 	Category    Category
@@ -81,6 +82,18 @@ func (db *DB) GetActiveTasks() ([]Tasks, error) {
 func (db *DB) GetTasksByCategory(categoryID uint) ([]Tasks, error) {
 	var tasks []Tasks
 	result := db.Where("category_id = ?", categoryID).Find(&tasks)
+	return tasks, result.Error
+}
+
+// GetTasksDueSoon returns incomplete, non-backlog tasks whose due date falls
+// within [now, now+window]. User is preloaded so callers can read Browser config.
+func (db *DB) GetTasksDueSoon(window time.Duration) ([]Tasks, error) {
+	var tasks []Tasks
+	now := time.Now()
+	result := db.Preload("User").
+		Where("is_completed = ? AND is_back_log = ? AND due_date > ? AND due_date <= ?",
+			false, false, now, now.Add(window)).
+		Find(&tasks)
 	return tasks, result.Error
 }
 

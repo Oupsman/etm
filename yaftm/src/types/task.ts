@@ -5,6 +5,7 @@ export interface Task {
   duedate: string,
   isbacklog: boolean,
   iscompleted: boolean,
+  isstarted: boolean,
   priority: boolean,
   urgency: boolean,
   categoryid: number,

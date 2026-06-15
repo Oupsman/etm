@@ -271,6 +271,33 @@ func UpdateUserSubscription(c *gin.Context) {
 
 }
 
+func SendTestNotification(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+		return
+	}
+	if user.Browser == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no push subscription found — enable notifications in your profile first"})
+		return
+	}
+	msg := `{"title":"ETM test","body":"Push notifications are working!"}`
+	if err := BrowserSend(msg, user.Browser); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "test notification sent"})
+}
+
 func GetUserDevices(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB

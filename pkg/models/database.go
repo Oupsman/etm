@@ -26,6 +26,8 @@ func ConnectToDB(driver string, dsn string) (*DB, error) {
 		return nil, err
 	}
 
+	Db = db // populate global for legacy callers (GetKeys, SaveKeys)
+
 	sqlDB, err = db.DB()
 
 	if err != nil {

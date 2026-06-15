@@ -199,6 +199,7 @@ func UpdateTask(c *gin.Context) {
 	task.Priority = taskBody.Priority
 	task.Urgency = taskBody.Urgency
 	task.IsCompleted = taskBody.IsCompleted
+	task.IsStarted = taskBody.IsStarted
 	task.IsBackLog = taskBody.IsBackLog
 
 	if err := db.UpdateTask(task); err != nil {
