@@ -1,0 +1,39 @@
+---
+- name: Create deploy directory
+  ansible.builtin.file:
+    path: "{{ etm_deploy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ etm_deploy_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0640'
+  notify: Restart ETM stack
+
+- name: Template .env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ etm_deploy_dir }}/.env"
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart ETM stack
+
+- name: Pull image from registry
+  community.docker.docker_image:
+    name: "{{ etm_image_name }}:{{ etm_image_tag }}"
+    source: pull
+    force_source: true
+  when: etm_build_strategy == 'registry'
+  notify: Restart ETM stack
+
+- name: Deploy ETM stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ etm_deploy_dir }}"
+    state: present

@@ -1,0 +1,4 @@
+# Never commit unencrypted vault files.
+# Encrypt first: ansible-vault encrypt inventories/*/group_vars/*/vault.yml
+inventories/*/group_vars/*/vault.yml
+*.retry

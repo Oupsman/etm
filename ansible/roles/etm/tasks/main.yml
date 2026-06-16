@@ -1,0 +1,9 @@
+---
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - etm_secret_key | length > 0
+    fail_msg: "etm_secret_key must be set"
+
+- ansible.builtin.import_tasks: build.yml
+- ansible.builtin.import_tasks: deploy.yml

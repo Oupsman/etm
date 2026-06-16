@@ -1,0 +1,6 @@
+---
+- name: Restart ETM stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ etm_deploy_dir }}"
+    state: present
+    recreate: always

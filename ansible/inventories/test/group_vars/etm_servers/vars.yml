@@ -1,0 +1,24 @@
+---
+etm_image_tag: develop
+etm_build_strategy: local
+
+etm_port: 8084
+etm_deploy_dir: /opt/etm-test
+
+etm_db_host: postgres
+etm_db_port: 5432
+etm_db_name: etm_test
+etm_db_username: etmuser
+etm_db_password: "{{ vault_etm_db_password }}"
+etm_secret_key: "{{ vault_etm_secret_key }}"
+etm_registry_username: "{{ vault_etm_registry_username }}"
+etm_registry_password: "{{ vault_etm_registry_password }}"
+etm_oidc_client_secret: "{{ vault_etm_oidc_client_secret }}"
+
+etm_allowed_origin: "*"
+etm_vapid_subscriber: "mailto:admin@example.com"
+
+etm_oidc_enabled: "false"
+etm_oidc_issuer_url: ""
+etm_oidc_client_id: ""
+etm_oidc_redirect_url: ""

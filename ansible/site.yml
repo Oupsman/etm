@@ -1,0 +1,7 @@
+---
+- name: Build and deploy ETM
+  hosts: etm_servers
+  become: true
+
+  roles:
+    - etm

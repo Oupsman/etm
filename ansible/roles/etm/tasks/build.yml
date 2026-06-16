@@ -1,0 +1,67 @@
+---
+- name: Build ETM Docker image on controller
+  community.docker.docker_image:
+    name: "{{ etm_image_name }}"
+    tag: "{{ etm_image_tag }}"
+    source: build
+    build:
+      path: "{{ etm_build_path }}"
+      pull: true
+    force_source: true
+  delegate_to: localhost
+  become: false
+
+# --- registry strategy ---
+
+- name: Log in to registry
+  community.docker.docker_login:
+    registry_url: "{{ etm_registry_url | default(omit) }}"
+    username: "{{ etm_registry_username }}"
+    password: "{{ etm_registry_password }}"
+  delegate_to: localhost
+  become: false
+  when:
+    - etm_build_strategy == 'registry'
+    - etm_registry_username | length > 0
+
+- name: Push image to registry
+  community.docker.docker_image:
+    name: "{{ etm_image_name }}"
+    tag: "{{ etm_image_tag }}"
+    source: local
+    push: true
+  delegate_to: localhost
+  become: false
+  when: etm_build_strategy == 'registry'
+
+# --- local strategy (save → copy → load) ---
+
+- name: Save image to archive on controller
+  community.docker.docker_image:
+    name: "{{ etm_image_name }}:{{ etm_image_tag }}"
+    archive_path: "/tmp/etm_image.tar"
+    source: local
+  delegate_to: localhost
+  become: false
+  when: etm_build_strategy == 'local'
+
+- name: Copy image archive to target
+  ansible.builtin.copy:
+    src: /tmp/etm_image.tar
+    dest: /tmp/etm_image.tar
+    mode: '0600'
+  when: etm_build_strategy == 'local'
+
+- name: Load image on target
+  community.docker.docker_image:
+    name: "{{ etm_image_name }}:{{ etm_image_tag }}"
+    load_path: /tmp/etm_image.tar
+    source: load
+    force_source: true
+  when: etm_build_strategy == 'local'
+
+- name: Remove image archive from target
+  ansible.builtin.file:
+    path: /tmp/etm_image.tar
+    state: absent
+  when: etm_build_strategy == 'local'

@@ -1,0 +1,37 @@
+---
+# Build strategy: 'local' (build on controller, transfer to target)
+#                 'registry' (build on controller, push to registry, pull on target)
+etm_build_strategy: local
+
+# Image
+etm_image_name: oupsman/etm
+etm_image_tag: latest
+
+# Path to project root on the controller (Dockerfile location)
+etm_build_path: "{{ playbook_dir }}/../"
+
+# Registry credentials (only used when etm_build_strategy: registry)
+etm_registry_url: ""       # empty = Docker Hub
+etm_registry_username: ""
+etm_registry_password: ""
+
+# Deployment
+etm_deploy_dir: /opt/etm
+etm_port: 8084
+
+# App
+etm_db_host: postgres
+etm_db_port: 5432
+etm_db_name: etm
+etm_db_username: etmuser
+etm_db_password: etmpass
+etm_secret_key: ""          # required — generate: dd if=/dev/random bs=512 count=1 | sha256sum
+etm_allowed_origin: "*"
+etm_vapid_subscriber: "mailto:admin@example.com"
+
+# OIDC (leave defaults to disable)
+etm_oidc_enabled: "false"
+etm_oidc_issuer_url: ""
+etm_oidc_client_id: ""
+etm_oidc_client_secret: ""
+etm_oidc_redirect_url: ""
