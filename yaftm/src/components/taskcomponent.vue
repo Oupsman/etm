@@ -25,15 +25,30 @@
   })
 
   const triggerEditTask = ref(false)
+  const showDatePicker = ref(false)
   const taskName = ref('')
   const taskDescription = ref('')
   const taskDueDate = ref<Date>()
   const triggerDeleteTask = ref(false)
 
+  const formatDate = (iso?: string): string => {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+  }
+
+  const statusChips = computed(() => [
+    { label: 'Priority',  active: props.task.priority,    color: '#e67e22', icon: 'mdi-alert-circle-outline' },
+    { label: 'Urgent',    active: props.task.urgency,     color: '#e74c3c', icon: 'mdi-lightning-bolt' },
+    { label: 'Started',   active: props.task.isstarted,   color: '#27ae60', icon: 'mdi-play-circle-outline' },
+    { label: 'Backlog',   active: props.task.isbacklog,   color: '#7f8c8d', icon: 'mdi-tray-full' },
+    { label: 'Completed', active: props.task.iscompleted, color: '#2980b9', icon: 'mdi-check-circle-outline' },
+  ])
+
   const onEditTask = (task: Task): void => {
     taskName.value = task.name
     taskDescription.value = task.comment
     taskDueDate.value = new Date(task.duedate)
+    showDatePicker.value = false
     triggerEditTask.value = true
   }
 
@@ -115,47 +130,99 @@
       <v-btn class="delete-btn" icon="mdi-trash-can" size="small" @click="onDeleteTask(props.task)" />
     </div>
   </v-card>
-  <v-dialog v-model="triggerEditTask" max-width="600px" persistent>
-    <v-card>
-      <v-card-title>
-        <span class="headline">Edit task</span>
-      </v-card-title>
-      <v-card-text>
-        <v-container>
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="taskName"
-                label="Name"
-                required
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="taskDescription"
-                label="Description"
-                required
-              />
-            </v-col>
-          </v-row>
+  <v-dialog v-model="triggerEditTask" max-width="720px" persistent scrollable>
+    <v-card rounded="lg" class="edit-dialog-card">
 
-          <v-row>
-            <v-col cols="12">
-              <v-date-picker
-                v-model="taskDueDate"
-                label="Due Date"
-                required
-              />
-            </v-col>
-          </v-row>
-        </v-container>
+      <v-card-title class="dialog-header">
+        <v-icon icon="mdi-pencil-outline" size="small" class="mr-2" />
+        Edit task
+        <v-chip size="x-small" variant="tonal" color="grey" class="ml-2">#{{ props.task.ID }}</v-chip>
+      </v-card-title>
+
+      <v-divider />
+
+      <v-card-text class="dialog-body">
+
+        <v-text-field
+          v-model="taskName"
+          label="Name"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-format-title"
+          class="mb-3"
+        />
+
+        <div class="notes-label">
+          <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
+          Notes
+        </div>
+        <v-textarea
+          v-model="taskDescription"
+          variant="outlined"
+          auto-grow
+          rows="14"
+          placeholder="Add notes…"
+          class="notes-textarea"
+          hide-details
+        />
+
+        <div class="due-date-row mt-3">
+          <v-btn
+            variant="tonal"
+            size="small"
+            :color="showDatePicker ? 'primary' : 'default'"
+            prepend-icon="mdi-calendar-outline"
+            @click="showDatePicker = !showDatePicker"
+          >
+            {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : 'Set due date' }}
+          </v-btn>
+        </div>
+
+        <v-expand-transition>
+          <div v-if="showDatePicker" class="date-picker-wrapper mt-2">
+            <v-date-picker
+              v-model="taskDueDate"
+              elevation="0"
+              border
+              @update:model-value="showDatePicker = false"
+            />
+          </div>
+        </v-expand-transition>
+
+        <v-expansion-panels variant="accordion" class="mt-4 properties-panel">
+          <v-expansion-panel>
+            <v-expansion-panel-title class="properties-title">
+              <v-icon icon="mdi-information-outline" size="small" class="mr-2" />
+              Properties
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <div class="status-chips">
+                <v-chip
+                  v-for="chip in statusChips"
+                  :key="chip.label"
+                  size="small"
+                  :style="chip.active ? `background:${chip.color};color:#fff` : ''"
+                  :variant="chip.active ? 'flat' : 'tonal'"
+                >
+                  <v-icon :icon="chip.icon" size="x-small" start />
+                  {{ chip.label }}
+                </v-chip>
+              </div>
+              <div class="meta-dates">
+                <span><strong>Created:</strong> {{ formatDate(props.task.CreatedAt) }}</span>
+                <span><strong>Updated:</strong> {{ formatDate(props.task.UpdatedAt) }}</span>
+              </div>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
       </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn @click="saveTask()">Save</v-btn>
-        <v-btn @click="triggerEditTask = false">Cancel</v-btn>
+
+      <v-divider />
+
+      <v-card-actions class="dialog-actions">
+        <v-btn variant="text" @click="triggerEditTask = false">Cancel</v-btn>
+        <v-btn variant="flat" color="primary" @click="saveTask()">Save</v-btn>
       </v-card-actions>
 
     </v-card>
@@ -176,6 +243,7 @@
 </template>
 
 <style scoped lang="sass">
+// ── Task card ─────────────────────────────────────────────────────────────────
 .task-card
   width: 100%
   height: 100%
@@ -189,6 +257,9 @@
 .task-card:hover
   transform: translateY(-3px)
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15)
+
+.task-started
+  border-left: 3px solid #27ae60
 
 .status-checkbox
   display: flex
@@ -205,14 +276,10 @@
   align-items: center
   justify-content: center
 
-
 .task-actions
   display: flex
   gap: 10px
   justify-content: flex-end
-
-.task-started
-  border-left: 3px solid #27ae60
 
 .edit-btn, .delete-btn, .start-btn
   background: none
@@ -227,4 +294,78 @@
 .delete-btn:hover
   color: #e74c3c
 
+// ── Edit dialog ───────────────────────────────────────────────────────────────
+.edit-dialog-card
+  display: flex
+  flex-direction: column
+  max-height: 90vh
+
+.dialog-header
+  display: flex
+  align-items: center
+  padding: 16px 20px
+  font-size: 16px
+  font-weight: 600
+  flex-shrink: 0
+
+.dialog-body
+  padding: 20px 24px
+  display: flex
+  flex-direction: column
+  flex: 1
+  overflow-y: auto
+
+.notes-label
+  font-size: 12px
+  font-weight: 600
+  color: #666
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  display: flex
+  align-items: center
+  margin-bottom: 6px
+
+.notes-textarea
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  line-height: 1.6
+  flex: 1
+
+.due-date-row
+  display: flex
+  align-items: center
+
+.date-picker-wrapper
+  display: flex
+  justify-content: flex-start
+
+.properties-panel
+  border-radius: 8px
+  overflow: hidden
+  flex-shrink: 0
+
+.properties-title
+  font-size: 13px
+  font-weight: 600
+  min-height: 40px !important
+  color: #555
+
+.status-chips
+  display: flex
+  flex-wrap: wrap
+  gap: 8px
+  padding: 4px 0 10px
+
+.meta-dates
+  display: flex
+  gap: 20px
+  font-size: 12px
+  color: #777
+  padding-top: 4px
+
+.dialog-actions
+  padding: 12px 16px
+  justify-content: flex-end
+  gap: 8px
+  flex-shrink: 0
 </style>

@@ -9,6 +9,8 @@ export interface Task {
   priority: boolean,
   urgency: boolean,
   categoryid: number,
+  CreatedAt?: string,
+  UpdatedAt?: string,
 }
 
 export interface NewTask {
