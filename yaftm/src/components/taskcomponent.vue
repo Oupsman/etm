@@ -107,7 +107,13 @@
       class="status-checkbox"
       @change="onCompletedTask(props.task)"
     />
-    <div class="task-name">{{ props.task.name }}</div>
+    <v-tooltip v-if="props.task.comment" location="top" max-width="320">
+      <template #activator="{ props: tooltipProps }">
+        <div v-bind="tooltipProps" class="task-name">{{ props.task.name }}</div>
+      </template>
+      <span class="task-notes-tooltip">{{ props.task.comment }}</span>
+    </v-tooltip>
+    <div v-else class="task-name">{{ props.task.name }}</div>
     <div class="task-actions">
       <v-tooltip v-if="dueDateInfo" :text="dueDateInfo.text" location="top">
         <template #activator="{ props: tooltipProps }">
@@ -368,4 +374,9 @@
   justify-content: flex-end
   gap: 8px
   flex-shrink: 0
+
+.task-notes-tooltip
+  white-space: pre-wrap
+  font-size: 12px
+  line-height: 1.5
 </style>

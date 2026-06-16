@@ -40,6 +40,7 @@
   const taskName = ref<string>('')
   const taskDescription = ref<string>('')
   const taskDueDate = ref<Date>(new Date())
+  const showDatePicker = ref(false)
 
   const message = ref<string>('')
   const displaySnack = ref(false)
@@ -47,7 +48,16 @@
   const taskStore = useTaskStore()
   const snackbar = useSnackbarStore();
 
+  const formatDate = (iso?: string): string => {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+  }
+
   const triggerTaskDialog = () => {
+    taskName.value = ''
+    taskDescription.value = ''
+    taskDueDate.value = new Date()
+    showDatePicker.value = false
     taskDialog.value = true
   }
 
@@ -210,35 +220,73 @@
     </div>
 
     <!-- Dialogs are teleported by Vuetify; placing them inside the root is fine -->
-    <v-dialog v-model="taskDialog" max-width="600px" persistent>
-      <v-card>
-        <v-card-title>
-          <span class="headline">Add a new task</span>
+    <v-dialog v-model="taskDialog" max-width="720px" persistent scrollable>
+      <v-card rounded="lg" class="task-dialog-card">
+
+        <v-card-title class="dialog-header">
+          <v-icon icon="mdi-plus-circle-outline" size="small" class="mr-2" />
+          New task
         </v-card-title>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="taskName" label="Name" required />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="taskDescription" label="Description" required />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12">
-                <v-date-picker v-model="taskDueDate" label="Due Date" required />
-              </v-col>
-            </v-row>
-          </v-container>
+
+        <v-divider />
+
+        <v-card-text class="dialog-body">
+
+          <v-text-field
+            v-model="taskName"
+            label="Name"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-format-title"
+            class="mb-3"
+          />
+
+          <div class="notes-label">
+            <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
+            Notes
+          </div>
+          <v-textarea
+            v-model="taskDescription"
+            variant="outlined"
+            auto-grow
+            rows="14"
+            placeholder="Add notes…"
+            class="notes-textarea"
+            hide-details
+          />
+
+          <div class="due-date-row mt-3">
+            <v-btn
+              variant="tonal"
+              size="small"
+              :color="showDatePicker ? 'primary' : 'default'"
+              prepend-icon="mdi-calendar-outline"
+              @click="showDatePicker = !showDatePicker"
+            >
+              {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : 'Set due date' }}
+            </v-btn>
+          </div>
+
+          <v-expand-transition>
+            <div v-if="showDatePicker" class="date-picker-wrapper mt-2">
+              <v-date-picker
+                v-model="taskDueDate"
+                elevation="0"
+                border
+                @update:model-value="showDatePicker = false"
+              />
+            </div>
+          </v-expand-transition>
+
         </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="blue darken-1" text @click="taskDialog = false">Cancel</v-btn>
-          <v-btn color="blue darken-1" text @click="addTask">Add</v-btn>
+
+        <v-divider />
+
+        <v-card-actions class="dialog-actions">
+          <v-btn variant="text" @click="taskDialog = false">Cancel</v-btn>
+          <v-btn variant="flat" color="primary" @click="addTask">Add</v-btn>
         </v-card-actions>
+
       </v-card>
     </v-dialog>
     <v-snackbar v-model="displaySnack" timeout="3000">{{ message }}</v-snackbar>
@@ -248,6 +296,57 @@
 
 <style scoped lang="sass">
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap')
+
+// ── Task creation dialog (matches edit dialog in taskcomponent.vue) ────────────
+.task-dialog-card
+  display: flex
+  flex-direction: column
+  max-height: 90vh
+
+.dialog-header
+  display: flex
+  align-items: center
+  padding: 16px 20px
+  font-size: 16px
+  font-weight: 600
+  flex-shrink: 0
+
+.dialog-body
+  padding: 20px 24px
+  display: flex
+  flex-direction: column
+  flex: 1
+  overflow-y: auto
+
+.notes-label
+  font-size: 12px
+  font-weight: 600
+  color: #666
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  display: flex
+  align-items: center
+  margin-bottom: 6px
+
+.notes-textarea
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  line-height: 1.6
+  flex: 1
+
+.due-date-row
+  display: flex
+  align-items: center
+
+.date-picker-wrapper
+  display: flex
+  justify-content: flex-start
+
+.dialog-actions
+  padding: 12px 16px
+  justify-content: flex-end
+  gap: 8px
+  flex-shrink: 0
 
 .fill-height
   height: 100%
