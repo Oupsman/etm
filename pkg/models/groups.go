@@ -13,7 +13,7 @@ type Groups struct {
 }
 
 // UserGroup is the join table between Users and Groups.
-// Role is one of: "owner", "editor", "viewer".
+// Role is one of: "owner", "writer", "reader".
 type UserGroup struct {
 	UserID  uint   `json:"user_id" gorm:"primaryKey"`
 	GroupID uint   `json:"group_id" gorm:"primaryKey"`
@@ -72,7 +72,15 @@ func (db *DB) IsGroupOwner(groupID, userID uint) bool {
 	if err := db.DB.First(&group, groupID).Error; err != nil {
 		return false
 	}
-	return group.OwnerID == userID
+	if group.OwnerID == userID {
+		return true
+	}
+	// Also accept members explicitly granted the "owner" role.
+	var count int64
+	db.DB.Table("user_groups").
+		Where("group_id = ? AND user_id = ? AND role = ?", groupID, userID, "owner").
+		Count(&count)
+	return count > 0
 }
 
 func (db *DB) IsGroupMember(groupID, userID uint) bool {
@@ -84,8 +92,8 @@ func (db *DB) IsGroupMember(groupID, userID uint) bool {
 }
 
 func (db *DB) AddGroupMember(groupID, userID uint, role string) error {
-	if role != "editor" && role != "viewer" {
-		return fmt.Errorf("invalid role: must be 'editor' or 'viewer'")
+	if role != "writer" && role != "reader" && role != "owner" {
+		return fmt.Errorf("invalid role: must be 'owner', 'writer' or 'reader'")
 	}
 	var count int64
 	db.DB.Table("user_groups").Where("group_id = ? AND user_id = ?", groupID, userID).Count(&count)
@@ -96,8 +104,8 @@ func (db *DB) AddGroupMember(groupID, userID uint, role string) error {
 }
 
 func (db *DB) UpdateGroupMember(groupID, userID uint, role string) error {
-	if role != "editor" && role != "viewer" {
-		return fmt.Errorf("invalid role: must be 'editor' or 'viewer'")
+	if role != "writer" && role != "reader" && role != "owner" {
+		return fmt.Errorf("invalid role: must be 'owner', 'writer' or 'reader'")
 	}
 	return db.DB.Model(&UserGroup{}).
 		Where("group_id = ? AND user_id = ?", groupID, userID).
@@ -106,6 +114,12 @@ func (db *DB) UpdateGroupMember(groupID, userID uint, role string) error {
 
 func (db *DB) RemoveGroupMember(groupID, userID uint) error {
 	return db.DB.Where("group_id = ? AND user_id = ?", groupID, userID).Delete(&UserGroup{}).Error
+}
+
+func (db *DB) GetAllGroups() ([]Groups, error) {
+	var groups []Groups
+	result := db.DB.Where("deleted_at IS NULL").Find(&groups)
+	return groups, result.Error
 }
 
 func (db *DB) GetGroupMembers(groupID uint) ([]GroupMemberDetail, error) {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ETM/pkg/app"
 	"ETM/pkg/utils"
 	"net/http"
 	"strings"
@@ -31,6 +32,23 @@ func IsAuthorized() gin.HandlerFunc {
 		c.Set("userID", claims["sub"])
 		c.Set("uuid", claims["uuid"])
 
+		c.Next()
+	}
+}
+
+func IsAdminUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		App := c.MustGet("App").(*app.App)
+		userID, ok := c.Get("userID")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+			return
+		}
+		user, err := App.DB.GetUser(uint(userID.(float64)))
+		if err != nil || user.IsAdmin != "true" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "admin access required"})
+			return
+		}
 		c.Next()
 	}
 }

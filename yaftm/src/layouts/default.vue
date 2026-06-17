@@ -23,6 +23,9 @@
         <v-list-item :to="{ name: 'profile' }">
           <v-list-item-title>Profile</v-list-item-title>
         </v-list-item>
+        <v-list-item :to="{ name: 'groups' }">
+          <v-list-item-title>Groups</v-list-item-title>
+        </v-list-item>
         <v-list-item @click="authStore.logout()">
           <v-list-item-title>Logout</v-list-item-title>
         </v-list-item>
@@ -37,8 +40,18 @@
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from 'vue'
   import { useAuthStore } from '@/stores/auth'
+  import { useUserStore } from '@/stores/user'
+  import type { User } from '@/types/user'
 
   const authStore = useAuthStore()
+  const userStore = useUserStore()
+  const currentUser = ref<User | null>(null)
+
+  onMounted(async () => {
+    if (authStore.isAuthenticated) {
+      try { currentUser.value = await userStore.getUser() } catch { /* ignore */ }
+    }
+  })
   const showBar = ref(false)
   let hideTimer: ReturnType<typeof setTimeout> | null = null
 

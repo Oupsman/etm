@@ -128,7 +128,7 @@ func createUser(t *testing.T, a *app.App, username, password string) models.User
 	if err != nil {
 		t.Fatalf("hash password: %v", err)
 	}
-	if err := a.DB.CreateUser(types.UserBody{Username: username, Password: hash, Email: username + "@test.com"}); err != nil {
+	if _, err := a.DB.CreateUser(types.UserBody{Username: username, Password: hash, Email: username + "@test.com"}, false); err != nil {
 		t.Fatalf("create user: %v", err)
 	}
 	var user models.Users

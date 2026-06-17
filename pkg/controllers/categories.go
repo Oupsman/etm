@@ -61,6 +61,18 @@ func CreateCategory(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if categoryBody.GroupID > 0 {
+		if !db.IsGroupMember(categoryBody.GroupID, user.ID) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "you are not a member of that group"})
+			return
+		}
+		if err := db.ShareCategoryWithGroup(category.ID, categoryBody.GroupID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "category created but sharing failed: " + err.Error()})
+			return
+		}
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"category": category})
 }
 

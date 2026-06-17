@@ -27,6 +27,7 @@ type CategoryWithSharing struct {
 	Shared    bool   `json:"shared"`
 	GroupName string `json:"group_name,omitempty"`
 	GroupID   uint   `json:"group_id,omitempty"`
+	UserRole  string `json:"user_role,omitempty"` // viewer / editor / owner; empty when the user owns the category
 }
 
 func (db *DB) GetCategory(categoryID uint) (Category, error) {
@@ -63,11 +64,13 @@ func (db *DB) GetCategories(userID uint) ([]CategoryWithSharing, error) {
 		ID        uint
 		GroupID   uint
 		GroupName string
+		UserRole  string
 	}
 	var sharedRows []sharedRow
 	if err := db.DB.Table("category_groups").
-		Select("category_groups.category_id as id, category_groups.group_id, groups.name as group_name").
+		Select("category_groups.category_id as id, category_groups.group_id, groups.name as group_name, user_groups.role as user_role").
 		Joins("JOIN groups ON groups.id = category_groups.group_id").
+		Joins("JOIN user_groups ON user_groups.group_id = category_groups.group_id AND user_groups.user_id = ?", userID).
 		Where("category_groups.group_id IN ?", groupIDs).
 		Where("groups.deleted_at IS NULL").
 		Scan(&sharedRows).Error; err != nil {
@@ -78,13 +81,18 @@ func (db *DB) GetCategories(userID uint) ([]CategoryWithSharing, error) {
 		return result, nil
 	}
 
+	rolePriority := map[string]int{"reader": 1, "writer": 2, "owner": 3}
 	rowByID := make(map[uint]sharedRow, len(sharedRows))
 	sharedCatIDs := make([]uint, 0, len(sharedRows))
 	for _, row := range sharedRows {
-		if _, seen := rowByID[row.ID]; !seen {
+		existing, seen := rowByID[row.ID]
+		if !seen {
 			sharedCatIDs = append(sharedCatIDs, row.ID)
+			rowByID[row.ID] = row
+		} else if rolePriority[row.UserRole] > rolePriority[existing.UserRole] {
+			// Keep the highest-privilege role when shared via multiple groups.
+			rowByID[row.ID] = row
 		}
-		rowByID[row.ID] = row
 	}
 
 	var sharedCats []Category
@@ -98,6 +106,7 @@ func (db *DB) GetCategories(userID uint) ([]CategoryWithSharing, error) {
 			Shared:    true,
 			GroupName: row.GroupName,
 			GroupID:   row.GroupID,
+			UserRole:  row.UserRole,
 		})
 	}
 
@@ -122,8 +131,8 @@ func (db *DB) CanUserViewCategory(userID, categoryID uint) bool {
 	return count > 0
 }
 
-// CanUserEditCategory returns true if userID owns the category or has an
-// "editor" or "owner" role in a group the category is shared with.
+// CanUserEditCategory returns true if userID owns the category or has a
+// "writer" or "owner" role in a group the category is shared with.
 func (db *DB) CanUserEditCategory(userID, categoryID uint) bool {
 	var cat Category
 	if err := db.DB.First(&cat, categoryID).Error; err != nil {
@@ -136,7 +145,7 @@ func (db *DB) CanUserEditCategory(userID, categoryID uint) bool {
 	db.DB.Table("category_groups").
 		Joins("JOIN user_groups ON user_groups.group_id = category_groups.group_id").
 		Where("category_groups.category_id = ? AND user_groups.user_id = ? AND user_groups.role IN ?",
-			categoryID, userID, []string{"editor", "owner"}).
+			categoryID, userID, []string{"writer", "owner"}).
 		Count(&count)
 	return count > 0
 }

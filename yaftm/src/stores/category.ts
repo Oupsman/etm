@@ -31,5 +31,18 @@ export const useCategoryStore = defineStore('category', () => {
     return categories.value
   }
 
-  return { categories, addCategory, removeCategory, updateCategory, getCategories }
+  const getCategoryShares = async (categoryId: number) => {
+    const { data } = await axiosInstance.get(`/api/v1/category/${categoryId}/shares`)
+    return (data.groups ?? []) as { ID: number; name: string }[]
+  }
+
+  const shareCategory = async (categoryId: number, groupId: number): Promise<void> => {
+    await axiosInstance.post(`/api/v1/category/${categoryId}/share`, { group_id: groupId })
+  }
+
+  const unshareCategory = async (categoryId: number, groupId: number): Promise<void> => {
+    await axiosInstance.delete(`/api/v1/category/${categoryId}/share/${groupId}`)
+  }
+
+  return { categories, addCategory, removeCategory, updateCategory, getCategories, getCategoryShares, shareCategory, unshareCategory }
 })

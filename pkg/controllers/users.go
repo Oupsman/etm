@@ -98,11 +98,51 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	err := db.CreateUser(user)
+	count, err := db.CountUsers()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "could not count users"})
+		return
+	}
+	isFirst := count == 0
+
+	newUser, err := db.CreateUser(user, isFirst)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "could not create user"})
+		return
 	}
+
+	if isFirst {
+		if _, err := db.CreateGroup("Administrators", newUser.ID); err != nil {
+			App.(*app.App).Logger.Warn().Err(err).Msg("failed to create admin group for first user")
+		}
+	}
+
 	c.JSON(201, gin.H{"success": "user registered"})
+}
+
+func ListAllUsers(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	users, err := App.DB.GetAllUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+func SearchUsersHandler(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	query := c.Query("q")
+	if len(query) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query must be at least 2 characters"})
+		return
+	}
+	users, err := App.DB.SearchUsers(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 func Logout(c *gin.Context) {

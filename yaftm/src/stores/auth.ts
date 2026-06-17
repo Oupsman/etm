@@ -31,11 +31,11 @@ export const useAuthStore = defineStore('auth', {
 
     async refreshAccessToken () {
       try {
-        const { data } = await axios.post('/refresh-token', {
-          refreshToken: this.refreshToken,
-        },
-        );
-        this.setTokens(data.token, data.refreshToken);
+        const { data } = await axios.get('/api/v1/user/refreshtoken', {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        if (!data.token) throw new Error('no token in response');
+        this.setTokens(data.token, this.refreshToken);
         return data.token;
       } catch (error) {
         this.logout();

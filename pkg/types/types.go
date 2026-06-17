@@ -35,10 +35,11 @@ type UserPreferencesBody struct {
 }
 
 type CategoryBody struct {
-	Id     int    `json:"id,omitempty"`
-	Name   string `json:"name"`
-	Color  string `json:"color"`
-	Active bool   `json:"active"`
+	Id      int    `json:"id,omitempty"`
+	Name    string `json:"name"`
+	Color   string `json:"color"`
+	Active  bool   `json:"active"`
+	GroupID uint   `json:"group_id,omitempty"`
 }
 
 type DeviceBody struct {

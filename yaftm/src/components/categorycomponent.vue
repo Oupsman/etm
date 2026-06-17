@@ -28,6 +28,10 @@
       type: Number,
       required: true,
     },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
   })
   const backlog = ref<Task[]>([])
   const urgentImportant = ref<Task[]>([])
@@ -143,12 +147,14 @@
     <!-- Backlog Column -->
     <div class="backlog" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
       <h2>Backlog</h2>
-      <v-btn @click="triggerTaskDialog">Add task</v-btn>
+      <v-btn v-if="!props.readonly" @click="triggerTaskDialog">Add task</v-btn>
+      <v-chip v-else size="small" color="info" variant="tonal" class="mb-1">Read-only</v-chip>
       <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="backlog"
           group="tasks"
           itemkey="backlog"
+          :disabled="props.readonly"
           @change="(e) => onDrop(e, 'backlog')"
         >
           <v-card v-for="task in backlog" :key="task.ID" class="mb-2 task">
@@ -163,7 +169,7 @@
       <div class="UrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>Urgent et Important</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" @change="(e) => onDrop(e, 'urgentImportant')">
+          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'urgentImportant')">
             <v-card v-for="task in urgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -173,7 +179,7 @@
       <div class="NotUrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>Non Urgent et Important</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" @change="(e) => onDrop(e, 'nonUrgentImportant')">
+          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'nonUrgentImportant')">
             <v-card v-for="task in nonUrgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -183,7 +189,7 @@
       <div class="UrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>Urgent et Non Important</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" @change="(e) => onDrop(e, 'urgentNonImportant')">
+          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'urgentNonImportant')">
             <v-card v-for="task in urgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -193,7 +199,7 @@
       <div class="NotUrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>Non Urgent et Non Important</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
+          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
             <v-card v-for="task in nonUrgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -210,6 +216,7 @@
           v-model="completedTasks"
           group="tasks"
           itemkey="completedTasks"
+          :disabled="props.readonly"
           @change="(e) => onDrop(e, 'completedTasks')"
         >
           <v-card v-for="task in completedTasks" :key="task.ID" class="mb-2 task">

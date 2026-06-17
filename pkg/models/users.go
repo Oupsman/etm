@@ -72,16 +72,69 @@ func (db *DB) GetUser(userID uint) (Users, error) {
 	return user, nil
 }
 
-func (db *DB) CreateUser(user types.UserBody) error {
-	var newUser = Users{
+func (db *DB) CountUsers() (int64, error) {
+	var count int64
+	result := db.DB.Model(&Users{}).Count(&count)
+	return count, result.Error
+}
+
+func (db *DB) CreateUser(user types.UserBody, isAdmin bool) (Users, error) {
+	adminStr := ""
+	if isAdmin {
+		adminStr = "true"
+	}
+	newUser := Users{
 		Username: user.Username,
 		Password: user.Password,
 		Email:    user.Email,
+		IsAdmin:  adminStr,
 	}
-	result := db.Create(&newUser)
-	if result.Error != nil {
-		return result.Error
+	if err := db.DB.Create(&newUser).Error; err != nil {
+		return Users{}, err
 	}
+	return newUser, nil
+}
+
+func (db *DB) SearchUsers(query string) ([]Users, error) {
+	var users []Users
+	like := "%" + query + "%"
+	result := db.DB.Where("username ILIKE ? OR email ILIKE ?", like, like).Find(&users)
+	return users, result.Error
+}
+
+// SeedAdmin promotes the oldest user to admin and creates an "Administrators"
+// group for them if neither exists yet. Idempotent — safe to call on every startup.
+func (db *DB) SeedAdmin() error {
+	// Already have an admin — nothing to do.
+	var count int64
+	if err := db.DB.Model(&Users{}).Where("is_admin = ?", "true").Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	// Find the first registered user (lowest primary key).
+	var first Users
+	if err := db.DB.Order("id ASC").First(&first).Error; err != nil {
+		// No users yet — nothing to seed.
+		return nil
+	}
+
+	// Promote to admin.
+	if err := db.DB.Model(&first).Update("is_admin", "true").Error; err != nil {
+		return err
+	}
+
+	// Create the Administrators group if it doesn't exist yet.
+	var groupCount int64
+	db.DB.Model(&Groups{}).Where("name = ? AND owner_id = ?", "Administrators", first.ID).Count(&groupCount)
+	if groupCount == 0 {
+		if _, err := db.CreateGroup("Administrators", first.ID); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

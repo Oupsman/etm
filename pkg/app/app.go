@@ -18,14 +18,14 @@ func NewApp(logger zerolog.Logger, driver string, dsn string) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = models2.CreateOrMigrate(DB)
-	if err != nil {
+	if err = models2.CreateOrMigrate(DB); err != nil {
 		return nil, err
+	}
+	if err = DB.SeedAdmin(); err != nil {
+		logger.Warn().Err(err).Msg("admin seed failed")
 	}
 
 	var httpClient = &http.Client{}
-
-	// var notif = notifications.New()
 
 	return &App{DB: *DB, Client: httpClient, Logger: logger}, nil
 }

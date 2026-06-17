@@ -98,6 +98,21 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/user/tokens", controllers2.IsAuthorized(), controllers2.GetUserTokens)
 	apiV1.POST("/user/devices", controllers2.IsAuthorized(), controllers2.CreateUserDevice)
 
+	// Admin endpoints
+	apiV1.GET("/admin/users", controllers2.IsAuthorized(), controllers2.IsAdminUser(), controllers2.ListAllUsers)
+	apiV1.GET("/admin/groups", controllers2.IsAuthorized(), controllers2.IsAdminUser(), func(c *gin.Context) {
+		App := c.MustGet("App").(*app.App)
+		groups, err := App.DB.GetAllGroups()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"groups": groups})
+	})
+
+	// User search endpoint
+	apiV1.GET("/users/search", controllers2.IsAuthorized(), controllers2.SearchUsersHandler)
+
 	// OIDC endpoints
 	apiV1.GET("/auth/oidc/status", controllers2.OIDCStatus)
 	apiV1.GET("/auth/oidc/login", controllers2.OIDCLogin)

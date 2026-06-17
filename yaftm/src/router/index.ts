@@ -16,6 +16,7 @@ import Index from '@/pages/index.vue'
 import Login from '@/pages/login.vue'
 import Signup from '@/pages/signup.vue'
 import Profile from '@/pages/profile.vue'
+import Groups from '@/pages/groups.vue'
 
 const PUBLIC_ROUTES = new Set(['/login', '/signup', '/auth/callback'])
 
@@ -24,6 +25,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: Login },
   { path: '/signup', name: 'signup', component: Signup },
   { path: '/profile', name: 'profile', component: Profile },
+  { path: '/groups', name: 'groups', component: Groups },
   { path: '/auth/callback', component: () => import('../views/OIDCCallback.vue') },
 ]
 
