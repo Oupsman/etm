@@ -117,6 +117,10 @@ func Register(c *gin.Context) {
 		}
 	}
 
+	if err := db.SeedDemoContent(newUser); err != nil {
+		App.(*app.App).Logger.Warn().Err(err).Uint("userID", newUser.ID).Msg("failed to seed demo content for new user")
+	}
+
 	c.JSON(201, gin.H{"success": "user registered"})
 }
 

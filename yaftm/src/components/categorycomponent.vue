@@ -1,6 +1,8 @@
 <script setup lang="ts">
-  import { defineProps, onMounted, ref } from 'vue'
+  import { defineProps, onMounted, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import { useTaskStore } from '@/stores/task.ts'
+  import { useDragStore } from '@/stores/drag'
 
   import type { NewTask, Task } from '@/types/task.ts'
   import { VueDraggableNext as draggable } from 'vue-draggable-next'
@@ -49,7 +51,9 @@
   const message = ref<string>('')
   const displaySnack = ref(false)
 
+  const { t } = useI18n()
   const taskStore = useTaskStore()
+  const dragStore = useDragStore()
   const snackbar = useSnackbarStore();
 
   const formatDate = (iso?: string): string => {
@@ -94,6 +98,16 @@
       })
     }
   }
+
+  const onListDragStart = (list: Task[], evt: { oldIndex: number }) => {
+    const task = list[evt.oldIndex]
+    if (task) dragStore.startDrag(task, props.categoryID)
+  }
+
+  const onDragEnd = () => dragStore.endDrag()
+
+  // Re-fetch tasks when a cross-category move is signalled via the drag store.
+  watch(() => dragStore.refreshKey, () => parseTasks())
 
   // Called once after each drop. Only cross-list moves (evt.added) change flags.
   const onDrop = (evt: DropEvent, destination: string) => {
@@ -146,15 +160,20 @@
 
     <!-- Backlog Column -->
     <div class="backlog" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
-      <h2>Backlog</h2>
-      <v-btn v-if="!props.readonly" @click="triggerTaskDialog">Add task</v-btn>
-      <v-chip v-else size="small" color="info" variant="tonal" class="mb-1">Read-only</v-chip>
+      <h2>{{ t('matrix.backlog') }}</h2>
+      <button v-if="!props.readonly" class="add-task-btn" @click="triggerTaskDialog">
+        <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+        {{ t('matrix.addTask') }}
+      </button>
+      <v-chip v-else size="small" color="info" variant="tonal" class="mb-1">{{ t('category.readOnly') }}</v-chip>
       <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="backlog"
           group="tasks"
           itemkey="backlog"
           :disabled="props.readonly"
+          @start="(e) => onListDragStart(backlog, e)"
+          @end="onDragEnd"
           @change="(e) => onDrop(e, 'backlog')"
         >
           <v-card v-for="task in backlog" :key="task.ID" class="mb-2 task">
@@ -167,9 +186,9 @@
     <!-- Eisenhower Matrix: 2×2 grid that fills remaining width and full height -->
     <div style="flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden;">
       <div class="UrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
-        <h2>Urgent et Important</h2>
+        <h2>{{ t('matrix.urgentImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'urgentImportant')">
+          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" :disabled="props.readonly" @start="(e) => onListDragStart(urgentImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'urgentImportant')">
             <v-card v-for="task in urgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -177,9 +196,9 @@
         </div>
       </div>
       <div class="NotUrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
-        <h2>Non Urgent et Important</h2>
+        <h2>{{ t('matrix.notUrgentImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'nonUrgentImportant')">
+          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" :disabled="props.readonly" @start="(e) => onListDragStart(nonUrgentImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'nonUrgentImportant')">
             <v-card v-for="task in nonUrgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -187,9 +206,9 @@
         </div>
       </div>
       <div class="UrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
-        <h2>Urgent et Non Important</h2>
+        <h2>{{ t('matrix.urgentNotImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'urgentNonImportant')">
+          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" :disabled="props.readonly" @start="(e) => onListDragStart(urgentNonImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'urgentNonImportant')">
             <v-card v-for="task in urgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -197,9 +216,9 @@
         </div>
       </div>
       <div class="NotUrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
-        <h2>Non Urgent et Non Important</h2>
+        <h2>{{ t('matrix.notUrgentNotImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" :disabled="props.readonly" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
+          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" :disabled="props.readonly" @start="(e) => onListDragStart(nonUrgentNonImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
             <v-card v-for="task in nonUrgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -210,13 +229,15 @@
 
     <!-- Completed Tasks Column -->
     <div class="completed" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
-      <h3>Tâches Terminées</h3>
+      <h3>{{ t('matrix.completed') }}</h3>
       <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="completedTasks"
           group="tasks"
           itemkey="completedTasks"
           :disabled="props.readonly"
+          @start="(e) => onListDragStart(completedTasks, e)"
+          @end="onDragEnd"
           @change="(e) => onDrop(e, 'completedTasks')"
         >
           <v-card v-for="task in completedTasks" :key="task.ID" class="mb-2 task">
@@ -232,7 +253,7 @@
 
         <v-card-title class="dialog-header">
           <v-icon icon="mdi-plus-circle-outline" size="small" class="mr-2" />
-          New task
+          {{ t('task.newTask') }}
         </v-card-title>
 
         <v-divider />
@@ -241,7 +262,7 @@
 
           <v-text-field
             v-model="taskName"
-            label="Name"
+            :label="t('task.name')"
             variant="outlined"
             density="comfortable"
             prepend-inner-icon="mdi-format-title"
@@ -250,14 +271,14 @@
 
           <div class="notes-label">
             <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
-            Notes
+            {{ t('task.notes') }}
           </div>
           <v-textarea
             v-model="taskDescription"
             variant="outlined"
             auto-grow
             rows="14"
-            placeholder="Add notes…"
+            :placeholder="t('task.notesPlaceholder')"
             class="notes-textarea"
             hide-details
           />
@@ -270,7 +291,7 @@
               prepend-icon="mdi-calendar-outline"
               @click="showDatePicker = !showDatePicker"
             >
-              {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : 'Set due date' }}
+              {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : t('task.setDueDate') }}
             </v-btn>
           </div>
 
@@ -290,8 +311,8 @@
         <v-divider />
 
         <v-card-actions class="dialog-actions">
-          <v-btn variant="text" @click="taskDialog = false">Cancel</v-btn>
-          <v-btn variant="flat" color="primary" @click="addTask">Add</v-btn>
+          <v-btn variant="text" @click="taskDialog = false">{{ t('task.cancel') }}</v-btn>
+          <v-btn variant="flat" color="primary" @click="addTask">{{ t('task.add') }}</v-btn>
         </v-card-actions>
 
       </v-card>
@@ -357,6 +378,27 @@
 
 .fill-height
   height: 100%
+
+.add-task-btn
+  width: 100%
+  margin-bottom: 8px
+  padding: 6px 0
+  display: flex
+  align-items: center
+  justify-content: center
+  background: transparent
+  border: 1.5px dashed rgba(0, 0, 0, 0.25)
+  border-radius: 6px
+  font-size: 12px
+  font-weight: 600
+  color: rgba(0, 0, 0, 0.5)
+  cursor: pointer
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease
+
+  &:hover
+    background: rgba(0, 0, 0, 0.06)
+    border-color: rgba(0, 0, 0, 0.45)
+    color: rgba(0, 0, 0, 0.75)
 
 .backlog
   background: linear-gradient(135deg, #bdc3c7, #eef2f7)

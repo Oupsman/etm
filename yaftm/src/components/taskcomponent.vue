@@ -1,11 +1,15 @@
 <script setup lang="ts">
   import type { Task } from '@/types/task.ts'
+  import { useI18n } from 'vue-i18n'
   import { useTaskStore } from '@/stores/task.ts'
+  import { useCategoryStore } from '@/stores/category.ts'
 
 
   const emit = defineEmits(['updatecategory'])
 
+  const { t } = useI18n()
   const taskStore = useTaskStore()
+  const categoryStore = useCategoryStore()
 
   const props = defineProps({
     task: {
@@ -17,11 +21,11 @@
   const dueDateInfo = computed(() => {
     if (!props.task.duedate || props.task.iscompleted) return null
     const days = Math.ceil((new Date(props.task.duedate).getTime() - Date.now()) / 86_400_000)
-    if (days < 0)   return { icon: 'mdi-fire',                color: '#e74c3c', text: 'Overdue' }
-    if (days === 0) return { icon: 'mdi-alarm',               color: '#e74c3c', text: 'Due today!' }
-    if (days <= 3)  return { icon: 'mdi-clock-alert-outline', color: '#f39c12', text: `${days} day${days === 1 ? '' : 's'} left` }
-    if (days <= 7)  return { icon: 'mdi-clock-outline',       color: '#f1c40f', text: `${days} days left` }
-    return          { icon: 'mdi-calendar-check',             color: '#2ecc71', text: `${days} days left` }
+    if (days < 0)   return { icon: 'mdi-fire',                color: '#e74c3c', text: t('task.overdue') }
+    if (days === 0) return { icon: 'mdi-alarm',               color: '#e74c3c', text: t('task.dueToday') }
+    if (days <= 3)  return { icon: 'mdi-clock-alert-outline', color: '#f39c12', text: t('task.daysLeft', days, { named: { n: days } }) }
+    if (days <= 7)  return { icon: 'mdi-clock-outline',       color: '#f1c40f', text: t('task.daysLeft', days, { named: { n: days } }) }
+    return          { icon: 'mdi-calendar-check',             color: '#2ecc71', text: t('task.daysLeft', days, { named: { n: days } }) }
   })
 
   const triggerEditTask = ref(false)
@@ -29,6 +33,7 @@
   const taskName = ref('')
   const taskDescription = ref('')
   const taskDueDate = ref<Date>()
+  const taskCategoryId = ref<number>(0)
   const triggerDeleteTask = ref(false)
 
   const formatDate = (iso?: string): string => {
@@ -37,17 +42,18 @@
   }
 
   const statusChips = computed(() => [
-    { label: 'Priority',  active: props.task.priority,    color: '#e67e22', icon: 'mdi-alert-circle-outline' },
-    { label: 'Urgent',    active: props.task.urgency,     color: '#e74c3c', icon: 'mdi-lightning-bolt' },
-    { label: 'Started',   active: props.task.isstarted,   color: '#27ae60', icon: 'mdi-play-circle-outline' },
-    { label: 'Backlog',   active: props.task.isbacklog,   color: '#7f8c8d', icon: 'mdi-tray-full' },
-    { label: 'Completed', active: props.task.iscompleted, color: '#2980b9', icon: 'mdi-check-circle-outline' },
+    { label: t('task.priority'),  active: props.task.priority,    color: '#e67e22', icon: 'mdi-alert-circle-outline' },
+    { label: t('task.urgent'),    active: props.task.urgency,     color: '#e74c3c', icon: 'mdi-lightning-bolt' },
+    { label: t('task.started'),   active: props.task.isstarted,   color: '#27ae60', icon: 'mdi-play-circle-outline' },
+    { label: t('task.backlog'),   active: props.task.isbacklog,   color: '#7f8c8d', icon: 'mdi-tray-full' },
+    { label: t('task.completed'), active: props.task.iscompleted, color: '#2980b9', icon: 'mdi-check-circle-outline' },
   ])
 
   const onEditTask = (task: Task): void => {
     taskName.value = task.name
     taskDescription.value = task.comment
     taskDueDate.value = new Date(task.duedate)
+    taskCategoryId.value = task.categoryid
     showDatePicker.value = false
     triggerEditTask.value = true
   }
@@ -84,9 +90,10 @@
     if (!taskName.value || !taskDueDate.value) return
     const updated: Task = {
       ...props.task,
-      name:    taskName.value,
-      comment: taskDescription.value,
-      duedate: taskDueDate.value.toISOString(),
+      name:       taskName.value,
+      comment:    taskDescription.value,
+      duedate:    taskDueDate.value.toISOString(),
+      categoryid: taskCategoryId.value,
     }
     await taskStore.updateTask(props.task.ID, updated)
     triggerEditTask.value = false
@@ -120,7 +127,7 @@
           <v-icon v-bind="tooltipProps" :icon="dueDateInfo.icon" :color="dueDateInfo.color" size="small" />
         </template>
       </v-tooltip>
-      <v-tooltip :text="props.task.isstarted ? 'Mark as not started' : 'Mark as started'" location="top">
+      <v-tooltip :text="props.task.isstarted ? t('task.markNotStarted') : t('task.markStarted')" location="top">
         <template #activator="{ props: tooltipProps }">
           <v-btn
             v-bind="tooltipProps"
@@ -141,7 +148,7 @@
 
       <v-card-title class="dialog-header">
         <v-icon icon="mdi-pencil-outline" size="small" class="mr-2" />
-        Edit task
+        {{ t('task.editTitle') }}
         <v-chip size="x-small" variant="tonal" color="grey" class="ml-2">#{{ props.task.ID }}</v-chip>
       </v-card-title>
 
@@ -151,7 +158,7 @@
 
         <v-text-field
           v-model="taskName"
-          label="Name"
+          :label="t('task.name')"
           variant="outlined"
           density="comfortable"
           prepend-inner-icon="mdi-format-title"
@@ -160,16 +167,28 @@
 
         <div class="notes-label">
           <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
-          Notes
+          {{ t('task.notes') }}
         </div>
         <v-textarea
           v-model="taskDescription"
           variant="outlined"
           auto-grow
           rows="14"
-          placeholder="Add notes…"
+          :placeholder="t('task.notesPlaceholder')"
           class="notes-textarea"
           hide-details
+        />
+
+        <v-select
+          v-model="taskCategoryId"
+          :items="categoryStore.categories"
+          item-title="name"
+          item-value="ID"
+          :label="t('task.category')"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-folder-outline"
+          class="mb-3"
         />
 
         <div class="due-date-row mt-3">
@@ -180,7 +199,7 @@
             prepend-icon="mdi-calendar-outline"
             @click="showDatePicker = !showDatePicker"
           >
-            {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : 'Set due date' }}
+            {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : t('task.setDueDate') }}
           </v-btn>
         </div>
 
@@ -199,7 +218,7 @@
           <v-expansion-panel>
             <v-expansion-panel-title class="properties-title">
               <v-icon icon="mdi-information-outline" size="small" class="mr-2" />
-              Properties
+              {{ t('task.properties') }}
             </v-expansion-panel-title>
             <v-expansion-panel-text>
               <div class="status-chips">
@@ -215,8 +234,8 @@
                 </v-chip>
               </div>
               <div class="meta-dates">
-                <span><strong>Created:</strong> {{ formatDate(props.task.CreatedAt) }}</span>
-                <span><strong>Updated:</strong> {{ formatDate(props.task.UpdatedAt) }}</span>
+                <span><strong>{{ t('task.created') }}</strong> {{ formatDate(props.task.CreatedAt) }}</span>
+                <span><strong>{{ t('task.updated') }}</strong> {{ formatDate(props.task.UpdatedAt) }}</span>
               </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -227,22 +246,24 @@
       <v-divider />
 
       <v-card-actions class="dialog-actions">
-        <v-btn variant="text" @click="triggerEditTask = false">Cancel</v-btn>
-        <v-btn variant="flat" color="primary" @click="saveTask()">Save</v-btn>
+        <v-btn variant="text" @click="triggerEditTask = false">{{ t('task.cancel') }}</v-btn>
+        <v-btn variant="flat" color="primary" @click="saveTask()">{{ t('task.save') }}</v-btn>
       </v-card-actions>
 
     </v-card>
   </v-dialog>
   <v-dialog v-model="triggerDeleteTask" max-width="600px" persistent>
     <v-card>
-      <v-card-title>Are you sure ?</v-card-title>
-      <v-card-text>Do you really want to delete this task ?
-        Name: {{ taskName }}
-        Description: {{ taskDescription }}</v-card-text>
+      <v-card-title>{{ t('task.deleteTitle') }}</v-card-title>
+      <v-card-text>
+        {{ t('task.deleteConfirmIntro') }}
+        <div>{{ t('task.name') }}: {{ taskName }}</div>
+        <div>{{ t('task.notes') }}: {{ taskDescription }}</div>
+      </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="deleteTask()">YES</v-btn>
-        <v-btn @click="triggerDeleteTask = false">NO</v-btn>
+        <v-btn @click="deleteTask()">{{ t('task.yes') }}</v-btn>
+        <v-btn @click="triggerDeleteTask = false">{{ t('task.no') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

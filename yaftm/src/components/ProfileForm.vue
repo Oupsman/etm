@@ -1,16 +1,25 @@
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
   import { useUserStore } from '@/stores/user'
   import { useAppStore } from '@/stores/app'
   import { useNotificationStore } from '@/stores/notification'
+  import { useAuthStore } from '@/stores/auth'
+  import { useSnackbarStore } from '@/stores/snackbar'
+  import { axiosInstance } from '@/plugins/axios'
   import { useVuelidate } from '@vuelidate/core'
   import { minLength, required, sameAs } from '@vuelidate/validators'
   import type { User } from '@/types/user'
+
+  const { t } = useI18n()
   const userStore = useUserStore()
   const appStore = useAppStore()
   const notifStore = useNotificationStore()
+  const authStore = useAuthStore()
+  const snackbar = useSnackbarStore()
 
   const isLoading = ref(true)
   const showPassword = ref(false)
+  const oidcEnabled = ref(false)
 
   const userForm = ref({
     oldPassword: '',
@@ -45,24 +54,38 @@
     }
   }
 
+  const linkOIDC = () => {
+    window.location.href = `/api/v1/auth/oidc/link?token=${authStore.token}`
+  }
+
+  const unlinkOIDC = async () => {
+    try {
+      await axiosInstance.delete('/api/v1/auth/oidc/link')
+      snackbar.showSnackbar({ message: 'OIDC account unlinked.', color: 'success' })
+      await fetchUser()
+    } catch (e: any) {
+      snackbar.showSnackbar({ message: 'Unlink failed: ' + e.message, color: 'error' })
+    }
+  }
+
   onMounted(async () => {
     await fetchUser()
     await notifStore.check()
+    try {
+      const { data } = await axiosInstance.get('/api/v1/auth/oidc/status')
+      oidcEnabled.value = data.enabled === true
+    } catch { /* OIDC status fetch is best-effort */ }
   })
 
   const save = async () => {
     const isValid = await v$.value.$validate()
     if (!isValid) return
-
-    const updatedUser = {
-      ...userForm.value,
-    }
-    await userStore.updateUser(updatedUser)
+    await userStore.updateUser({ ...userForm.value })
   }
 </script>
 
 <template>
-  <div v-if="isLoading">Loading...</div>
+  <div v-if="isLoading">{{ t('profile.loading') }}</div>
   <div v-else-if="user">
     <v-container>
       <v-form @submit.prevent="save">
@@ -70,7 +93,7 @@
           v-model="userForm.oldPassword"
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           :error-messages="v$.oldPassword.$errors.map(e => unref(e.$message))"
-          label="Current Password"
+          :label="t('profile.currentPassword')"
           prepend-icon="mdi-lock"
           required
           type="password"
@@ -79,7 +102,7 @@
           v-model="userForm.newPassword"
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           :error-messages="v$.newPassword.$errors.map(e => unref(e.$message))"
-          label="New Password"
+          :label="t('profile.newPassword')"
           prepend-icon="mdi-lock"
           type="password"
         />
@@ -87,33 +110,33 @@
           v-model="userForm.newPasswordConfirmation"
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           :error-messages="v$.newPasswordConfirmation.$errors.map(e => unref(e.$message))"
-          label="Confirm Password"
+          :label="t('profile.confirmPassword')"
           prepend-icon="mdi-lock"
           type="password"
           @click:append="showPassword = !showPassword"
         />
 
-        <v-btn color="primary" :disabled="v$.$invalid" type="submit">Save</v-btn>
+        <v-btn color="primary" :disabled="v$.$invalid" type="submit">{{ t('profile.save') }}</v-btn>
       </v-form>
 
       <v-divider class="my-4" />
 
-      <div class="text-subtitle-1 mb-2">Browser Notifications</div>
+      <div class="text-subtitle-1 mb-2">{{ t('profile.notifications') }}</div>
       <template v-if="!notifStore.isSupported">
         <v-alert type="warning" density="compact">
-          Push notifications are not supported in this browser.
+          {{ t('profile.notSupported') }}
         </v-alert>
       </template>
       <template v-else-if="notifStore.permissionDenied">
         <v-alert type="error" density="compact">
-          Notifications are blocked. Reset permissions in your browser settings and reload.
+          {{ t('profile.blocked') }}
         </v-alert>
       </template>
       <template v-else>
         <v-switch
           :model-value="notifStore.isSubscribed"
           color="primary"
-          :label="notifStore.isSubscribed ? 'Notifications enabled' : 'Notifications disabled'"
+          :label="notifStore.isSubscribed ? t('profile.enabled') : t('profile.disabled')"
           hide-details
           @update:model-value="notifStore.toggle()"
         />
@@ -124,10 +147,31 @@
           class="mt-2"
           @click="notifStore.sendTest()"
         >
-          Send test notification
+          {{ t('profile.sendTest') }}
         </v-btn>
+      </template>
+
+      <template v-if="oidcEnabled">
+        <v-divider class="my-4" />
+        <div class="text-subtitle-1 mb-2">{{ t('profile.oidcTitle') }}</div>
+        <template v-if="user?.oidc_subject">
+          <v-alert type="success" density="compact" class="mb-3">
+            {{ t('profile.linked', { provider: user.oidc_provider }) }}
+          </v-alert>
+          <v-btn variant="outlined" color="error" size="small" @click="unlinkOIDC">
+            {{ t('profile.unlink') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-alert type="info" density="compact" class="mb-3">
+            {{ t('profile.notLinked') }}
+          </v-alert>
+          <v-btn variant="outlined" color="primary" size="small" @click="linkOIDC">
+            {{ t('profile.link') }}
+          </v-btn>
+        </template>
       </template>
     </v-container>
   </div>
-  <div v-else>User not found</div>
+  <div v-else>{{ t('profile.notFound') }}</div>
 </template>

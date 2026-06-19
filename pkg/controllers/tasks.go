@@ -193,6 +193,14 @@ func UpdateTask(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid due date format, expected RFC3339"})
 		return
 	}
+	if taskBody.CategoryID != 0 && taskBody.CategoryID != task.CategoryID {
+		if !db.CanUserEditCategory(user.ID, taskBody.CategoryID) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "access denied to target category"})
+			return
+		}
+		task.CategoryID = taskBody.CategoryID
+	}
+
 	task.Comment = taskBody.Comment
 	task.Name = taskBody.Name
 	task.DueDate = dueDate

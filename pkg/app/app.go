@@ -24,6 +24,9 @@ func NewApp(logger zerolog.Logger, driver string, dsn string) (*App, error) {
 	if err = DB.SeedAdmin(); err != nil {
 		logger.Warn().Err(err).Msg("admin seed failed")
 	}
+	if err = DB.SeedDemoContentForAllUsers(); err != nil {
+		logger.Warn().Err(err).Msg("demo content seed failed")
+	}
 
 	var httpClient = &http.Client{}
 

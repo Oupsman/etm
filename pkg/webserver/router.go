@@ -62,6 +62,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 	// Categories endpoints
 	apiV1.GET("/categories", controllers2.IsAuthorized(), controllers2.GetCategories)
 	apiV1.POST("/category", controllers2.IsAuthorized(), controllers2.CreateCategory)
+	apiV1.DELETE("/category/:categoryId", controllers2.IsAuthorized(), controllers2.DeleteCategoryHandler)
 	apiV1.POST("/category/:categoryId/share", controllers2.IsAuthorized(), controllers2.ShareCategory)
 	apiV1.DELETE("/category/:categoryId/share/:groupId", controllers2.IsAuthorized(), controllers2.UnshareCategory)
 	apiV1.GET("/category/:categoryId/shares", controllers2.IsAuthorized(), controllers2.GetCategoryShares)
@@ -117,6 +118,8 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/auth/oidc/status", controllers2.OIDCStatus)
 	apiV1.GET("/auth/oidc/login", controllers2.OIDCLogin)
 	apiV1.GET("/auth/oidc/callback", controllers2.OIDCCallback)
+	apiV1.GET("/auth/oidc/link", controllers2.OIDCLink)
+	apiV1.DELETE("/auth/oidc/link", controllers2.IsAuthorized(), controllers2.OIDCUnlink)
 
 	apiV1.GET("/healthcheck", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

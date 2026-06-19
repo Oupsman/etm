@@ -2,9 +2,13 @@ package models
 
 import (
 	"ETM/pkg/types"
+	"errors"
 
 	"gorm.io/gorm"
 )
+
+// ErrForbidden is returned when an operation is attempted by a non-owner.
+var ErrForbidden = errors.New("forbidden")
 
 type Category struct {
 	gorm.Model
@@ -182,4 +186,65 @@ func (db *DB) GetCategoryShares(categoryID uint) ([]Groups, error) {
 		Where("groups.deleted_at IS NULL").
 		Find(&groups)
 	return groups, result.Error
+}
+
+// DeleteCategory removes a category and all its tasks. Only the owner may delete.
+func (db *DB) DeleteCategory(userID, categoryID uint) error {
+	var cat Category
+	if err := db.DB.First(&cat, categoryID).Error; err != nil {
+		return err
+	}
+	if cat.UserID != userID {
+		return ErrForbidden
+	}
+	if err := db.DB.Where("category_id = ?", categoryID).Delete(&Tasks{}).Error; err != nil {
+		return err
+	}
+	return db.DB.Delete(&cat).Error
+}
+
+// SeedDemoContentForAllUsers seeds demo content for every user who doesn't
+// already have a category named "Demo". Safe to call on every startup.
+func (db *DB) SeedDemoContentForAllUsers() error {
+	var users []Users
+	if err := db.DB.Find(&users).Error; err != nil {
+		return err
+	}
+	for _, u := range users {
+		var count int64
+		db.DB.Model(&Category{}).Where("user_id = ? AND name = ?", u.ID, "Demo").Count(&count)
+		if count > 0 {
+			continue
+		}
+		if err := db.SeedDemoContent(u); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SeedDemoContent creates a "Demo" category with one task in each Eisenhower quadrant.
+func (db *DB) SeedDemoContent(user Users) error {
+	cat := Category{
+		Name:   "Demo",
+		Color:  "#4CAF50",
+		UserID: user.ID,
+		Active: true,
+	}
+	if err := db.DB.Create(&cat).Error; err != nil {
+		return err
+	}
+
+	tasks := []Tasks{
+		{Name: "Do this first", Comment: "Important and urgent — tackle it immediately.", Priority: true, Urgency: true, CategoryID: cat.ID, UserID: user.ID},
+		{Name: "Schedule this", Comment: "Important but not urgent — plan a time for it.", Priority: true, Urgency: false, CategoryID: cat.ID, UserID: user.ID},
+		{Name: "Delegate this", Comment: "Urgent but not important — consider delegating.", Priority: false, Urgency: true, CategoryID: cat.ID, UserID: user.ID},
+		{Name: "Eliminate this", Comment: "Neither urgent nor important — drop it.", Priority: false, Urgency: false, IsBackLog: true, CategoryID: cat.ID, UserID: user.ID},
+	}
+	for i := range tasks {
+		if err := db.DB.Create(&tasks[i]).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

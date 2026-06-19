@@ -13,4 +13,6 @@ export interface User {
   username: string,
   active_category_id: number,
   isadmin: string,
+  oidc_subject?: string,
+  oidc_provider?: string,
 }

@@ -1,10 +1,12 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import { useGroupStore } from '@/stores/group'
   import { useUserStore } from '@/stores/user'
   import type { Group, GroupDetail, GroupMember, UserSearchResult } from '@/types/group'
   import type { User } from '@/types/user'
 
+  const { t } = useI18n()
   const groupStore = useGroupStore()
   const userStore = useUserStore()
 
@@ -123,7 +125,7 @@
       <v-col cols="12" md="4">
         <v-card>
           <v-card-title class="d-flex align-center">
-            Groups
+            {{ t('groups.title') }}
             <v-spacer />
             <v-btn icon size="small" @click="createDialog = true">
               <v-icon>mdi-plus</v-icon>
@@ -154,7 +156,7 @@
               </template>
             </v-list-item>
             <v-list-item v-if="groupStore.groups.length === 0">
-              <v-list-item-title class="text-disabled">No groups yet</v-list-item-title>
+              <v-list-item-title class="text-disabled">{{ t('groups.noGroups') }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-card>
@@ -166,7 +168,7 @@
           <v-card-title class="d-flex align-center">
             {{ selectedGroup.group.name }}
             <v-chip class="ml-2" size="small" color="primary">
-              {{ selectedGroup.members.length }} member{{ selectedGroup.members.length !== 1 ? 's' : '' }}
+              {{ t('groups.members', selectedGroup.members.length, { named: { n: selectedGroup.members.length } }) }}
             </v-chip>
             <v-spacer />
             <v-btn
@@ -176,7 +178,7 @@
               prepend-icon="mdi-account-plus"
               @click="addMemberDialog = true"
             >
-              Add member
+              {{ t('groups.addMember') }}
             </v-btn>
           </v-card-title>
           <v-divider />
@@ -220,7 +222,7 @@
         <v-card v-else min-height="300" class="d-flex align-center justify-center">
           <v-card-text class="text-center text-disabled">
             <v-icon size="64" class="mb-2">mdi-account-group</v-icon>
-            <div>Select a group to see its members</div>
+            <div>{{ t('groups.selectHint') }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -229,19 +231,19 @@
     <!-- Create group dialog -->
     <v-dialog v-model="createDialog" max-width="400">
       <v-card>
-        <v-card-title>New group</v-card-title>
+        <v-card-title>{{ t('groups.newGroup') }}</v-card-title>
         <v-card-text>
           <v-text-field
             v-model="newGroupName"
-            label="Group name"
+            :label="t('groups.groupName')"
             autofocus
             @keyup.enter="createGroup"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="createDialog = false">Cancel</v-btn>
-          <v-btn color="primary" :disabled="!newGroupName.trim()" @click="createGroup">Create</v-btn>
+          <v-btn @click="createDialog = false">{{ t('groups.cancel') }}</v-btn>
+          <v-btn color="primary" :disabled="!newGroupName.trim()" @click="createGroup">{{ t('groups.create') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -249,11 +251,11 @@
     <!-- Add member dialog -->
     <v-dialog v-model="addMemberDialog" max-width="500">
       <v-card>
-        <v-card-title>Add member to {{ selectedGroup?.group.name }}</v-card-title>
+        <v-card-title>{{ t('groups.addMemberTo', { name: selectedGroup?.group.name }) }}</v-card-title>
         <v-card-text>
           <v-text-field
             v-model="searchQuery"
-            label="Search by username or email"
+            :label="t('groups.searchPlaceholder')"
             prepend-inner-icon="mdi-magnify"
             :loading="searching"
             @input="searchUsers"
@@ -276,13 +278,13 @@
           <v-select
             v-model="selectedRole"
             :items="roles"
-            label="Role"
+            :label="t('groups.role')"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="addMemberDialog = false; searchQuery = ''; searchResults = []; selectedUser = null">Cancel</v-btn>
-          <v-btn color="primary" :disabled="!selectedUser" @click="addMember">Add</v-btn>
+          <v-btn @click="addMemberDialog = false; searchQuery = ''; searchResults = []; selectedUser = null">{{ t('groups.cancel') }}</v-btn>
+          <v-btn color="primary" :disabled="!selectedUser" @click="addMember">{{ t('groups.add') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -290,14 +292,12 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="confirmDeleteDialog" max-width="360">
       <v-card>
-        <v-card-title>Delete group?</v-card-title>
-        <v-card-text>
-          Delete <strong>{{ groupToDelete?.name }}</strong>? This cannot be undone.
-        </v-card-text>
+        <v-card-title>{{ t('groups.deleteTitle') }}</v-card-title>
+        <v-card-text>{{ t('groups.deleteConfirm', { name: groupToDelete?.name }) }}</v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="confirmDeleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" @click="deleteGroup">Delete</v-btn>
+          <v-btn @click="confirmDeleteDialog = false">{{ t('groups.cancel') }}</v-btn>
+          <v-btn color="error" @click="deleteGroup">{{ t('groups.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

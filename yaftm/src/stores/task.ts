@@ -33,11 +33,12 @@ export const useTaskStore = defineStore('task', () => {
   }
 
   const updateTask = async (taskId: number, updatedTask: Task): Promise<boolean> => {
-    const index = tasks.value.findIndex(task => task.ID === taskId)
-    if (index === -1) return false
     try {
       await axiosInstance.post('/api/v1/task/' + taskId, updatedTask)
-      tasks.value[index] = { ...tasks.value[index], ...updatedTask }
+      const index = tasks.value.findIndex(task => task.ID === taskId)
+      if (index !== -1) {
+        tasks.value[index] = { ...tasks.value[index], ...updatedTask }
+      }
       snackbar.showSnackbar({ message: 'Task updated successfully.', color: 'success' })
       return true
     } catch (error: any) {

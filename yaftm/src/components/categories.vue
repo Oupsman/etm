@@ -1,16 +1,35 @@
 <script setup lang="ts">
   import { ref, watch, computed } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import CategoryComponent from '@/components/categorycomponent.vue'
   import { useCategoryStore } from '@/stores/category.ts'
   import { useGroupStore } from '@/stores/group'
   import { useAuthStore } from '@/stores/auth'
   import { useUserStore } from '@/stores/user'
+  import { useDragStore } from '@/stores/drag'
+  import { useTaskStore } from '@/stores/task'
   import type { Category } from '@/types/category.ts'
+  import type { Task } from '@/types/task'
 
+  const { t } = useI18n()
   const categoryStore = useCategoryStore()
   const groupStore = useGroupStore()
   const authStore = useAuthStore()
   const userStore = useUserStore()
+  const dragStore = useDragStore()
+  const taskStore = useTaskStore()
+
+  const isDragging = computed(() => dragStore.draggingTask !== null)
+
+  const onTaskDropToCategory = async (targetCategory: Category) => {
+    const task = dragStore.draggingTask
+    dragStore.endDrag()
+    if (!task) return
+    if (task.categoryid === targetCategory.ID) return
+    const updated: Task = { ...task, categoryid: targetCategory.ID }
+    await taskStore.updateTask(task.ID, updated)
+    dragStore.notifyMoved()
+  }
 
   let categories: Category[] = []
   const categoriesDisplay = ref<Category[]>([])
@@ -26,6 +45,9 @@
   const sharingCategory = ref<Category | null>(null)
   const currentShares = ref<{ ID: number; name: string }[]>([])
   const sharingGroupID = ref<number | null>(null)
+
+  const deleteDialog = ref(false)
+  const categoryToDelete = ref<Category | null>(null)
 
   const userGroups = computed(() =>
     groupStore.groups.filter(g => !currentShares.value.some(s => s.ID === g.ID))
@@ -113,6 +135,23 @@
     currentShares.value = currentShares.value.filter(s => s.ID !== groupId)
     await groupStore.fetchGroups(false)
   }
+
+  const confirmDeleteCategory = (cat: Category) => {
+    categoryToDelete.value = cat
+    deleteDialog.value = true
+  }
+
+  const deleteCategory = async () => {
+    if (!categoryToDelete.value) return
+    deleteDialog.value = false
+    try {
+      await categoryStore.removeCategory(categoryToDelete.value)
+      await loadCategories()
+    } catch (error) {
+      console.log('Error deleting category: ', error)
+    }
+    categoryToDelete.value = null
+  }
 </script>
 
 <template>
@@ -123,6 +162,7 @@
           v-for="category in categoriesDisplay"
           :key="category.ID"
           :value="category.ID"
+          :class="{ 'drop-zone': isDragging && category.ID !== dragStore.draggingFromCategoryId }"
           :style="{
             backgroundColor: category.color,
             opacity: activeTab === category.ID ? 1 : 0.55,
@@ -130,25 +170,38 @@
             borderBottom: activeTab === category.ID ? '3px solid rgba(0,0,0,0.4)' : '3px solid transparent',
           }"
           @click="setActiveTab(category.ID)"
+          @dragover.prevent
+          @drop.prevent="onTaskDropToCategory(category)"
         >
           <span class="mr-1">{{ category.name }}</span>
-          <v-icon v-if="category.shared" size="x-small" class="mr-1" title="Shared category">mdi-account-group</v-icon>
-          <v-icon v-if="isReadOnly(category)" size="x-small" title="Read-only">mdi-eye</v-icon>
+          <v-icon v-if="category.shared" size="x-small" class="mr-1" :title="t('category.sharedCategory')">mdi-account-group</v-icon>
+          <v-icon v-if="isReadOnly(category)" size="x-small" :title="t('category.readOnly')">mdi-eye</v-icon>
           <v-btn
             v-if="canShare(category)"
             icon
             size="x-small"
             variant="text"
             class="ml-1"
-            title="Manage sharing"
+            :title="t('category.manageSharing')"
             @click.stop="openShareDialog(category)"
           >
             <v-icon size="x-small">mdi-share-variant</v-icon>
           </v-btn>
+          <v-btn
+            v-if="canShare(category)"
+            icon
+            size="x-small"
+            variant="text"
+            class="ml-1"
+            :title="t('category.deleteTooltip')"
+            @click.stop="confirmDeleteCategory(category)"
+          >
+            <v-icon size="x-small">mdi-delete</v-icon>
+          </v-btn>
         </v-tab>
-        <v-btn @click="triggerDialogCategory">
-          Add
-        </v-btn>
+        <div class="add-tab" :title="t('category.addTooltip')" @click="triggerDialogCategory">
+          <v-icon size="small">mdi-plus</v-icon>
+        </div>
       </v-tabs>
     </div>
     <div style="flex: 1; min-height: 0; overflow: hidden; position: relative;">
@@ -166,16 +219,16 @@
     <v-dialog v-model="dialog" max-width="600px" persistent>
       <v-card>
         <v-card-title>
-          <span class="headline">Add a new category</span>
+          <span class="headline">{{ t('category.addTitle') }}</span>
         </v-card-title>
         <v-card-text>
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="categoryName" label="Name" required />
+                <v-text-field v-model="categoryName" :label="t('category.name')" required />
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="categoryColor" label="Color" required type="color" />
+                <v-text-field v-model="categoryColor" :label="t('category.color')" required type="color" />
               </v-col>
               <v-col cols="12">
                 <v-select
@@ -183,9 +236,9 @@
                   :items="groupStore.groups"
                   item-title="name"
                   item-value="ID"
-                  label="Share with group (optional)"
+                  :label="t('category.shareWithGroup')"
                   clearable
-                  :no-data-text="groupStore.groups.length === 0 ? 'You have no groups' : 'No groups'"
+                  :no-data-text="groupStore.groups.length === 0 ? t('category.noGroups') : t('category.noGroupsData')"
                 />
               </v-col>
             </v-row>
@@ -193,8 +246,21 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="blue darken-1" text @click="dialog = false">Cancel</v-btn>
-          <v-btn color="blue darken-1" text @click="addCategory">Add</v-btn>
+          <v-btn color="blue darken-1" text @click="dialog = false">{{ t('category.cancel') }}</v-btn>
+          <v-btn color="blue darken-1" text @click="addCategory">{{ t('category.add') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete category confirmation dialog -->
+    <v-dialog v-model="deleteDialog" max-width="400">
+      <v-card>
+        <v-card-title>{{ t('category.deleteTitle', { name: categoryToDelete?.name }) }}</v-card-title>
+        <v-card-text>{{ t('category.deleteConfirm') }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="deleteDialog = false">{{ t('category.cancel') }}</v-btn>
+          <v-btn color="error" @click="deleteCategory">{{ t('category.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -202,10 +268,10 @@
     <!-- Share management dialog -->
     <v-dialog v-model="shareDialog" max-width="500">
       <v-card>
-        <v-card-title>Share "{{ sharingCategory?.name }}"</v-card-title>
+        <v-card-title>{{ t('category.shareTitle', { name: sharingCategory?.name }) }}</v-card-title>
         <v-card-text>
           <div v-if="currentShares.length > 0">
-            <div class="text-subtitle-2 mb-2">Currently shared with</div>
+            <div class="text-subtitle-2 mb-2">{{ t('category.sharedWith') }}</div>
             <v-chip
               v-for="share in currentShares"
               :key="share.ID"
@@ -218,21 +284,21 @@
             </v-chip>
             <v-divider class="my-3" />
           </div>
-          <div class="text-subtitle-2 mb-2">Add a group</div>
+          <div class="text-subtitle-2 mb-2">{{ t('category.addGroup') }}</div>
           <v-select
             v-model="sharingGroupID"
             :items="userGroups"
             item-title="name"
             item-value="ID"
-            label="Select group"
-            :no-data-text="groupStore.groups.length === 0 ? 'You have no groups' : 'All your groups are already added'"
+            :label="t('category.selectGroup')"
+            :no-data-text="groupStore.groups.length === 0 ? t('category.noGroups') : t('category.allGroupsAdded')"
             clearable
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="shareDialog = false">Close</v-btn>
-          <v-btn color="primary" :disabled="!sharingGroupID" @click="addShare">Share</v-btn>
+          <v-btn @click="shareDialog = false">{{ t('category.close') }}</v-btn>
+          <v-btn color="primary" :disabled="!sharingGroupID" @click="addShare">{{ t('category.share') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -242,4 +308,23 @@
 <style scoped lang="sass">
   fill-height
     height: 100%
+
+  .drop-zone
+    outline: 2px dashed rgba(0, 0, 0, 0.5)
+    outline-offset: -3px
+    opacity: 0.85 !important
+
+  .add-tab
+    display: flex
+    align-items: center
+    justify-content: center
+    align-self: stretch
+    padding: 0 14px
+    background-color: rgba(0, 0, 0, 0.08)
+    border-bottom: 3px solid transparent
+    cursor: pointer
+    transition: background-color 0.2s ease
+
+    &:hover
+      background-color: rgba(0, 0, 0, 0.15)
 </style>

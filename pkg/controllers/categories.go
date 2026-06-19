@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"ETM/pkg/app"
+	"ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -163,6 +165,39 @@ func UnshareCategory(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "category unshared"})
+}
+
+func DeleteCategoryHandler(c *gin.Context) {
+	App := c.MustGet("App").(*app.App)
+	db := App.DB
+
+	categoryID, err := strconv.Atoi(c.Param("categoryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
+		return
+	}
+
+	bearerToken := c.Request.Header.Get("Authorization")
+	userUUID, err := utils.GetUserUUID(bearerToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := db.GetUserByUUID(userUUID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DeleteCategory(user.ID, uint(categoryID)); err != nil {
+		if errors.Is(err, models.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "only the category owner can delete it"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "category deleted"})
 }
 
 func GetCategoryShares(c *gin.Context) {
