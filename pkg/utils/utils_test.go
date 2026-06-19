@@ -127,6 +127,42 @@ func TestParseToken_AlgNone(t *testing.T) {
 	}
 }
 
+func TestParseTokenAllowExpired_AcceptsExpired(t *testing.T) {
+	claims := jwt.MapClaims{
+		"sub":  float64(1),
+		"uuid": uuid.New().String(),
+		"exp":  time.Now().Add(-1 * time.Hour).Unix(),
+		"iss":  "etm",
+	}
+	tokenStr := makeToken(claims, jwt.SigningMethodHS256)
+	got, err := utils.ParseTokenAllowExpired(tokenStr)
+	if err != nil {
+		t.Fatalf("expected expired token to be accepted: %v", err)
+	}
+	if uint(got["sub"].(float64)) != 1 {
+		t.Errorf("sub: got %v, want 1", got["sub"])
+	}
+}
+
+func TestParseTokenAllowExpired_RejectsBadSignature(t *testing.T) {
+	claims := jwt.MapClaims{
+		"sub": float64(1),
+		"exp": time.Now().Add(-1 * time.Hour).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenStr, _ := token.SignedString([]byte("wrong-secret"))
+	if _, err := utils.ParseTokenAllowExpired(tokenStr); err == nil {
+		t.Error("expected error for bad signature even if expired")
+	}
+}
+
+func TestParseTokenAllowExpired_RejectsAlgNone(t *testing.T) {
+	tokenStr := makeToken(validClaims(1, uuid.New()), jwt.SigningMethodNone)
+	if _, err := utils.ParseTokenAllowExpired(tokenStr); err == nil {
+		t.Error("alg:none must be rejected even by the lenient parser")
+	}
+}
+
 // ── Claim extraction helpers ──────────────────────────────────────────────────
 
 func TestGetUserID(t *testing.T) {

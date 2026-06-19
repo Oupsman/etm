@@ -162,7 +162,7 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.ParseToken(parts[1])
+	claims, err := utils.ParseTokenAllowExpired(parts[1])
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		return

@@ -36,6 +36,33 @@ func ParseToken(tokenString string) (claims jwt.MapClaims, err error) {
 	return claims, nil
 }
 
+// ParseTokenAllowExpired verifies the token signature but does not reject it
+// when only the exp claim has passed. Used exclusively by the refresh endpoint
+// so that an expired-but-authentic token can still yield a new one.
+func ParseTokenAllowExpired(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(vars.SecretKey), nil
+	})
+
+	if err != nil {
+		ve, ok := err.(*jwt.ValidationError)
+		// Allow the token only when the sole problem is expiry.
+		// Any other error (bad signature, malformed, alg:none…) is still rejected.
+		if !ok || ve.Errors&^jwt.ValidationErrorExpired != 0 {
+			return nil, err
+		}
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid claims")
+	}
+	return claims, nil
+}
+
 func GetUserID(tokenString string) (uint, error) {
 	reqToken := strings.Split(tokenString, " ")[1]
 
