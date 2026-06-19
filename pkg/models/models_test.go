@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ var sqliteSchema = []string{
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
 		uuid TEXT, username TEXT, password TEXT, gid INTEGER,
 		is_admin TEXT, telegram TEXT, browser TEXT, email TEXT,
-		oidc_subject TEXT, oidc_provider TEXT
+		oidc_subject TEXT, oidc_provider TEXT, active_category_id INTEGER
 	)`,
 	`CREATE TABLE IF NOT EXISTS groups (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,8 +46,8 @@ var sqliteSchema = []string{
 	`CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
-		name TEXT, comment TEXT, is_completed INTEGER, is_back_log INTEGER,
-		category_id INTEGER, priority INTEGER, urgency INTEGER,
+		name TEXT, comment TEXT, is_completed INTEGER, is_started INTEGER,
+		is_back_log INTEGER, category_id INTEGER, priority INTEGER, urgency INTEGER,
 		due_date DATETIME, user_id INTEGER
 	)`,
 	`CREATE TABLE IF NOT EXISTS keys (
@@ -381,6 +382,140 @@ func TestCanUserEditCategory_ReaderCannotEdit(t *testing.T) {
 
 	if db.CanUserEditCategory(reader.ID, cat.ID) {
 		t.Error("reader group member should not be able to edit category")
+	}
+}
+
+// ── DeleteCategory ────────────────────────────────────────────────────────────
+
+func TestDeleteCategory_Owner(t *testing.T) {
+	db := newTestDB(t)
+	owner := makeUser(t, db, "owner")
+	cat := makeCategory(t, db, owner)
+
+	if err := db.DeleteCategory(owner.ID, cat.ID); err != nil {
+		t.Fatalf("owner should be able to delete their category: %v", err)
+	}
+	var count int64
+	db.DB.Unscoped().Model(&Category{}).Where("id = ?", cat.ID).Count(&count)
+	if count == 0 {
+		t.Error("expected soft-delete (deleted_at set), not hard delete")
+	}
+	db.DB.Model(&Category{}).Where("id = ?", cat.ID).Count(&count)
+	if count != 0 {
+		t.Error("deleted category should not be visible without Unscoped")
+	}
+}
+
+func TestDeleteCategory_NotOwner(t *testing.T) {
+	db := newTestDB(t)
+	owner := makeUser(t, db, "owner")
+	other := makeUser(t, db, "other")
+	cat := makeCategory(t, db, owner)
+
+	err := db.DeleteCategory(other.ID, cat.ID)
+	if !errors.Is(err, ErrForbidden) {
+		t.Errorf("expected ErrForbidden, got %v", err)
+	}
+}
+
+func TestDeleteCategory_CascadesTasks(t *testing.T) {
+	db := newTestDB(t)
+	owner := makeUser(t, db, "owner")
+	cat := makeCategory(t, db, owner)
+
+	for i := 0; i < 3; i++ {
+		_ = db.CreateTask(&Tasks{Name: "t", CategoryID: cat.ID, UserID: owner.ID, DueDate: time.Now()})
+	}
+
+	if err := db.DeleteCategory(owner.ID, cat.ID); err != nil {
+		t.Fatalf("delete category: %v", err)
+	}
+
+	tasks, err := db.GetTasksByCategory(cat.ID)
+	if err != nil {
+		t.Fatalf("get tasks: %v", err)
+	}
+	if len(tasks) != 0 {
+		t.Errorf("expected 0 tasks after category delete, got %d", len(tasks))
+	}
+}
+
+// ── SeedDemoContent ───────────────────────────────────────────────────────────
+
+func TestSeedDemoContent_CreatesFourTasks(t *testing.T) {
+	db := newTestDB(t)
+	user := makeUser(t, db, "alice")
+
+	if err := db.SeedDemoContent(user); err != nil {
+		t.Fatalf("seed demo content: %v", err)
+	}
+
+	var cat Category
+	if err := db.DB.Where("user_id = ? AND name = ?", user.ID, "Demo").First(&cat).Error; err != nil {
+		t.Fatalf("Demo category not found: %v", err)
+	}
+
+	tasks, err := db.GetTasksByCategory(cat.ID)
+	if err != nil {
+		t.Fatalf("get tasks: %v", err)
+	}
+	if len(tasks) != 4 {
+		t.Errorf("expected 4 demo tasks, got %d", len(tasks))
+	}
+}
+
+func TestSeedDemoContentForAllUsers_Idempotent(t *testing.T) {
+	db := newTestDB(t)
+	user := makeUser(t, db, "alice")
+
+	if err := db.SeedDemoContentForAllUsers(); err != nil {
+		t.Fatalf("first seed: %v", err)
+	}
+	if err := db.SeedDemoContentForAllUsers(); err != nil {
+		t.Fatalf("second seed: %v", err)
+	}
+
+	var count int64
+	db.DB.Model(&Category{}).Where("user_id = ? AND name = ?", user.ID, "Demo").Count(&count)
+	if count != 1 {
+		t.Errorf("expected exactly 1 Demo category after two seeds, got %d", count)
+	}
+}
+
+// ── FindOrCreateOIDCUser ──────────────────────────────────────────────────────
+
+func TestFindOrCreateOIDCUser_NewUser(t *testing.T) {
+	db := newTestDB(t)
+
+	user, created, err := db.FindOrCreateOIDCUser("sub-123", "oidc@test.com", "oidcuser")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !created {
+		t.Error("expected created=true for new OIDC user")
+	}
+	if user.ID == 0 {
+		t.Error("expected non-zero user ID")
+	}
+	if user.OIDCSubject != "sub-123" {
+		t.Errorf("OIDCSubject: got %q, want %q", user.OIDCSubject, "sub-123")
+	}
+}
+
+func TestFindOrCreateOIDCUser_ExistingUser(t *testing.T) {
+	db := newTestDB(t)
+
+	first, _, _ := db.FindOrCreateOIDCUser("sub-123", "oidc@test.com", "oidcuser")
+
+	second, created, err := db.FindOrCreateOIDCUser("sub-123", "oidc@test.com", "oidcuser")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created {
+		t.Error("expected created=false for returning OIDC user")
+	}
+	if second.ID != first.ID {
+		t.Errorf("expected same user ID, got %d vs %d", second.ID, first.ID)
 	}
 }
 

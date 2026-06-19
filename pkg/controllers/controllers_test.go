@@ -40,7 +40,7 @@ var sqliteSchema = []string{
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
 		uuid TEXT, username TEXT, password TEXT, gid INTEGER,
 		is_admin TEXT, telegram TEXT, browser TEXT, email TEXT,
-		oidc_subject TEXT, oidc_provider TEXT
+		oidc_subject TEXT, oidc_provider TEXT, active_category_id INTEGER
 	)`,
 	`CREATE TABLE IF NOT EXISTS groups (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,8 +63,8 @@ var sqliteSchema = []string{
 	`CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
-		name TEXT, comment TEXT, is_completed INTEGER, is_back_log INTEGER,
-		category_id INTEGER, priority INTEGER, urgency INTEGER,
+		name TEXT, comment TEXT, is_completed INTEGER, is_started INTEGER,
+		is_back_log INTEGER, category_id INTEGER, priority INTEGER, urgency INTEGER,
 		due_date DATETIME, user_id INTEGER
 	)`,
 	`CREATE TABLE IF NOT EXISTS keys (
@@ -449,6 +449,99 @@ func TestDeleteTask_NotFound(t *testing.T) {
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf("got %d, want 404", w.Code)
+	}
+}
+
+// ── Delete category ───────────────────────────────────────────────────────────
+
+func setupCategoryRouter(a *app.App) *gin.Engine {
+	r := gin.New()
+	r.Use(func(c *gin.Context) { c.Set("App", a); c.Next() })
+	r.DELETE("/category/:categoryId", controllers.IsAuthorized(), controllers.DeleteCategoryHandler)
+	return r
+}
+
+func TestDeleteCategory_Owner(t *testing.T) {
+	a := newTestApp(t)
+	owner := createUser(t, a, "owner", "pass")
+	cat, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Mine", Color: "#f00", Active: true}, owner)
+
+	r := setupCategoryRouter(a)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodDelete, "/category/"+strconv.Itoa(int(cat.ID)), nil)
+	req.Header.Set("Authorization", bearerFor(owner.ID, owner.UUID))
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("got %d, want 200; body: %s", w.Code, w.Body)
+	}
+}
+
+func TestDeleteCategory_NotOwner(t *testing.T) {
+	a := newTestApp(t)
+	owner := createUser(t, a, "owner", "pass")
+	other := createUser(t, a, "other", "pass")
+	cat, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Mine", Color: "#f00", Active: true}, owner)
+
+	r := setupCategoryRouter(a)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodDelete, "/category/"+strconv.Itoa(int(cat.ID)), nil)
+	req.Header.Set("Authorization", bearerFor(other.ID, other.UUID))
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("got %d, want 403", w.Code)
+	}
+}
+
+// ── Cross-category task move ──────────────────────────────────────────────────
+
+func TestUpdateTask_MoveToOwnCategory(t *testing.T) {
+	a := newTestApp(t)
+	owner := createUser(t, a, "owner", "pass")
+	src, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Src", Color: "#0f0", Active: true}, owner)
+	dst, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Dst", Color: "#00f", Active: true}, owner)
+	task := &models.Tasks{Name: "Move me", CategoryID: src.ID, UserID: owner.ID, DueDate: time.Now().Add(time.Hour)}
+	_ = a.DB.CreateTask(task)
+
+	r := setupTaskRouter(a)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/task/"+strconv.Itoa(int(task.ID)),
+		jsonBody(t, map[string]interface{}{
+			"name":       "Move me",
+			"duedate":    time.Now().Add(48 * time.Hour).Format(time.RFC3339),
+			"categoryid": dst.ID,
+		}))
+	req.Header.Set("Authorization", bearerFor(owner.ID, owner.UUID))
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("got %d, want 200; body: %s", w.Code, w.Body)
+	}
+}
+
+func TestUpdateTask_MoveToForbiddenCategory(t *testing.T) {
+	a := newTestApp(t)
+	owner := createUser(t, a, "owner", "pass")
+	attacker := createUser(t, a, "attacker", "pass")
+	src, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Src", Color: "#0f0", Active: true}, owner)
+	dst, _ := a.DB.CreateCategory(types.CategoryBody{Name: "Dst", Color: "#00f", Active: true}, owner)
+	task := &models.Tasks{Name: "Owned", CategoryID: src.ID, UserID: owner.ID, DueDate: time.Now().Add(time.Hour)}
+	_ = a.DB.CreateTask(task)
+
+	r := setupTaskRouter(a)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/task/"+strconv.Itoa(int(task.ID)),
+		jsonBody(t, map[string]interface{}{
+			"name":       "Owned",
+			"duedate":    time.Now().Add(48 * time.Hour).Format(time.RFC3339),
+			"categoryid": dst.ID,
+		}))
+	req.Header.Set("Authorization", bearerFor(attacker.ID, attacker.UUID))
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("got %d, want 403", w.Code)
 	}
 }
 
