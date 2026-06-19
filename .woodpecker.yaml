@@ -17,6 +17,7 @@ steps:
 
   - name: build-push
     image: woodpeckerci/plugin-docker-buildx
+    privileged: true
     settings:
       registry:
         from_secret: registry_url
