@@ -1,0 +1,32 @@
+when:
+  branch: main
+  event: push
+
+steps:
+  - name: test-backend
+    image: golang:1.25
+    commands:
+      - go test ./...
+
+  - name: test-frontend
+    image: node:22
+    commands:
+      - cd yaftm
+      - npm install --ignore-scripts
+      - npm run type-check
+
+  - name: build-push
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      registry:
+        from_secret: registry_url
+      repo:
+        from_secret: registry_repo
+      tags:
+        - latest
+        - ${CI_COMMIT_SHA}
+      username:
+        from_secret: registry_username
+      password:
+        from_secret: registry_password
+
