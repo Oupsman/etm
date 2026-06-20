@@ -55,11 +55,11 @@ steps:
         - OIDC_CLIENT_SECRET
         - OIDC_REDIRECT_URL
       script:
-        - docker stop etm || true
-        - docker rm etm || true
-        - docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
+        - sudo docker stop etm || true
+        - sudo docker rm etm || true
+        - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
         - |
-          docker run -d \
+          sudo docker run -d \
             --name etm \
             --restart unless-stopped \
             -p ${PORT}:${PORT} \
@@ -79,7 +79,7 @@ steps:
             -e OIDC_CLIENT_SECRET=${OIDC_SECRET} \
             -e OIDC_REDIRECT_URL=${OIDC_REDIRECT_URL} \
             registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
-        - docker image prune -f
+        - sudo docker image prune -f
     secrets:
       - source: host
         target: HOST
