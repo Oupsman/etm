@@ -55,8 +55,9 @@ steps:
         - OIDC_CLIENT_SECRET
         - OIDC_REDIRECT_URL
       script:
-        - sudo docker stop etm || true
-        - sudo docker rm etm || true
+        - env
+        - sudo docker stop etmint || true
+        - sudo docker rm etmint || true
         - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
         - |
           sudo docker run -d \
