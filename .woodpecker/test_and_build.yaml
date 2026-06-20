@@ -28,84 +28,87 @@ steps:
         from_secret: registry_username
       password:
         from_secret: registry_password
-environment:
-  HOST:
-    from_secret: host
-  PORT:
-    from_secret: port
-  DB_HOST:
-    from_secret: db_host
-  DB_PORT:
-    from_secret: db_port
-  DATABASE:
-    from_secret: database
-  DB_USERNAME:
-    from_secret: db_username
-  DB_PASSWORD:
-    from_secret: db_password
-  SECRET_KEY:
-    from_secret: secret_key
-  ALLOWED_ORIGIN:
-    from_secret: allowed_origin
-  VAPID_SUBSCRIBER:
-    from_secret: vapid_subscriber
-  OIDC_ENABLED:
-    from_secret: oidc_enabled
-  OIDC_ISSUER_URL:
-    from_secret: oidc_issuer_url
-  OIDC_CLIENT_ID:
-    from_secret: oidc_client_id
-  OIDC_CLIENT_SECRET:
-    from_secret: oidc_client_secret
-  OIDC_REDIRECT_URL:
-    from_secret: oidc_redirect_url
-  settings:
-    host:
-      from_secret: deploy_host
-    username:
-      from_secret: deploy_user
-    key:
-      from_secret: deploy_ssh_key
-    envs:
-      - HOST
-      - PORT
-      - DB_HOST
-      - DB_PORT
-      - DATABASE
-      - DB_USERNAME
-      - DB_PASSWORD
-      - SECRET_KEY
-      - ALLOWED_ORIGIN
-      - VAPID_SUBSCRIBER
-      - OIDC_ENABLED
-      - OIDC_ISSUER_URL
-      - OIDC_CLIENT_ID
-      - OIDC_CLIENT_SECRET
-      - OIDC_REDIRECT_URL
-    script:
-      - env
-      - sudo docker stop etm || true
-      - sudo docker rm etm || true
-      - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
-      - |
-        sudo docker run -d \
-          --name etm \
-          --restart unless-stopped \
-          -p ${PORT}:${PORT} \
-          -e HOST=${HOST} \
-          -e PORT=${PORT} \
-          -e DB_HOST=${DB_HOST} \
-          -e DB_PORT=${DB_PORT} \
-          -e DATABASE=${DATABASE} \
-          -e DB_USERNAME=${DB_USERNAME} \
-          -e DB_PASSWORD=${DB_PASSWORD} \
-          -e SECRET_KEY=${SECRET_KEY} \
-          -e ALLOWED_ORIGIN=${ALLOWED_ORIGIN} \
-          -e VAPID_SUBSCRIBER=${VAPID_SUBSCRIBER} \
-          -e OIDC_ENABLED=${OIDC_ENABLED} \
-          -e OIDC_ISSUER_URL=${OIDC_ISSUER_URL} \
-          -e OIDC_CLIENT_ID=${OIDC_CLIENT_ID} \
-          -e OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET} \
-          -e OIDC_REDIRECT_URL=${OIDC_REDIRECT_URL} \
-          registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
-      - sudo docker image prune -f
+  - name: deploy
+    image: appleboy/drone-ssh
+    depends_on: [build-push]
+    environment:
+      HOST:
+        from_secret: host
+      PORT:
+        from_secret: port
+      DB_HOST:
+        from_secret: db_host
+      DB_PORT:
+        from_secret: db_port
+      DATABASE:
+        from_secret: database
+      DB_USERNAME:
+        from_secret: db_username
+      DB_PASSWORD:
+        from_secret: db_password
+      SECRET_KEY:
+        from_secret: secret_key
+      ALLOWED_ORIGIN:
+        from_secret: allowed_origin
+      VAPID_SUBSCRIBER:
+        from_secret: vapid_subscriber
+      OIDC_ENABLED:
+        from_secret: oidc_enabled
+      OIDC_ISSUER_URL:
+        from_secret: oidc_issuer_url
+      OIDC_CLIENT_ID:
+        from_secret: oidc_client_id
+      OIDC_CLIENT_SECRET:
+        from_secret: oidc_client_secret
+      OIDC_REDIRECT_URL:
+        from_secret: oidc_redirect_url
+    settings:
+      host:
+        from_secret: deploy_host
+      username:
+        from_secret: deploy_user
+      key:
+        from_secret: deploy_ssh_key
+      envs:
+        - HOST
+        - PORT
+        - DB_HOST
+        - DB_PORT
+        - DATABASE
+        - DB_USERNAME
+        - DB_PASSWORD
+        - SECRET_KEY
+        - ALLOWED_ORIGIN
+        - VAPID_SUBSCRIBER
+        - OIDC_ENABLED
+        - OIDC_ISSUER_URL
+        - OIDC_CLIENT_ID
+        - OIDC_CLIENT_SECRET
+        - OIDC_REDIRECT_URL
+      script:
+        - env
+        - sudo docker stop etm || true
+        - sudo docker rm etm || true
+        - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
+        - |
+          sudo docker run -d \
+            --name etm \
+            --restart unless-stopped \
+            -p ${PORT}:${PORT} \
+            -e HOST=${HOST} \
+            -e PORT=${PORT} \
+            -e DB_HOST=${DB_HOST} \
+            -e DB_PORT=${DB_PORT} \
+            -e DATABASE=${DATABASE} \
+            -e DB_USERNAME=${DB_USERNAME} \
+            -e DB_PASSWORD=${DB_PASSWORD} \
+            -e SECRET_KEY=${SECRET_KEY} \
+            -e ALLOWED_ORIGIN=${ALLOWED_ORIGIN} \
+            -e VAPID_SUBSCRIBER=${VAPID_SUBSCRIBER} \
+            -e OIDC_ENABLED=${OIDC_ENABLED} \
+            -e OIDC_ISSUER_URL=${OIDC_ISSUER_URL} \
+            -e OIDC_CLIENT_ID=${OIDC_CLIENT_ID} \
+            -e OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET} \
+            -e OIDC_REDIRECT_URL=${OIDC_REDIRECT_URL} \
+            registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
+        - sudo docker image prune -f
