@@ -80,7 +80,6 @@ steps:
         OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET
         OIDC_REDIRECT_URL=$OIDC_REDIRECT_URL
         EOF
-
   - name: copy-env
     image: appleboy/drone-scp
     depends_on: [generate-env]
@@ -91,9 +90,9 @@ steps:
         from_secret: deploy_user
       key:
         from_secret: deploy_ssh_key
-      source: /woodpecker/src/etm.env
-      target: ~/etm/etm.env
-
+      source: etm.env
+      target: ~/etm/
+      strip_components: 1
   - name: deploy
     image: appleboy/drone-ssh
     depends_on: [copy-env]
