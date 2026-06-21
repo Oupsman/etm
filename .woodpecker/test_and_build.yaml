@@ -28,9 +28,8 @@ steps:
         from_secret: registry_username
       password:
         from_secret: registry_password
-  - name: deploy
-    image: appleboy/drone-ssh
-    depends_on: [build-push]
+  - name: generate-env
+    image: alpine
     environment:
       HOST:
         from_secret: host
@@ -62,6 +61,29 @@ steps:
         from_secret: oidc_client_secret
       OIDC_REDIRECT_URL:
         from_secret: oidc_redirect_url
+    commands:
+      - |
+        cat > /woodpecker/src/etm.env << EOF
+        HOST=$HOST
+        PORT=$PORT
+        DB_HOST=$DB_HOST
+        DB_PORT=$DB_PORT
+        DATABASE=$DATABASE
+        DB_USERNAME=$DB_USERNAME
+        DB_PASSWORD=$DB_PASSWORD
+        SECRET_KEY=$SECRET_KEY
+        ALLOWED_ORIGIN=$ALLOWED_ORIGIN
+        VAPID_SUBSCRIBER=$VAPID_SUBSCRIBER
+        OIDC_ENABLED=$OIDC_ENABLED
+        OIDC_ISSUER_URL=$OIDC_ISSUER_URL
+        OIDC_CLIENT_ID=$OIDC_CLIENT_ID
+        OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET
+        OIDC_REDIRECT_URL=$OIDC_REDIRECT_URL
+        EOF
+
+  - name: copy-env
+    image: appleboy/drone-scp
+    depends_on: [generate-env]
     settings:
       host:
         from_secret: deploy_host
@@ -69,39 +91,20 @@ steps:
         from_secret: deploy_user
       key:
         from_secret: deploy_ssh_key
-      envs:
-        - HOST
-        - PORT
-        - DB_HOST
-        - DB_PORT
-        - DATABASE
-        - DB_USERNAME
-        - DB_PASSWORD
-        - SECRET_KEY
-        - ALLOWED_ORIGIN
-        - VAPID_SUBSCRIBER
-        - OIDC_ENABLED
-        - OIDC_ISSUER_URL
-        - OIDC_CLIENT_ID
-        - OIDC_CLIENT_SECRET
-        - OIDC_REDIRECT_URL
+      source: /woodpecker/src/etm.env
+      target: ~/etm/
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    depends_on: [copy-env]
+    settings:
+      host:
+        from_secret: deploy_host
+      username:
+        from_secret: deploy_user
+      key:
+        from_secret: deploy_ssh_key
       script:
-        - echo "HOST=${HOST}" > ~/etm/etm.env
-        - echo "PORT=${PORT}" >> ~/etm/etm.env
-        - echo "DB_HOST=${DB_HOST}" >> ~/etm/etm.env
-        - echo "DB_PORT=${DB_PORT}" >> ~/etm/etm.env
-        - echo "DATABASE=${DATABASE}" >> ~/etm/etm.env
-        - echo "DB_USERNAME=${DB_USERNAME}" >> ~/etm/etm.env
-        - echo "DB_PASSWORD=${DB_PASSWORD}" >> ~/etm/etm.env
-        - echo "SECRET_KEY=${SECRET_KEY}" >> ~/etm/etm.env
-        - echo "ALLOWED_ORIGIN=${ALLOWED_ORIGIN}" >> ~/etm/etm.env
-        - echo "VAPID_SUBSCRIBER=${VAPID_SUBSCRIBER}" >> ~/etm/etm.env
-        - echo "OIDC_ENABLED=${OIDC_ENABLED}" >> ~/etm/etm.env
-        - echo "OIDC_ISSUER_URL=${OIDC_ISSUER_URL}" >> ~/etm/etm.env
-        - echo "OIDC_CLIENT_ID=${OIDC_CLIENT_ID}" >> ~/etm/etm.env
-        - echo "OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}" >> ~/etm/etm.env
-        - echo "OIDC_REDIRECT_URL=${OIDC_REDIRECT_URL}" >> ~/etm/etm.env
-        - chmod 600 ~/etm/etm.env
         - sudo docker stop etm || true
         - sudo docker rm etm || true
         - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
