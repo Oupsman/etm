@@ -62,24 +62,22 @@ steps:
       OIDC_REDIRECT_URL:
         from_secret: oidc_redirect_url
     commands:
-      - |
-        cat > etm.env << EOF
-        HOST=$HOST
-        PORT=$PORT
-        DB_HOST=$DB_HOST
-        DB_PORT=$DB_PORT
-        DATABASE=$DATABASE
-        DB_USERNAME=$DB_USERNAME
-        DB_PASSWORD=$DB_PASSWORD
-        SECRET_KEY=$SECRET_KEY
-        ALLOWED_ORIGIN=$ALLOWED_ORIGIN
-        VAPID_SUBSCRIBER=$VAPID_SUBSCRIBER
-        OIDC_ENABLED=$OIDC_ENABLED
-        OIDC_ISSUER_URL=$OIDC_ISSUER_URL
-        OIDC_CLIENT_ID=$OIDC_CLIENT_ID
-        OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET
-        OIDC_REDIRECT_URL=$OIDC_REDIRECT_URL
-        EOF
+      - echo "HOST=$HOST" > /woodpecker/src/etm.env
+      - echo "PORT=$PORT" >> /woodpecker/src/etm.env
+      - echo "DB_HOST=$DB_HOST" >> /woodpecker/src/etm.env
+      - echo "DB_PORT=$DB_PORT" >> /woodpecker/src/etm.env
+      - echo "DATABASE=$DATABASE" >> /woodpecker/src/etm.env
+      - echo "DB_USERNAME=$DB_USERNAME" >> /woodpecker/src/etm.env
+      - echo "DB_PASSWORD=$DB_PASSWORD" >> /woodpecker/src/etm.env
+      - echo "SECRET_KEY=$SECRET_KEY" >> /woodpecker/src/etm.env
+      - echo "ALLOWED_ORIGIN=$ALLOWED_ORIGIN" >> /woodpecker/src/etm.env
+      - echo "VAPID_SUBSCRIBER=$VAPID_SUBSCRIBER" >> /woodpecker/src/etm.env
+      - echo "OIDC_ENABLED=$OIDC_ENABLED" >> /woodpecker/src/etm.env
+      - echo "OIDC_ISSUER_URL=$OIDC_ISSUER_URL" >> /woodpecker/src/etm.env
+      - echo "OIDC_CLIENT_ID=$OIDC_CLIENT_ID" >> /woodpecker/src/etm.env
+      - echo "OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET" >> /woodpecker/src/etm.env
+      - echo "OIDC_REDIRECT_URL=$OIDC_REDIRECT_URL" >> /woodpecker/src/etm.env
+      - cat /woodpecker/src/etm.env  # debug
   - name: copy-env
     image: appleboy/drone-scp
     depends_on: [generate-env]
