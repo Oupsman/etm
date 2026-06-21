@@ -28,7 +28,7 @@ steps:
         from_secret: registry_username
       password:
         from_secret: registry_password
-  - name: generate-env
+  - name: generate-scripts
     image: alpine
     environment:
       HOST:
@@ -62,6 +62,7 @@ steps:
       OIDC_REDIRECT_URL:
         from_secret: oidc_redirect_url
     commands:
+      # Génération du .env
       - echo "HOST=$HOST" > /woodpecker/src/etm.env
       - echo "PORT=$PORT" >> /woodpecker/src/etm.env
       - echo "DB_HOST=$DB_HOST" >> /woodpecker/src/etm.env
@@ -77,10 +78,18 @@ steps:
       - echo "OIDC_CLIENT_ID=$OIDC_CLIENT_ID" >> /woodpecker/src/etm.env
       - echo "OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET" >> /woodpecker/src/etm.env
       - echo "OIDC_REDIRECT_URL=$OIDC_REDIRECT_URL" >> /woodpecker/src/etm.env
-      - cat /woodpecker/src/etm.env  # debug
-  - name: copy-env
+      # Génération du script de déploiement
+      - echo "#!/bin/bash" > /woodpecker/src/deploy.sh
+      - echo "set -e" >> /woodpecker/src/deploy.sh
+      - echo "docker stop etm || true" >> /woodpecker/src/deploy.sh
+      - echo "docker rm etm || true" >> /woodpecker/src/deploy.sh
+      - echo "docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}" >> /woodpecker/src/deploy.sh
+      - echo "docker run -d --name etm --restart unless-stopped --env-file /home/ansible/etm/etm.env -p $PORT:$PORT registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}" >> /woodpecker/src/deploy.sh
+      - echo "docker image prune -f" >> /woodpecker/src/deploy.sh
+
+  - name: copy-files
     image: appleboy/drone-scp
-    depends_on: [generate-env]
+    depends_on: [generate-scripts]
     settings:
       host:
         from_secret: deploy_host
@@ -88,14 +97,16 @@ steps:
         from_secret: deploy_user
       key:
         from_secret: deploy_ssh_key
-      debug: true
-      source: /woodpecker/src/etm.env
+      source:
+        - /woodpecker/src/etm.env
+        - /woodpecker/src/deploy.sh
       target: /home/ansible/etm/
       strip_components: 2
       overwrite: true
+
   - name: deploy
     image: appleboy/drone-ssh
-    depends_on: [copy-env]
+    depends_on: [copy-files]
     settings:
       host:
         from_secret: deploy_host
@@ -104,8 +115,6 @@ steps:
       key:
         from_secret: deploy_ssh_key
       script:
-        - sudo docker stop etm || true
-        - sudo docker rm etm || true
-        - sudo docker pull registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
-        - sudo docker run -d --name etm --restart unless-stopped --env-file ~/etm/etm.env registry.oupsman.fr/oupsman/etm:${CI_COMMIT_SHA}
-        - sudo docker image prune -f
+        - chmod +x /home/ansible/etm/deploy.sh
+        - /home/ansible/etm/deploy.sh
+        - rm /home/ansible/etm/deploy.sh
