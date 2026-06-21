@@ -63,7 +63,7 @@ steps:
         from_secret: oidc_redirect_url
     commands:
       - |
-        cat > /woodpecker/src/etm.env << EOF
+        cat > etm.env << EOF
         HOST=$HOST
         PORT=$PORT
         DB_HOST=$DB_HOST
