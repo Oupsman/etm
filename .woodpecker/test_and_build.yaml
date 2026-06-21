@@ -92,7 +92,7 @@ steps:
       key:
         from_secret: deploy_ssh_key
       source: /woodpecker/src/etm.env
-      target: ~/etm/
+      target: ~/etm/etm.env
 
   - name: deploy
     image: appleboy/drone-ssh
