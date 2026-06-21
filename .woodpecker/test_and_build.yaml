@@ -90,8 +90,9 @@ steps:
         from_secret: deploy_ssh_key
       debug: true
       source: /woodpecker/src/etm.env
-      target: /home/ansible/etm/etm.env
-      strip_components: 0
+      target: /home/ansible/etm/
+      strip_components: 2
+      overwrite: true
   - name: deploy
     image: appleboy/drone-ssh
     depends_on: [copy-env]
