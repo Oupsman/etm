@@ -32,6 +32,7 @@
   const showDatePicker = ref(false)
   const taskName = ref('')
   const taskDescription = ref('')
+  const taskLink = ref('')
   const taskDueDate = ref<Date>()
   const taskCategoryId = ref<number>(0)
   const triggerDeleteTask = ref(false)
@@ -52,6 +53,7 @@
   const onEditTask = (task: Task): void => {
     taskName.value = task.name
     taskDescription.value = task.comment
+    taskLink.value = task.link ?? ''
     taskDueDate.value = new Date(task.duedate)
     taskCategoryId.value = task.categoryid
     showDatePicker.value = false
@@ -92,6 +94,7 @@
       ...props.task,
       name:       taskName.value,
       comment:    taskDescription.value,
+      link:       taskLink.value,
       duedate:    taskDueDate.value.toISOString(),
       categoryid: taskCategoryId.value,
     }
@@ -122,6 +125,19 @@
     </v-tooltip>
     <div v-else class="task-name">{{ props.task.name }}</div>
     <div class="task-actions">
+      <v-tooltip v-if="props.task.link" :text="t('task.openLink')" location="top">
+        <template #activator="{ props: tooltipProps }">
+          <v-btn
+            v-bind="tooltipProps"
+            :href="props.task.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            icon="mdi-link-variant"
+            size="small"
+            class="link-btn"
+          />
+        </template>
+      </v-tooltip>
       <v-tooltip v-if="dueDateInfo" :text="dueDateInfo.text" location="top">
         <template #activator="{ props: tooltipProps }">
           <v-icon v-bind="tooltipProps" :icon="dueDateInfo.icon" :color="dueDateInfo.color" size="small" />
@@ -162,6 +178,17 @@
           variant="outlined"
           density="comfortable"
           prepend-inner-icon="mdi-format-title"
+          class="mb-3"
+        />
+
+        <v-text-field
+          v-model="taskLink"
+          :label="t('task.link')"
+          :placeholder="t('task.linkPlaceholder')"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-link-variant"
+          clearable
           class="mb-3"
         />
 
@@ -308,7 +335,7 @@
   gap: 10px
   justify-content: flex-end
 
-.edit-btn, .delete-btn, .start-btn
+.edit-btn, .delete-btn, .start-btn, .link-btn
   background: none
   border: none
   cursor: pointer

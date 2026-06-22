@@ -1,11 +1,15 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"ETM/pkg/crypto"
+
+	"gorm.io/gorm"
+)
 
 type Keys struct {
 	gorm.Model
 	Pubkey  string
-	Privkey string
+	Privkey crypto.EncryptedString
 }
 
 func SaveKeys(keys *Keys) error {

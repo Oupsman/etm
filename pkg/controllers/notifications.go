@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ETM/pkg/crypto"
 	"ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/vars"
@@ -41,7 +42,7 @@ func GenerateVapidKeys() error {
 	}
 	keys := &models.Keys{
 		Pubkey:  publicVapidKey,
-		Privkey: privateVapidKey,
+		Privkey: crypto.EncryptedString(privateVapidKey),
 	}
 	err = models.SaveKeys(keys)
 	if err != nil {
@@ -86,7 +87,7 @@ func BrowserSend(message string, browserConfig string) error {
 	response, err := webpush.SendNotification([]byte(message), s, &webpush.Options{
 		Subscriber:      vars.VAPIDSubscriber,
 		VAPIDPublicKey:  keys.Pubkey,
-		VAPIDPrivateKey: keys.Privkey,
+		VAPIDPrivateKey: string(keys.Privkey),
 		//		Topic:           "Game changed price",
 		TTL: 120,
 	})

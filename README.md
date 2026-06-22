@@ -28,7 +28,6 @@ It's not ready for production yet.
 - The backend relies on environment variables for its configuration.
 - Passing the environments variables can be done by using the `.env` file. There is a `.env.template` file in the root directory.
 - You can also pass the environment variables directly when running the binary.
-- Right now, the SECRET_KEY is not used anywhere, but it will be used in the future to send browser notifications.
 - Once the environment variables are set, you can run the backend. The database must exist beforehand, but all the tables will be created automatically.
 
 ### Docker

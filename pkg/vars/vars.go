@@ -24,6 +24,7 @@ var OIDCClientSecret string
 var OIDCRedirectURL string
 var AllowedOrigin string
 var VAPIDSubscriber string
+var EncryptionKey string
 
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
@@ -56,6 +57,7 @@ func Init() {
 	OIDCRedirectURL = getEnv("OIDC_REDIRECT_URL", "")
 	AllowedOrigin = getEnv("ALLOWED_ORIGIN", "*")
 	VAPIDSubscriber = getEnv("VAPID_SUBSCRIBER", "")
+	EncryptionKey = getEnv("ENCRYPTION_KEY", "")
 	Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DbHost, Username, Password, Database, DbPort)
 
 	if SecretKey == "" {

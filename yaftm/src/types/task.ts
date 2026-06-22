@@ -2,6 +2,7 @@ export interface Task {
   ID: number,
   name: string,
   comment: string,
+  link?: string,
   duedate: string,
   isbacklog: boolean,
   iscompleted: boolean,
@@ -16,6 +17,7 @@ export interface Task {
 export interface NewTask {
   name: string,
   comment: string,
+  link?: string,
   duedate: string,
   isbacklog: boolean,
   categoryid: number,

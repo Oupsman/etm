@@ -1,6 +1,7 @@
 package models
 
 import (
+	"ETM/pkg/crypto"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,12 +9,13 @@ import (
 
 type Tasks struct {
 	gorm.Model
-	Name        string `json:"name"`
-	Comment     string `json:"comment"`
-	IsCompleted bool   `json:"iscompleted"`
-	IsStarted   bool   `json:"isstarted"`
-	IsBackLog   bool   `json:"isbacklog"`
-	CategoryID  uint   `json:"category-id"`
+	Name        crypto.EncryptedString `json:"name"`
+	Comment     crypto.EncryptedString `json:"comment"`
+	Link        crypto.EncryptedString `json:"link"`
+	IsCompleted bool                   `json:"iscompleted"`
+	IsStarted   bool                   `json:"isstarted"`
+	IsBackLog   bool                   `json:"isbacklog"`
+	CategoryID  uint                   `json:"category-id"`
 	Category    Category
 	Priority    bool      `json:"priority"`
 	Urgency     bool      `json:"urgency"`

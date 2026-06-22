@@ -63,7 +63,7 @@ var sqliteSchema = []string{
 	`CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
-		name TEXT, comment TEXT, is_completed INTEGER, is_started INTEGER,
+		name TEXT, comment TEXT, link TEXT, is_completed INTEGER, is_started INTEGER,
 		is_back_log INTEGER, category_id INTEGER, priority INTEGER, urgency INTEGER,
 		due_date DATETIME, user_id INTEGER
 	)`,

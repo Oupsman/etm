@@ -3,6 +3,7 @@ package main
 import (
 	"ETM/pkg/app"
 	"ETM/pkg/controllers"
+	"ETM/pkg/crypto"
 	"ETM/pkg/models"
 	"ETM/pkg/vars"
 	"ETM/pkg/webserver"
@@ -20,6 +21,12 @@ import (
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	vars.Init()
+	if err := crypto.Init(vars.EncryptionKey); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize encryption")
+	}
+	if vars.EncryptionKey == "" {
+		log.Warn().Msg("WARNING: ENCRYPTION_KEY is not set — sensitive DB fields will be stored as plaintext")
+	}
 	driver := "postgres"
 	dsn := vars.Dsn
 	App, err := app.NewApp(log.Logger, driver, dsn)
@@ -67,10 +74,10 @@ func main() {
 				}
 				msg, _ := json.Marshal(map[string]string{
 					"title": "Task due soon",
-					"body":  task.Name + " is due within 24 hours",
+					"body":  string(task.Name) + " is due within 24 hours",
 				})
-				if err := controllers.BrowserSend(string(msg), task.User.Browser); err != nil {
-					log.Warn().Err(err).Str("task", task.Name).Msg("notification worker: push failed")
+				if err := controllers.BrowserSend(string(msg), string(task.User.Browser)); err != nil {
+					log.Warn().Err(err).Str("task", string(task.Name)).Msg("notification worker: push failed")
 				} else {
 					notified[task.ID] = struct{}{}
 				}

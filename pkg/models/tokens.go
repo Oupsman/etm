@@ -1,6 +1,8 @@
 package models
 
 import (
+	"ETM/pkg/crypto"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -9,11 +11,11 @@ type Tokens struct {
 	gorm.Model
 	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 	User         Users
-	UserID       uint   `json:"userid"`
-	DeviceID     string `json:"deviceid"`
+	UserID       uint                   `json:"userid"`
+	DeviceID     crypto.EncryptedString `json:"deviceid"`
 	Device       Devices
-	RefreshToken string `json:"refresh_token"`
-	Country      string `json:"country"`
+	RefreshToken crypto.EncryptedString `json:"refresh_token"`
+	Country      crypto.EncryptedString `json:"country"`
 }
 
 func (t *Tokens) BeforeCreate(_ *gorm.DB) error {

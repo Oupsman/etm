@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"ETM/pkg/app"
+	"ETM/pkg/crypto"
 	models2 "ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
@@ -125,8 +126,9 @@ func CreateTask(c *gin.Context) {
 	}
 
 	task := models2.Tasks{
-		Name:       taskBody.Name,
-		Comment:    taskBody.Comment,
+		Name:       crypto.EncryptedString(taskBody.Name),
+		Comment:    crypto.EncryptedString(taskBody.Comment),
+		Link:       crypto.EncryptedString(taskBody.Link),
 		IsBackLog:  true,
 		Priority:   false,
 		Urgency:    false,
@@ -201,8 +203,9 @@ func UpdateTask(c *gin.Context) {
 		task.CategoryID = taskBody.CategoryID
 	}
 
-	task.Comment = taskBody.Comment
-	task.Name = taskBody.Name
+	task.Comment = crypto.EncryptedString(taskBody.Comment)
+	task.Name = crypto.EncryptedString(taskBody.Name)
+	task.Link = crypto.EncryptedString(taskBody.Link)
 	task.DueDate = dueDate
 	task.Priority = taskBody.Priority
 	task.Urgency = taskBody.Urgency

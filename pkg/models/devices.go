@@ -1,6 +1,7 @@
 package models
 
 import (
+	"ETM/pkg/crypto"
 	"ETM/pkg/types"
 	"time"
 
@@ -12,11 +13,11 @@ type Devices struct {
 	gorm.Model
 	UUID       uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 	User       Users
-	UserID     uint      `json:"userid"`
-	DeviceID   string    `json:"deviceid"`
-	DeviceName string    `json:"devicename"`
-	Trusted    bool      `json:"trusted"`
-	LastUsedAt time.Time `json:"lastusedat"`
+	UserID     uint                   `json:"userid"`
+	DeviceID   crypto.EncryptedString `json:"deviceid"`
+	DeviceName crypto.EncryptedString `json:"devicename"`
+	Trusted    bool                   `json:"trusted"`
+	LastUsedAt time.Time              `json:"lastusedat"`
 }
 
 func (d *Devices) BeforeCreate(_ *gorm.DB) error {
@@ -28,7 +29,7 @@ func (d *Devices) BeforeCreate(_ *gorm.DB) error {
 
 func (db *DB) CreateDevice(device types.DeviceBody) error {
 	var newDevice = Devices{
-		DeviceID: device.DeviceID,
+		DeviceID: crypto.EncryptedString(device.DeviceID),
 		UserID:   device.UserID,
 	}
 	result := db.Create(&newDevice)

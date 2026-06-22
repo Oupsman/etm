@@ -21,6 +21,7 @@ type TaskBody struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name"`
 	Comment     string `json:"comment"`
+	Link        string `json:"link"`
 	DueDate     string `json:"duedate"`
 	IsBackLog   bool   `json:"isbacklog"`
 	IsCompleted bool   `json:"iscompleted"`

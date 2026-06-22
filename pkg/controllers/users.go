@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"ETM/pkg/app"
+	"ETM/pkg/crypto"
 	"ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
@@ -304,7 +305,7 @@ func UpdateUserSubscription(c *gin.Context) {
 		return
 	}
 
-	currentUser.Browser = requestBody.Subscription
+	currentUser.Browser = crypto.EncryptedString(requestBody.Subscription)
 
 	err = db.UpdateUser(currentUser)
 	if err != nil {
@@ -335,7 +336,7 @@ func SendTestNotification(c *gin.Context) {
 		return
 	}
 	msg := `{"title":"ETM test","body":"Push notifications are working!"}`
-	if err := BrowserSend(msg, user.Browser); err != nil {
+	if err := BrowserSend(msg, string(user.Browser)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

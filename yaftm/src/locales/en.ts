@@ -43,6 +43,9 @@ export default {
     dueToday: 'Due today!',
     daysLeft: '{n} day left | {n} days left',
     category: 'Category',
+    link: 'Link (URL)',
+    linkPlaceholder: 'https://…',
+    openLink: 'Open link',
   },
   category: {
     addTitle: 'Add a new category',

@@ -43,6 +43,9 @@ export default {
     dueToday: "À faire aujourd'hui !",
     daysLeft: '{n} jour restant | {n} jours restants',
     category: 'Catégorie',
+    link: 'Lien (URL)',
+    linkPlaceholder: 'https://…',
+    openLink: 'Ouvrir le lien',
   },
   category: {
     addTitle: 'Ajouter une catégorie',
