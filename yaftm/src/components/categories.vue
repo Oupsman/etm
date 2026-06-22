@@ -162,9 +162,9 @@
           v-for="category in categoriesDisplay"
           :key="category.ID"
           :value="category.ID"
-          :class="{ 'drop-zone': isDragging && category.ID !== dragStore.draggingFromCategoryId }"
+          :class="['category-tab', { 'drop-zone': isDragging && category.ID !== dragStore.draggingFromCategoryId }]"
           :style="{
-            backgroundColor: category.color,
+            '--cat-bg': category.color,
             opacity: activeTab === category.ID ? 1 : 0.55,
             fontWeight: activeTab === category.ID ? '700' : '400',
             borderBottom: activeTab === category.ID ? '3px solid rgba(0,0,0,0.4)' : '3px solid transparent',
@@ -308,6 +308,9 @@
 <style scoped lang="sass">
   fill-height
     height: 100%
+
+  .category-tab
+    background-color: var(--cat-bg, transparent) !important
 
   .drop-zone
     outline: 2px dashed rgba(0, 0, 0, 0.5)
