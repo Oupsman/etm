@@ -4,9 +4,10 @@
   import { useTaskStore } from '@/stores/task.ts'
   import { useDragStore } from '@/stores/drag'
 
-  import type { NewTask, Task } from '@/types/task.ts'
+  import type { Task } from '@/types/task.ts'
   import { VueDraggableNext as draggable } from 'vue-draggable-next'
   import TaskComponent from '@/components/taskcomponent.vue'
+  import TaskFormDialog from '@/components/TaskFormDialog.vue'
   import { useSnackbarStore } from '@/stores/snackbar';
 
   interface DropEvent {
@@ -43,60 +44,14 @@
   const completedTasks = ref<Task[]>([])
 
   const taskDialog = ref(false)
-  const taskName = ref<string>('')
-  const taskDescription = ref<string>('')
-  const taskDueDate = ref<Date>(new Date())
-  const showDatePicker = ref(false)
-
-  const message = ref<string>('')
-  const displaySnack = ref(false)
 
   const { t } = useI18n()
   const taskStore = useTaskStore()
   const dragStore = useDragStore()
-  const snackbar = useSnackbarStore();
+  const snackbar = useSnackbarStore()
 
-  const formatDate = (iso?: string): string => {
-    if (!iso) return '—'
-    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-  }
-
-  const triggerTaskDialog = () => {
-    taskName.value = ''
-    taskDescription.value = ''
-    taskDueDate.value = new Date()
-    showDatePicker.value = false
-    taskDialog.value = true
-  }
-
-  const addTask = () => {
-    console.log('addTask')
-    taskDialog.value = false
-    if (taskName.value && taskDueDate.value) {
-      const newTask: NewTask = {
-        name: taskName.value,
-        comment: taskDescription.value,
-        duedate: taskDueDate.value.toISOString(),
-        categoryid: props.categoryID,
-        isbacklog: true,
-      }
-      const task: Task = {
-        ID: 0,
-        iscompleted: false,
-        isstarted: false,
-        urgency: false,
-        priority: false,
-
-        ...newTask,
-      }
-      taskStore.addTask(task).then(responseTask => {
-        console.log('Response from server: ', responseTask)
-        backlog.value.push(responseTask)
-
-      }).catch (error => {
-        console.log(error)
-      })
-    }
+  const onTaskCreated = (task: Task) => {
+    backlog.value.push(task)
   }
 
   const onListDragStart = (list: Task[], evt: { oldIndex: number }) => {
@@ -161,7 +116,7 @@
     <!-- Backlog Column -->
     <div class="backlog" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
       <h2>{{ t('matrix.backlog') }}</h2>
-      <button v-if="!props.readonly" class="add-task-btn" @click="triggerTaskDialog">
+      <button v-if="!props.readonly" class="add-task-btn" @click="taskDialog = true">
         <v-icon size="small" class="mr-1">mdi-plus</v-icon>
         {{ t('matrix.addTask') }}
       </button>
@@ -247,134 +202,13 @@
       </div>
     </div>
 
-    <!-- Dialogs are teleported by Vuetify; placing them inside the root is fine -->
-    <v-dialog v-model="taskDialog" max-width="720px" persistent scrollable>
-      <v-card rounded="lg" class="task-dialog-card">
-
-        <v-card-title class="dialog-header">
-          <v-icon icon="mdi-plus-circle-outline" size="small" class="mr-2" />
-          {{ t('task.newTask') }}
-        </v-card-title>
-
-        <v-divider />
-
-        <v-card-text class="dialog-body">
-
-          <v-text-field
-            v-model="taskName"
-            :label="t('task.name')"
-            variant="outlined"
-            density="comfortable"
-            prepend-inner-icon="mdi-format-title"
-            class="mb-3"
-          />
-
-          <div class="notes-label">
-            <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
-            {{ t('task.notes') }}
-          </div>
-          <v-textarea
-            v-model="taskDescription"
-            variant="outlined"
-            auto-grow
-            rows="14"
-            :placeholder="t('task.notesPlaceholder')"
-            class="notes-textarea"
-            hide-details
-          />
-
-          <div class="due-date-row mt-3">
-            <v-btn
-              variant="tonal"
-              size="small"
-              :color="showDatePicker ? 'primary' : 'default'"
-              prepend-icon="mdi-calendar-outline"
-              @click="showDatePicker = !showDatePicker"
-            >
-              {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : t('task.setDueDate') }}
-            </v-btn>
-          </div>
-
-          <v-expand-transition>
-            <div v-if="showDatePicker" class="date-picker-wrapper mt-2">
-              <v-date-picker
-                v-model="taskDueDate"
-                elevation="0"
-                border
-                @update:model-value="showDatePicker = false"
-              />
-            </div>
-          </v-expand-transition>
-
-        </v-card-text>
-
-        <v-divider />
-
-        <v-card-actions class="dialog-actions">
-          <v-btn variant="text" @click="taskDialog = false">{{ t('task.cancel') }}</v-btn>
-          <v-btn variant="flat" color="primary" @click="addTask">{{ t('task.add') }}</v-btn>
-        </v-card-actions>
-
-      </v-card>
-    </v-dialog>
-    <v-snackbar v-model="displaySnack" timeout="3000">{{ message }}</v-snackbar>
+    <TaskFormDialog v-model="taskDialog" :category-id="props.categoryID" @saved="onTaskCreated" />
 
   </div>
 </template>
 
 <style scoped lang="sass">
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap')
-
-// ── Task creation dialog (matches edit dialog in taskcomponent.vue) ────────────
-.task-dialog-card
-  display: flex
-  flex-direction: column
-  max-height: 90vh
-
-.dialog-header
-  display: flex
-  align-items: center
-  padding: 16px 20px
-  font-size: 16px
-  font-weight: 600
-  flex-shrink: 0
-
-.dialog-body
-  padding: 20px 24px
-  display: flex
-  flex-direction: column
-  flex: 1
-  overflow-y: auto
-
-.notes-label
-  font-size: 12px
-  font-weight: 600
-  color: #666
-  text-transform: uppercase
-  letter-spacing: 0.05em
-  display: flex
-  align-items: center
-  margin-bottom: 6px
-
-.notes-textarea
-  font-family: 'Poppins', sans-serif
-  font-size: 14px
-  line-height: 1.6
-  flex: 1
-
-.due-date-row
-  display: flex
-  align-items: center
-
-.date-picker-wrapper
-  display: flex
-  justify-content: flex-start
-
-.dialog-actions
-  padding: 12px 16px
-  justify-content: flex-end
-  gap: 8px
-  flex-shrink: 0
 
 .fill-height
   height: 100%
