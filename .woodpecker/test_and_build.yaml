@@ -51,6 +51,8 @@ steps:
         from_secret: allowed_origin
       VAPID_SUBSCRIBER:
         from_secret: vapid_subscriber
+      ENCRYPTION_KEY:
+        from_secret: encryption_key
       OIDC_ENABLED:
         from_secret: oidc_enabled
       OIDC_ISSUER_URL:
@@ -73,6 +75,7 @@ steps:
       - echo "SECRET_KEY=$SECRET_KEY" >> /woodpecker/src/etm.env
       - echo "ALLOWED_ORIGIN=$ALLOWED_ORIGIN" >> /woodpecker/src/etm.env
       - echo "VAPID_SUBSCRIBER=$VAPID_SUBSCRIBER" >> /woodpecker/src/etm.env
+      - echo "ENCRYPTION_KEY=$ENCRYPTION_KEY" >> /woodpecker/src/etm.env
       - echo "OIDC_ENABLED=$OIDC_ENABLED" >> /woodpecker/src/etm.env
       - echo "OIDC_ISSUER_URL=$OIDC_ISSUER_URL" >> /woodpecker/src/etm.env
       - echo "OIDC_CLIENT_ID=$OIDC_CLIENT_ID" >> /woodpecker/src/etm.env
