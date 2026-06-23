@@ -305,12 +305,16 @@
   </div>
 </template>
 
+<!-- Non-scoped: the scope attribute may not reach the inner <button> rendered by
+     Vuetify's VBtn/VTab in production builds, so we use a global rule here. -->
+<style lang="sass">
+  .category-tab.v-btn
+    background-color: var(--cat-bg, transparent) !important
+</style>
+
 <style scoped lang="sass">
   fill-height
     height: 100%
-
-  .category-tab
-    background-color: var(--cat-bg, transparent) !important
 
   .drop-zone
     outline: 2px dashed rgba(0, 0, 0, 0.5)
