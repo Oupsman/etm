@@ -161,7 +161,6 @@
         <v-tab
           v-for="category in categoriesDisplay"
           :key="category.ID"
-          :value="category.ID"
           :class="['category-tab', { 'drop-zone': isDragging && category.ID !== dragStore.draggingFromCategoryId }]"
           :style="{
             '--cat-bg': category.color,
@@ -169,20 +168,21 @@
             fontWeight: activeTab === category.ID ? '700' : '400',
             borderBottom: activeTab === category.ID ? '3px solid rgba(0,0,0,0.4)' : '3px solid transparent',
           }"
+          :value="category.ID"
           @click="setActiveTab(category.ID)"
           @dragover.prevent
           @drop.prevent="onTaskDropToCategory(category)"
         >
           <span class="mr-1">{{ category.name }}</span>
-          <v-icon v-if="category.shared" size="x-small" class="mr-1" :title="t('category.sharedCategory')">mdi-account-group</v-icon>
+          <v-icon v-if="category.shared" class="mr-1" size="x-small" :title="t('category.sharedCategory')">mdi-account-group</v-icon>
           <v-icon v-if="isReadOnly(category)" size="x-small" :title="t('category.readOnly')">mdi-eye</v-icon>
           <v-btn
             v-if="canShare(category)"
+            class="ml-1"
             icon
             size="x-small"
-            variant="text"
-            class="ml-1"
             :title="t('category.manageSharing')"
+            variant="text"
             @click.stop="openShareDialog(category)"
           >
             <v-icon size="x-small">mdi-share-variant</v-icon>
@@ -308,9 +308,6 @@
 <style scoped lang="sass">
   fill-height
     height: 100%
-
-  .category-tab
-    background-color: var(--cat-bg, transparent) !important
 
   .drop-zone
     outline: 2px dashed rgba(0, 0, 0, 0.5)
