@@ -309,6 +309,9 @@
   fill-height
     height: 100%
 
+  .category-tab
+    background-color: var(--cat-bg, transparent) !important
+
   .drop-zone
     outline: 2px dashed rgba(0, 0, 0, 0.5)
     outline-offset: -3px
