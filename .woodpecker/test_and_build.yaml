@@ -53,7 +53,7 @@ steps:
     commands:
       - $CI_WORKSPACE/etm &
       - timeout 60 sh -c 'until curl -sf http://localhost:8080/api/v1/healthcheck; do sleep 2; done'
-      - zap-baseline.py -t http://localhost:8080 -I -r /tmp/zap-report.html
+      - zap-baseline.py -t http://localhost:8080 -I
 
   - name: build-push
     image: woodpeckerci/plugin-docker-buildx
