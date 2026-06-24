@@ -51,7 +51,7 @@ steps:
       SECRET_KEY: ci-zap-scan-secret-not-for-production
       ALLOWED_ORIGIN: "*"
     commands:
-      - chmod +x ./etm && ./etm &
+      - ./etm &
       - timeout 60 sh -c 'until curl -sf http://localhost:8080/api/v1/healthcheck; do sleep 2; done'
       - zap-baseline.py -t http://localhost:8080 -I -r zap-report.html
 
