@@ -48,6 +48,10 @@ type DeviceBody struct {
 	UserID   uint   `json:"userid"`
 }
 
+type DeviceRegisterBody struct {
+	DeviceName string `json:"device_name" binding:"required"`
+}
+
 type GroupBody struct {
 	Name string `json:"name" binding:"required"`
 }

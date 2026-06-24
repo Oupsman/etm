@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useGroupStore } from '@/stores/group'
   import { useUserStore } from '@/stores/user'
@@ -119,7 +119,7 @@
 </script>
 
 <template>
-  <v-container fluid class="pa-4" style="height: 100%; overflow: auto;">
+  <v-container class="pa-4" fluid style="height: 100%; overflow: auto;">
     <v-row>
       <!-- Group list -->
       <v-col cols="12" md="4">
@@ -145,10 +145,10 @@
               <template #append>
                 <v-btn
                   v-if="group.owner_id === currentUser?.ID || isAdmin"
+                  color="error"
                   icon
                   size="x-small"
                   variant="text"
-                  color="error"
                   @click.stop="confirmDelete(group)"
                 >
                   <v-icon>mdi-delete</v-icon>
@@ -167,15 +167,15 @@
         <v-card v-if="selectedGroup" min-height="300">
           <v-card-title class="d-flex align-center">
             {{ selectedGroup.group.name }}
-            <v-chip class="ml-2" size="small" color="primary">
+            <v-chip class="ml-2" color="primary" size="small">
               {{ t('groups.members', selectedGroup.members.length, { named: { n: selectedGroup.members.length } }) }}
             </v-chip>
             <v-spacer />
             <v-btn
               v-if="isGroupOwner"
-              variant="outlined"
-              size="small"
               prepend-icon="mdi-account-plus"
+              size="small"
+              variant="outlined"
               @click="addMemberDialog = true"
             >
               {{ t('groups.addMember') }}
@@ -194,10 +194,10 @@
                 <div class="d-flex align-center gap-2">
                   <v-select
                     v-if="isGroupOwner && member.role !== 'owner'"
-                    :model-value="member.role"
-                    :items="roles"
                     density="compact"
                     hide-details
+                    :items="roles"
+                    :model-value="member.role"
                     style="min-width: 110px;"
                     @update:model-value="updateRole(member, $event)"
                   />
@@ -206,10 +206,10 @@
                   </v-chip>
                   <v-btn
                     v-if="isGroupOwner && member.role !== 'owner'"
+                    color="error"
                     icon
                     size="x-small"
                     variant="text"
-                    color="error"
                     @click="removeMember(member)"
                   >
                     <v-icon>mdi-account-remove</v-icon>
@@ -219,9 +219,9 @@
             </v-list-item>
           </v-list>
         </v-card>
-        <v-card v-else min-height="300" class="d-flex align-center justify-center">
+        <v-card v-else class="d-flex align-center justify-center" min-height="300">
           <v-card-text class="text-center text-disabled">
-            <v-icon size="64" class="mb-2">mdi-account-group</v-icon>
+            <v-icon class="mb-2" size="64">mdi-account-group</v-icon>
             <div>{{ t('groups.selectHint') }}</div>
           </v-card-text>
         </v-card>
@@ -235,8 +235,8 @@
         <v-card-text>
           <v-text-field
             v-model="newGroupName"
-            :label="t('groups.groupName')"
             autofocus
+            :label="t('groups.groupName')"
             @keyup.enter="createGroup"
           />
         </v-card-text>
@@ -256,11 +256,11 @@
           <v-text-field
             v-model="searchQuery"
             :label="t('groups.searchPlaceholder')"
-            prepend-inner-icon="mdi-magnify"
             :loading="searching"
+            prepend-inner-icon="mdi-magnify"
             @input="searchUsers"
           />
-          <v-list v-if="searchResults.length > 0" density="compact" class="border rounded mb-3">
+          <v-list v-if="searchResults.length > 0" class="border rounded mb-3" density="compact">
             <v-list-item
               v-for="u in searchResults"
               :key="u.ID"
@@ -272,7 +272,13 @@
               <v-list-item-subtitle>{{ u.email }}</v-list-item-subtitle>
             </v-list-item>
           </v-list>
-          <v-chip v-if="selectedUser" color="primary" class="mb-3" closable @click:close="selectedUser = null">
+          <v-chip
+            v-if="selectedUser"
+            class="mb-3"
+            closable
+            color="primary"
+            @click:close="selectedUser = null"
+          >
             {{ selectedUser.username }}
           </v-chip>
           <v-select

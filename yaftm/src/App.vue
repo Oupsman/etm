@@ -5,10 +5,10 @@
       v-model="snackbar.show"
       :color="snackbar.color"
       :timeout="snackbar.timeout"
-      @update:modelValue="snackbar.closeSnackbar"
+      @update:model-value="snackbar.closeSnackbar"
     >
       {{ snackbar.message }}
-      <template v-slot:actions>
+      <template #actions>
         <v-btn
           v-if="snackbar.actionText"
           variant="text"

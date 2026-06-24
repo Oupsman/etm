@@ -16,3 +16,14 @@ export interface User {
   oidc_subject?: string,
   oidc_provider?: string,
 }
+
+export interface Device {
+  ID: number
+  UUID: string
+  CreatedAt: string
+  userid: number
+  devicename: string
+  api_key_prefix: string
+  trusted: boolean
+  lastusedat: string
+}

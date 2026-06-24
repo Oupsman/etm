@@ -5,7 +5,6 @@ import (
 	"ETM/pkg/crypto"
 	models2 "ETM/pkg/models"
 	"ETM/pkg/types"
-	"ETM/pkg/utils"
 	"errors"
 	"io"
 	"net/http"
@@ -25,10 +24,9 @@ func GetTasks(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -60,10 +58,9 @@ func GetTask(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -89,10 +86,9 @@ func CreateTask(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -148,10 +144,9 @@ func UpdateTask(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -224,10 +219,9 @@ func DeleteTask(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)

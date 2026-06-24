@@ -18,11 +18,11 @@
 
   // Maps each draggable list name to the flags it represents
   const FLAG_MAP: Record<string, Pick<Task, 'isbacklog' | 'iscompleted' | 'urgency' | 'priority'>> = {
-    backlog:               { isbacklog: true,  iscompleted: false, urgency: false, priority: false },
-    completedTasks:        { isbacklog: false, iscompleted: true,  urgency: false, priority: false },
-    urgentImportant:       { isbacklog: false, iscompleted: false, urgency: true,  priority: true  },
-    nonUrgentImportant:    { isbacklog: false, iscompleted: false, urgency: false, priority: true  },
-    urgentNonImportant:    { isbacklog: false, iscompleted: false, urgency: true,  priority: false },
+    backlog:               { isbacklog: true, iscompleted: false, urgency: false, priority: false },
+    completedTasks:        { isbacklog: false, iscompleted: true, urgency: false, priority: false },
+    urgentImportant:       { isbacklog: false, iscompleted: false, urgency: true, priority: true },
+    nonUrgentImportant:    { isbacklog: false, iscompleted: false, urgency: false, priority: true },
+    urgentNonImportant:    { isbacklog: false, iscompleted: false, urgency: true, priority: false },
     nonUrgentNonImportant: { isbacklog: false, iscompleted: false, urgency: false, priority: false },
   }
 
@@ -117,19 +117,25 @@
     <div class="backlog" style="flex: 0 0 25%; display: flex; flex-direction: column; overflow: hidden;">
       <h2>{{ t('matrix.backlog') }}</h2>
       <button v-if="!props.readonly" class="add-task-btn" @click="taskDialog = true">
-        <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+        <v-icon class="mr-1" size="small">mdi-plus</v-icon>
         {{ t('matrix.addTask') }}
       </button>
-      <v-chip v-else size="small" color="info" variant="tonal" class="mb-1">{{ t('category.readOnly') }}</v-chip>
+      <v-chip
+        v-else
+        class="mb-1"
+        color="info"
+        size="small"
+        variant="tonal"
+      >{{ t('category.readOnly') }}</v-chip>
       <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="backlog"
+          :disabled="props.readonly"
           group="tasks"
           itemkey="backlog"
-          :disabled="props.readonly"
-          @start="(e) => onListDragStart(backlog, e)"
-          @end="onDragEnd"
           @change="(e) => onDrop(e, 'backlog')"
+          @end="onDragEnd"
+          @start="(e) => onListDragStart(backlog, e)"
         >
           <v-card v-for="task in backlog" :key="task.ID" class="mb-2 task">
             <TaskComponent :task="task" @updatecategory="parseTasks" />
@@ -143,7 +149,15 @@
       <div class="UrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>{{ t('matrix.urgentImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentImportant" group="tasks" itemkey="urgentImportant" :disabled="props.readonly" @start="(e) => onListDragStart(urgentImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'urgentImportant')">
+          <draggable
+            v-model="urgentImportant"
+            :disabled="props.readonly"
+            group="tasks"
+            itemkey="urgentImportant"
+            @change="(e) => onDrop(e, 'urgentImportant')"
+            @end="onDragEnd"
+            @start="(e) => onListDragStart(urgentImportant, e)"
+          >
             <v-card v-for="task in urgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -153,7 +167,15 @@
       <div class="NotUrgentImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>{{ t('matrix.notUrgentImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentImportant" group="tasks" itemkey="nonUrgentImportant" :disabled="props.readonly" @start="(e) => onListDragStart(nonUrgentImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'nonUrgentImportant')">
+          <draggable
+            v-model="nonUrgentImportant"
+            :disabled="props.readonly"
+            group="tasks"
+            itemkey="nonUrgentImportant"
+            @change="(e) => onDrop(e, 'nonUrgentImportant')"
+            @end="onDragEnd"
+            @start="(e) => onListDragStart(nonUrgentImportant, e)"
+          >
             <v-card v-for="task in nonUrgentImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -163,7 +185,15 @@
       <div class="UrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>{{ t('matrix.urgentNotImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="urgentNonImportant" group="tasks" itemkey="urgentNonImportant" :disabled="props.readonly" @start="(e) => onListDragStart(urgentNonImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'urgentNonImportant')">
+          <draggable
+            v-model="urgentNonImportant"
+            :disabled="props.readonly"
+            group="tasks"
+            itemkey="urgentNonImportant"
+            @change="(e) => onDrop(e, 'urgentNonImportant')"
+            @end="onDragEnd"
+            @start="(e) => onListDragStart(urgentNonImportant, e)"
+          >
             <v-card v-for="task in urgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -173,7 +203,15 @@
       <div class="NotUrgentNotImportant" style="display: flex; flex-direction: column; overflow: hidden;">
         <h2>{{ t('matrix.notUrgentNotImportant') }}</h2>
         <div style="flex: 1; min-height: 0; overflow-y: auto;">
-          <draggable v-model="nonUrgentNonImportant" group="tasks" itemkey="nonUrgentNonImportant" :disabled="props.readonly" @start="(e) => onListDragStart(nonUrgentNonImportant, e)" @end="onDragEnd" @change="(e) => onDrop(e, 'nonUrgentNonImportant')">
+          <draggable
+            v-model="nonUrgentNonImportant"
+            :disabled="props.readonly"
+            group="tasks"
+            itemkey="nonUrgentNonImportant"
+            @change="(e) => onDrop(e, 'nonUrgentNonImportant')"
+            @end="onDragEnd"
+            @start="(e) => onListDragStart(nonUrgentNonImportant, e)"
+          >
             <v-card v-for="task in nonUrgentNonImportant" :key="task.ID" class="mb-2 task">
               <TaskComponent :task="task" @updatecategory="parseTasks" />
             </v-card>
@@ -188,12 +226,12 @@
       <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <draggable
           v-model="completedTasks"
+          :disabled="props.readonly"
           group="tasks"
           itemkey="completedTasks"
-          :disabled="props.readonly"
-          @start="(e) => onListDragStart(completedTasks, e)"
-          @end="onDragEnd"
           @change="(e) => onDrop(e, 'completedTasks')"
+          @end="onDragEnd"
+          @start="(e) => onListDragStart(completedTasks, e)"
         >
           <v-card v-for="task in completedTasks" :key="task.ID" class="mb-2 task">
             <TaskComponent :task="task" @updatecategory="parseTasks" />

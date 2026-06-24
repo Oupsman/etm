@@ -76,7 +76,8 @@ var sqliteSchema = []string{
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
 		uuid TEXT, user_id INTEGER, device_id TEXT, device_name TEXT,
-		trusted INTEGER, last_used_at DATETIME
+		trusted INTEGER, last_used_at DATETIME,
+		api_key_hash TEXT, api_key_prefix TEXT
 	)`,
 	`CREATE TABLE IF NOT EXISTS tokens (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch, computed } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import CategoryComponent from '@/components/categorycomponent.vue'
   import { useCategoryStore } from '@/stores/category.ts'
@@ -69,7 +69,7 @@
     }
   }
 
-  watch(() => authStore.isAuthenticated, (isAuth) => {
+  watch(() => authStore.isAuthenticated, isAuth => {
     if (isAuth) loadCategories()
   }, { immediate: true })
 
@@ -189,11 +189,11 @@
           </v-btn>
           <v-btn
             v-if="canShare(category)"
+            class="ml-1"
             icon
             size="x-small"
-            variant="text"
-            class="ml-1"
             :title="t('category.deleteTooltip')"
+            variant="text"
             @click.stop="confirmDeleteCategory(category)"
           >
             <v-icon size="x-small">mdi-delete</v-icon>
@@ -233,11 +233,11 @@
               <v-col cols="12">
                 <v-select
                   v-model="categoryGroupID"
-                  :items="groupStore.groups"
+                  clearable
                   item-title="name"
                   item-value="ID"
+                  :items="groupStore.groups"
                   :label="t('category.shareWithGroup')"
-                  clearable
                   :no-data-text="groupStore.groups.length === 0 ? t('category.noGroups') : t('category.noGroupsData')"
                 />
               </v-col>
@@ -287,12 +287,12 @@
           <div class="text-subtitle-2 mb-2">{{ t('category.addGroup') }}</div>
           <v-select
             v-model="sharingGroupID"
-            :items="userGroups"
+            clearable
             item-title="name"
             item-value="ID"
+            :items="userGroups"
             :label="t('category.selectGroup')"
             :no-data-text="groupStore.groups.length === 0 ? t('category.noGroups') : t('category.allGroupsAdded')"
-            clearable
           />
         </v-card-text>
         <v-card-actions>

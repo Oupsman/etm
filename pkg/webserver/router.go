@@ -31,7 +31,7 @@ func RunHttp(listenAddr string, App *app.App) error {
 		config.AllowAllOrigins = false
 	}
 	config.AddAllowedMethods("OPTIONS")
-	config.AllowedHeaders = []string{"Authorization", "Content-Type"}
+	config.AllowedHeaders = []string{"Authorization", "Content-Type", "Cookie"}
 	httpRouter.Use(cors.New(config))
 
 	httpRouter.Use(AppHandler(App))
@@ -98,6 +98,11 @@ func RunHttp(listenAddr string, App *app.App) error {
 	apiV1.GET("/user/devices", controllers2.IsAuthorized(), controllers2.GetUserDevices)
 	apiV1.GET("/user/tokens", controllers2.IsAuthorized(), controllers2.GetUserTokens)
 	apiV1.POST("/user/devices", controllers2.IsAuthorized(), controllers2.CreateUserDevice)
+
+	// Device API key management
+	apiV1.POST("/devices", controllers2.IsAuthorized(), controllers2.RegisterAPIDevice)
+	apiV1.GET("/devices", controllers2.IsAuthorized(), controllers2.ListAPIDevices)
+	apiV1.DELETE("/devices/:id", controllers2.IsAuthorized(), controllers2.DeleteAPIDevice)
 
 	// Admin endpoints
 	apiV1.GET("/admin/users", controllers2.IsAuthorized(), controllers2.IsAdminUser(), controllers2.ListAllUsers)

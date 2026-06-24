@@ -6,68 +6,39 @@ import (
 	"ETM/pkg/models"
 	"ETM/pkg/types"
 	"ETM/pkg/utils"
-	"ETM/pkg/vars"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 )
 
 func Login(c *gin.Context) {
-
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
 
 	var creds types.UserBody
-
 	if err := c.ShouldBindJSON(&creds); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	var existingUser models.Users
-
 	db.Where("username = ?", creds.Username).First(&existingUser)
-
 	if existingUser.ID == 0 {
 		c.JSON(400, gin.H{"error": "user does not exist"})
 		return
 	}
-
 	if !utils.CompareHashPassword(creds.Password, existingUser.Password) {
 		c.JSON(400, gin.H{"error": "invalid password"})
 		return
 	}
 
-	expirationTime := time.Now().Add(30 * time.Minute)
-	/*
-		// Getting the deviceID
-		deviceID := c.GetHeader("X-Device-ID")
-		if deviceID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Device ID is required"})
-			return
-		}
-	*/
-	// Create JWT
-	claims := jwt.MapClaims{
-		"authorized": true,
-		"exp":        expirationTime.Unix(),
-		"iss":        "etm",
-		"sub":        existingUser.ID,
-		"uuid":       existingUser.UUID.String(),
-		//		"deviceid":   deviceID,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(vars.SecretKey))
-
-	if err != nil {
+	tokenString := mintJWT(float64(existingUser.ID), existingUser.UUID.String())
+	if tokenString == "" {
 		c.JSON(500, gin.H{"error": "could not generate token"})
 		return
 	}
 
+	setSessionCookie(c, tokenString)
 	c.JSON(200, gin.H{"token": tokenString})
 }
 
@@ -76,16 +47,13 @@ func Register(c *gin.Context) {
 	db := App.(*app.App).DB
 
 	var user types.UserBody
-
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	var existingUser models.Users
-
 	db.Where("username = ?", user.Username).First(&existingUser)
-
 	if existingUser.ID != 0 {
 		c.JSON(409, gin.H{"error": "user already exists"})
 		return
@@ -93,7 +61,6 @@ func Register(c *gin.Context) {
 
 	var errHash error
 	user.Password, errHash = utils.GenerateHashPassword(user.Password)
-
 	if errHash != nil {
 		c.JSON(500, gin.H{"error": "could not generate password hash"})
 		return
@@ -151,68 +118,52 @@ func SearchUsersHandler(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-
+	clearSessionCookie(c)
 	c.JSON(200, gin.H{"success": "user logged out"})
 }
 
 func RefreshToken(c *gin.Context) {
-	bearerToken := c.Request.Header.Get("Authorization")
-	parts := strings.Split(bearerToken, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid authorization header"})
+	userID, ok := getIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
+	uuidVal, _ := c.Get("uuid")
 
-	claims, err := utils.ParseTokenAllowExpired(parts[1])
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-		return
-	}
-
-	expirationTime := time.Now().Add(30 * time.Minute)
-
-	newClaims := jwt.MapClaims{
-		"authorized": true,
-		"iss":        "etm",
-		"sub":        claims["sub"],
-		"uuid":       claims["uuid"],
-		"exp":        expirationTime.Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
-	tokenString, err := token.SignedString([]byte(vars.SecretKey))
-	if err != nil {
+	newToken := mintJWT(float64(userID), uuidVal.(string))
+	if newToken == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	// Refresh the session cookie if the request came via cookie auth
+	if _, err := c.Cookie("etm_session"); err == nil {
+		setSessionCookie(c, newToken)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": newToken})
 }
 
 func WhoAmI(c *gin.Context) {
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserID, err := utils.GetUserID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	userID, ok := getIDFromCtx(c)
+	if !ok {
+		c.JSON(400, gin.H{"error": "unauthorized"})
 		return
 	}
-
-	c.JSON(200, gin.H{"sub": UserID})
+	c.JSON(200, gin.H{"sub": userID})
 }
 
 func GetUser(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	user, err := db.GetUserByUUID(UserUUID)
-
+	user, err := db.GetUserByUUID(userUUID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "user not found"})
 		return
@@ -221,37 +172,32 @@ func GetUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-
 	var updatedUser models.Users
 	var user types.UserBody
 
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
 
-	err := c.ShouldBindJSON(&user)
-	if err != nil {
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	updatedUser.UUID = UserUUID
-	currentUser, err := db.GetUserByUUID(UserUUID)
+	updatedUser.UUID = userUUID
+	currentUser, err := db.GetUserByUUID(userUUID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	if !utils.CompareHashPassword(user.OldPassword, currentUser.Password) {
-		c.JSON(401, gin.H{
-			"error": "wrong password",
-		})
+		c.JSON(401, gin.H{"error": "wrong password"})
 		return
 	}
 
@@ -268,64 +214,54 @@ func UpdateUser(c *gin.Context) {
 		updatedUser.Password = currentUser.Password
 	}
 
-	err = db.UpdateUser(updatedUser)
-
-	if err != nil {
+	if err := db.UpdateUser(updatedUser); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(200, gin.H{"message": "user updated successfully"})
 }
 
 func UpdateUserSubscription(c *gin.Context) {
-
 	var requestBody types.BrowserConfig
 
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
 
-	err := c.ShouldBindJSON(&requestBody)
-
-	if err != nil {
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	currentUser, err := db.GetUserByUUID(UserUUID)
+	currentUser, err := db.GetUserByUUID(userUUID)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": "user not found"})
 		return
 	}
 
 	currentUser.Browser = crypto.EncryptedString(requestBody.Subscription)
-
-	err = db.UpdateUser(currentUser)
-	if err != nil {
+	if err := db.UpdateUser(currentUser); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(200, gin.H{"message": "user updated successfully"})
-
 }
 
 func SendTestNotification(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
+
 	user, err := db.GetUserByUUID(userUUID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
@@ -347,10 +283,9 @@ func UpdateUserPreferences(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
@@ -377,15 +312,14 @@ func UpdateUserPreferences(c *gin.Context) {
 func GetUserDevices(c *gin.Context) {
 	App := c.MustGet("App")
 	db := App.(*app.App).DB
-	bearerToken := c.Request.Header.Get("Authorization")
-	UserUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	user, err := db.GetUserByUUID(UserUUID)
-
+	user, err := db.GetUserByUUID(userUUID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "user not found"})
 		return
@@ -403,20 +337,16 @@ func CreateUserDevice(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userID, err := utils.GetUserID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+	userID, ok := getIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
 	device.UserID = userID
-
-	err = db.CreateDevice(device)
-	if err != nil {
+	if err := db.CreateDevice(device); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create device"})
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{"success": "device created"})
 }

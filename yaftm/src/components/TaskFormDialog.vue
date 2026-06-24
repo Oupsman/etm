@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch, computed } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useTaskStore } from '@/stores/task'
   import { useCategoryStore } from '@/stores/category'
@@ -23,28 +23,28 @@
 
   const isEditMode = computed(() => !!props.task)
 
-  const taskName        = ref('')
+  const taskName = ref('')
   const taskDescription = ref('')
-  const taskLink        = ref('')
-  const taskDueDate     = ref<Date>(new Date())
-  const taskCategoryId  = ref<number>(0)
-  const showDatePicker  = ref(false)
+  const taskLink = ref('')
+  const taskDueDate = ref<Date>(new Date())
+  const taskCategoryId = ref<number>(0)
+  const showDatePicker = ref(false)
 
-  watch(() => props.modelValue, (open) => {
+  watch(() => props.modelValue, open => {
     if (!open) return
     showDatePicker.value = false
     if (props.task) {
-      taskName.value        = props.task.name
+      taskName.value = props.task.name
       taskDescription.value = props.task.comment
-      taskLink.value        = props.task.link ?? ''
-      taskDueDate.value     = new Date(props.task.duedate)
-      taskCategoryId.value  = props.task.categoryid
+      taskLink.value = props.task.link ?? ''
+      taskDueDate.value = new Date(props.task.duedate)
+      taskCategoryId.value = props.task.categoryid
     } else {
-      taskName.value        = ''
+      taskName.value = ''
       taskDescription.value = ''
-      taskLink.value        = ''
-      taskDueDate.value     = new Date()
-      taskCategoryId.value  = props.categoryId ?? 0
+      taskLink.value = ''
+      taskDueDate.value = new Date()
+      taskCategoryId.value = props.categoryId ?? 0
     }
   })
 
@@ -54,10 +54,10 @@
   }
 
   const statusChips = computed(() => props.task ? [
-    { label: t('task.priority'),  active: props.task.priority,    color: '#e67e22', icon: 'mdi-alert-circle-outline' },
-    { label: t('task.urgent'),    active: props.task.urgency,     color: '#e74c3c', icon: 'mdi-lightning-bolt' },
-    { label: t('task.started'),   active: props.task.isstarted,   color: '#27ae60', icon: 'mdi-play-circle-outline' },
-    { label: t('task.backlog'),   active: props.task.isbacklog,   color: '#7f8c8d', icon: 'mdi-tray-full' },
+    { label: t('task.priority'), active: props.task.priority, color: '#e67e22', icon: 'mdi-alert-circle-outline' },
+    { label: t('task.urgent'), active: props.task.urgency, color: '#e74c3c', icon: 'mdi-lightning-bolt' },
+    { label: t('task.started'), active: props.task.isstarted, color: '#27ae60', icon: 'mdi-play-circle-outline' },
+    { label: t('task.backlog'), active: props.task.isbacklog, color: '#7f8c8d', icon: 'mdi-tray-full' },
     { label: t('task.completed'), active: props.task.iscompleted, color: '#2980b9', icon: 'mdi-check-circle-outline' },
   ] : [])
 
@@ -98,13 +98,25 @@
 </script>
 
 <template>
-  <v-dialog :model-value="modelValue" max-width="720px" persistent scrollable @update:model-value="close">
-    <v-card rounded="lg" class="form-dialog-card">
+  <v-dialog
+    max-width="720px"
+    :model-value="modelValue"
+    persistent
+    scrollable
+    @update:model-value="close"
+  >
+    <v-card class="form-dialog-card" rounded="lg">
 
       <v-card-title class="dialog-header">
-        <v-icon :icon="isEditMode ? 'mdi-pencil-outline' : 'mdi-plus-circle-outline'" size="small" class="mr-2" />
+        <v-icon class="mr-2" :icon="isEditMode ? 'mdi-pencil-outline' : 'mdi-plus-circle-outline'" size="small" />
         {{ isEditMode ? t('task.editTitle') : t('task.newTask') }}
-        <v-chip v-if="isEditMode && task" size="x-small" variant="tonal" color="grey" class="ml-2">
+        <v-chip
+          v-if="isEditMode && task"
+          class="ml-2"
+          color="grey"
+          size="x-small"
+          variant="tonal"
+        >
           #{{ task.ID }}
         </v-chip>
       </v-card-title>
@@ -115,57 +127,57 @@
 
         <v-text-field
           v-model="taskName"
-          :label="t('task.name')"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="mdi-format-title"
           class="mb-3"
+          density="comfortable"
+          :label="t('task.name')"
+          prepend-inner-icon="mdi-format-title"
+          variant="outlined"
         />
 
         <v-text-field
           v-model="taskLink"
+          class="mb-3"
+          clearable
+          density="comfortable"
           :label="t('task.link')"
           :placeholder="t('task.linkPlaceholder')"
-          variant="outlined"
-          density="comfortable"
           prepend-inner-icon="mdi-link-variant"
-          clearable
-          class="mb-3"
+          variant="outlined"
         />
 
         <div class="notes-label">
-          <v-icon icon="mdi-note-text-outline" size="small" class="mr-1" />
+          <v-icon class="mr-1" icon="mdi-note-text-outline" size="small" />
           {{ t('task.notes') }}
         </div>
         <v-textarea
           v-model="taskDescription"
-          variant="outlined"
           auto-grow
-          rows="14"
-          :placeholder="t('task.notesPlaceholder')"
           class="notes-textarea"
           hide-details
+          :placeholder="t('task.notesPlaceholder')"
+          rows="14"
+          variant="outlined"
         />
 
         <v-select
           v-if="isEditMode"
           v-model="taskCategoryId"
-          :items="categoryStore.categories"
+          class="mb-3 mt-3"
+          density="comfortable"
           item-title="name"
           item-value="ID"
+          :items="categoryStore.categories"
           :label="t('task.category')"
-          variant="outlined"
-          density="comfortable"
           prepend-inner-icon="mdi-folder-outline"
-          class="mb-3 mt-3"
+          variant="outlined"
         />
 
         <div class="due-date-row mt-3">
           <v-btn
-            variant="tonal"
-            size="small"
             :color="showDatePicker ? 'primary' : 'default'"
             prepend-icon="mdi-calendar-outline"
+            size="small"
+            variant="tonal"
             @click="showDatePicker = !showDatePicker"
           >
             {{ taskDueDate ? formatDate(taskDueDate.toISOString()) : t('task.setDueDate') }}
@@ -176,17 +188,17 @@
           <div v-if="showDatePicker" class="date-picker-wrapper mt-2">
             <v-date-picker
               v-model="taskDueDate"
-              elevation="0"
               border
+              elevation="0"
               @update:model-value="showDatePicker = false"
             />
           </div>
         </v-expand-transition>
 
-        <v-expansion-panels v-if="isEditMode && task" variant="accordion" class="mt-4 properties-panel">
+        <v-expansion-panels v-if="isEditMode && task" class="mt-4 properties-panel" variant="accordion">
           <v-expansion-panel>
             <v-expansion-panel-title class="properties-title">
-              <v-icon icon="mdi-information-outline" size="small" class="mr-2" />
+              <v-icon class="mr-2" icon="mdi-information-outline" size="small" />
               {{ t('task.properties') }}
             </v-expansion-panel-title>
             <v-expansion-panel-text>
@@ -216,7 +228,7 @@
 
       <v-card-actions class="dialog-actions">
         <v-btn variant="text" @click="close">{{ t('task.cancel') }}</v-btn>
-        <v-btn variant="flat" color="primary" @click="save">
+        <v-btn color="primary" variant="flat" @click="save">
           {{ isEditMode ? t('task.save') : t('task.add') }}
         </v-btn>
       </v-card-actions>

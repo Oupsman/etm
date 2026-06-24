@@ -2,6 +2,11 @@ package utils
 
 import (
 	"ETM/pkg/vars"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -81,4 +86,26 @@ func GetUserUUID(tokenString string) (uuid.UUID, error) {
 		return uuid.UUID{}, err
 	}
 	return uuid.Parse(claims["uuid"].(string))
+}
+
+// GenerateAPIKey creates a new device API key.
+// Returns the plaintext key (shown once to the user), a short prefix (stored
+// in plain text for fast DB lookup), and the SHA-256 hash (stored in the DB).
+func GenerateAPIKey() (plaintext, prefix, hash string, err error) {
+	buf := make([]byte, 32)
+	if _, err = rand.Read(buf); err != nil {
+		return
+	}
+	plaintext = "etm_" + base64.RawURLEncoding.EncodeToString(buf)
+	prefix = plaintext[:12]
+	sum := sha256.Sum256([]byte(plaintext))
+	hash = hex.EncodeToString(sum[:])
+	return
+}
+
+// VerifyAPIKey reports whether plaintext hashes to storedHash.
+func VerifyAPIKey(plaintext, storedHash string) bool {
+	sum := sha256.Sum256([]byte(plaintext))
+	expected := hex.EncodeToString(sum[:])
+	return subtle.ConstantTimeCompare([]byte(expected), []byte(storedHash)) == 1
 }

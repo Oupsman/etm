@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { axiosInstance } from '@/plugins/axios'
 
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+function urlBase64ToUint8Array (base64: string): Uint8Array {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
   const raw = atob(b64)
@@ -14,7 +14,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const isSubscribed = ref(false)
   const permissionDenied = ref(false)
 
-  async function check(): Promise<void> {
+  async function check (): Promise<void> {
     if (!isSupported.value) return
     permissionDenied.value = Notification.permission === 'denied'
     const reg = await navigator.serviceWorker.getRegistration('/sw.js')
@@ -22,7 +22,7 @@ export const useNotificationStore = defineStore('notification', () => {
     isSubscribed.value = !!(await reg.pushManager.getSubscription())
   }
 
-  async function subscribe(): Promise<void> {
+  async function subscribe (): Promise<void> {
     const { data } = await axiosInstance.get('/api/v1/getvapidkey')
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
     await navigator.serviceWorker.ready
@@ -36,7 +36,7 @@ export const useNotificationStore = defineStore('notification', () => {
     isSubscribed.value = true
   }
 
-  async function unsubscribe(): Promise<void> {
+  async function unsubscribe (): Promise<void> {
     const reg = await navigator.serviceWorker.getRegistration('/sw.js')
     if (reg) {
       const sub = await reg.pushManager.getSubscription()
@@ -46,7 +46,7 @@ export const useNotificationStore = defineStore('notification', () => {
     isSubscribed.value = false
   }
 
-  async function toggle(): Promise<void> {
+  async function toggle (): Promise<void> {
     if (isSubscribed.value) {
       await unsubscribe()
     } else {
@@ -54,7 +54,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  async function sendTest(): Promise<void> {
+  async function sendTest (): Promise<void> {
     await axiosInstance.post('/api/v1/user/testnotification')
   }
 

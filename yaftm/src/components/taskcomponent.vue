@@ -19,14 +19,14 @@
   const dueDateInfo = computed(() => {
     if (!props.task.duedate || props.task.iscompleted) return null
     const days = Math.ceil((new Date(props.task.duedate).getTime() - Date.now()) / 86_400_000)
-    if (days < 0)   return { icon: 'mdi-fire',                color: '#e74c3c', text: t('task.overdue') }
-    if (days === 0) return { icon: 'mdi-alarm',               color: '#e74c3c', text: t('task.dueToday') }
-    if (days <= 3)  return { icon: 'mdi-clock-alert-outline', color: '#f39c12', text: t('task.daysLeft', days, { named: { n: days } }) }
-    if (days <= 7)  return { icon: 'mdi-clock-outline',       color: '#f1c40f', text: t('task.daysLeft', days, { named: { n: days } }) }
-    return          { icon: 'mdi-calendar-check',             color: '#2ecc71', text: t('task.daysLeft', days, { named: { n: days } }) }
+    if (days < 0) return { icon: 'mdi-fire', color: '#e74c3c', text: t('task.overdue') }
+    if (days === 0) return { icon: 'mdi-alarm', color: '#e74c3c', text: t('task.dueToday') }
+    if (days <= 3) return { icon: 'mdi-clock-alert-outline', color: '#f39c12', text: t('task.daysLeft', days, { named: { n: days } }) }
+    if (days <= 7) return { icon: 'mdi-clock-outline', color: '#f1c40f', text: t('task.daysLeft', days, { named: { n: days } }) }
+    return { icon: 'mdi-calendar-check', color: '#2ecc71', text: t('task.daysLeft', days, { named: { n: days } }) }
   })
 
-  const showEditDialog   = ref(false)
+  const showEditDialog = ref(false)
   const showDeleteDialog = ref(false)
 
   const onCompletedTask = async (task: Task): Promise<void> => {
@@ -78,17 +78,17 @@
           <v-btn
             v-bind="tooltipProps"
             class="link-btn"
-            icon="mdi-link-variant"
-            size="small"
             :href="props.task.link"
-            target="_blank"
+            icon="mdi-link-variant"
             rel="noopener noreferrer"
+            size="small"
+            target="_blank"
           />
         </template>
       </v-tooltip>
       <v-tooltip v-if="dueDateInfo" location="top" :text="dueDateInfo.text">
         <template #activator="{ props: tooltipProps }">
-          <v-icon v-bind="tooltipProps" size="small" :icon="dueDateInfo.icon" :color="dueDateInfo.color" />
+          <v-icon v-bind="tooltipProps" :color="dueDateInfo.color" :icon="dueDateInfo.icon" size="small" />
         </template>
       </v-tooltip>
       <v-tooltip location="top" :text="props.task.isstarted ? t('task.markNotStarted') : t('task.markStarted')">
@@ -96,14 +96,14 @@
           <v-btn
             v-bind="tooltipProps"
             class="start-btn"
-            size="small"
-            :icon="props.task.isstarted ? 'mdi-play-circle' : 'mdi-play-circle-outline'"
             :color="props.task.isstarted ? '#27ae60' : undefined"
+            :icon="props.task.isstarted ? 'mdi-play-circle' : 'mdi-play-circle-outline'"
+            size="small"
             @click="onStartedTask(props.task)"
           />
         </template>
       </v-tooltip>
-      <v-btn class="edit-btn"   icon="mdi-pencil"    size="small" @click="showEditDialog = true" />
+      <v-btn class="edit-btn" icon="mdi-pencil" size="small" @click="showEditDialog = true" />
       <v-btn class="delete-btn" icon="mdi-trash-can" size="small" @click="showDeleteDialog = true" />
     </div>
   </v-card>

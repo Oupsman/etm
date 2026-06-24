@@ -7,8 +7,6 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import { useAuthStore } from '@/stores/auth'
 import { axiosInstance } from '@/plugins/axios'
 import type { User, UserSession } from '@/types/user'
-import { useDeviceStore } from '@/stores/device'
-
 function parseJwt (token: string) {
   const base64Url = token.split('.')[1]
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -24,15 +22,9 @@ export const useUserStore = defineStore('user', () => {
 
   const login = async (username: string, password: string): Promise<void> => {
     const authStore = useAuthStore()
-    const deviceStore = useDeviceStore()
-    await deviceStore.initDevice()
 
     try {
-      const response = await axios.post(
-        '/api/v1/user/login',
-        { username, password },
-        { headers: { 'X-Device-ID': deviceStore.deviceID } }
-      )
+      const response = await axios.post('/api/v1/user/login', { username, password })
       if (response.data.token) {
         authStore.setTokens(response.data.token, '')
         setUserSession({ ...parseJwt(response.data.token), token: response.data.token })

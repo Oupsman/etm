@@ -4,7 +4,6 @@ import (
 	"ETM/pkg/app"
 	"ETM/pkg/models"
 	"ETM/pkg/types"
-	"ETM/pkg/utils"
 	"errors"
 	"net/http"
 	"strconv"
@@ -16,10 +15,9 @@ func GetCategories(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -40,10 +38,9 @@ func CreateCategory(c *gin.Context) {
 	App := c.MustGet("App").(*app.App)
 	db := App.DB
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -94,10 +91,9 @@ func ShareCategory(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -138,10 +134,9 @@ func UnshareCategory(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -177,10 +172,9 @@ func DeleteCategoryHandler(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)
@@ -210,10 +204,9 @@ func GetCategoryShares(c *gin.Context) {
 		return
 	}
 
-	bearerToken := c.Request.Header.Get("Authorization")
-	userUUID, err := utils.GetUserUUID(bearerToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	userUUID, ok := getUUIDFromCtx(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	user, err := db.GetUserByUUID(userUUID)

@@ -1,51 +1,33 @@
-import { defineStore } from 'pinia';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
-const deviceStorageKey = 'etm-deviceID';
-const trustedStorageKey = 'etm-deviceIsTrusted';
+import { defineStore } from 'pinia'
+import { axiosInstance } from '@/plugins/axios'
+import type { Device } from '@/types/user'
 
 export const useDeviceStore = defineStore('device', {
   state: () => ({
-    deviceID: localStorage.getItem(deviceStorageKey) || '',
-    isTrusted: false,
-    lastUsedAt: null as string | null,
+    devices: [] as Device[],
+    loading: false,
   }),
 
-  getters: {
-    hasDeviceID: state => !!state.deviceID,
-  },
-
   actions: {
-    async generateDeviceID () {
-      if (this.deviceID) return this.deviceID;
-
-      const fp = await FingerprintJS.load();
-      const { visitorId } = await fp.get();
-      this.deviceID = visitorId;
-      localStorage.setItem(deviceStorageKey, visitorId);
-      return visitorId;
-    },
-
-    async initDevice () {
-      if (!this.deviceID) {
-        await this.generateDeviceID();
+    async fetchDevices () {
+      this.loading = true
+      try {
+        const { data } = await axiosInstance.get('/api/v1/devices')
+        this.devices = data.devices ?? []
+      } finally {
+        this.loading = false
       }
     },
 
-    setTrusted (status: boolean) {
-      this.isTrusted = status;
-      localStorage.setItem(trustedStorageKey, String(status));
+    async registerDevice (name: string): Promise<string> {
+      const { data } = await axiosInstance.post('/api/v1/devices', { device_name: name })
+      this.devices.push(data.device)
+      return data.api_key as string
     },
 
-    loadFromStorage () {
-      const trusted = localStorage.getItem(trustedStorageKey);
-      if (trusted) this.isTrusted = trusted === 'true';
-    },
-
-    clearDevice () {
-      this.deviceID = '';
-      this.isTrusted = false;
-      localStorage.removeItem('deviceStorageKey');
-      localStorage.removeItem('deviceIsTrusted');
+    async deleteDevice (id: number) {
+      await axiosInstance.delete(`/api/v1/devices/${id}`)
+      this.devices = this.devices.filter(d => d.ID !== id)
     },
   },
-});
+})

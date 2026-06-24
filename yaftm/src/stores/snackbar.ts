@@ -20,7 +20,7 @@ export const useSnackbarStore = defineStore('snackbar', {
     timeout: 3000,
   }),
   actions: {
-    showSnackbar(payload: {
+    showSnackbar (payload: {
       message: string;
       color?: SnackbarColor;
       timeout?: number;
@@ -34,7 +34,7 @@ export const useSnackbarStore = defineStore('snackbar', {
       this.actionCallback = payload.actionCallback;
       this.show = true;
     },
-    closeSnackbar() {
+    closeSnackbar () {
       this.show = false;
       this.actionText = undefined;
       this.actionCallback = undefined;

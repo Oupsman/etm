@@ -1,6 +1,5 @@
 <template>
-  <v-footer
-  >
+  <v-footer>
     Yet Another F*cking Task Manager
   </v-footer>
 </template>

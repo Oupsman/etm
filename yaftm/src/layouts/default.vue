@@ -5,7 +5,7 @@
     @mouseleave="scheduleHide"
   >
     <v-app-bar-title>
-      <RouterLink to="/" style="text-decoration: none; color: inherit;">
+      <RouterLink style="text-decoration: none; color: inherit;" to="/">
         {{ t('nav.title') }}
       </RouterLink>
     </v-app-bar-title>
@@ -14,7 +14,7 @@
     <!-- Language picker -->
     <v-menu>
       <template #activator="{ props: menuProps }">
-        <v-btn v-bind="menuProps" variant="text" size="small" class="mr-1">
+        <v-btn v-bind="menuProps" class="mr-1" size="small" variant="text">
           <v-icon start>mdi-translate</v-icon>
           {{ localeStore.locale.toUpperCase() }}
         </v-btn>
@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { onMounted, onUnmounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/auth'
   import { useUserStore } from '@/stores/user'

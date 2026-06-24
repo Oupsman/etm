@@ -123,50 +123,53 @@
 
       <div class="text-subtitle-1 mb-2">{{ t('profile.notifications') }}</div>
       <template v-if="!notifStore.isSupported">
-        <v-alert type="warning" density="compact">
+        <v-alert density="compact" type="warning">
           {{ t('profile.notSupported') }}
         </v-alert>
       </template>
       <template v-else-if="notifStore.permissionDenied">
-        <v-alert type="error" density="compact">
+        <v-alert density="compact" type="error">
           {{ t('profile.blocked') }}
         </v-alert>
       </template>
       <template v-else>
         <v-switch
-          :model-value="notifStore.isSubscribed"
           color="primary"
-          :label="notifStore.isSubscribed ? t('profile.enabled') : t('profile.disabled')"
           hide-details
+          :label="notifStore.isSubscribed ? t('profile.enabled') : t('profile.disabled')"
+          :model-value="notifStore.isSubscribed"
           @update:model-value="notifStore.toggle()"
         />
         <v-btn
           v-if="notifStore.isSubscribed"
-          variant="outlined"
-          size="small"
           class="mt-2"
+          size="small"
+          variant="outlined"
           @click="notifStore.sendTest()"
         >
           {{ t('profile.sendTest') }}
         </v-btn>
       </template>
 
+      <v-divider class="my-4" />
+      <DevicesPanel />
+
       <template v-if="oidcEnabled">
         <v-divider class="my-4" />
         <div class="text-subtitle-1 mb-2">{{ t('profile.oidcTitle') }}</div>
         <template v-if="user?.oidc_subject">
-          <v-alert type="success" density="compact" class="mb-3">
+          <v-alert class="mb-3" density="compact" type="success">
             {{ t('profile.linked', { provider: user.oidc_provider }) }}
           </v-alert>
-          <v-btn variant="outlined" color="error" size="small" @click="unlinkOIDC">
+          <v-btn color="error" size="small" variant="outlined" @click="unlinkOIDC">
             {{ t('profile.unlink') }}
           </v-btn>
         </template>
         <template v-else>
-          <v-alert type="info" density="compact" class="mb-3">
+          <v-alert class="mb-3" density="compact" type="info">
             {{ t('profile.notLinked') }}
           </v-alert>
-          <v-btn variant="outlined" color="primary" size="small" @click="linkOIDC">
+          <v-btn color="primary" size="small" variant="outlined" @click="linkOIDC">
             {{ t('profile.link') }}
           </v-btn>
         </template>
