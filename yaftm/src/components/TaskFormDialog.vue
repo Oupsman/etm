@@ -12,7 +12,7 @@
   }>()
 
   const emit = defineEmits<{
-    'update:modelValue': [value: boolean]
+    'update:model-value': [value: boolean]
     'saved': [task: Task]
     'deleted': []
   }>()
@@ -61,7 +61,7 @@
     { label: t('task.completed'), active: props.task.iscompleted, color: '#2980b9', icon: 'mdi-check-circle-outline' },
   ] : [])
 
-  const close = () => emit('update:modelValue', false)
+  const close = () => emit('update:model-value', false)
 
   const save = async () => {
     if (!taskName.value || !taskDueDate.value) return

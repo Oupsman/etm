@@ -29,13 +29,14 @@
   const showEditDialog = ref(false)
   const showDeleteDialog = ref(false)
 
-  const onCompletedTask = async (task: Task): Promise<void> => {
+  const onCompletedTask = async (task: Task, completed: boolean): Promise<void> => {
     const updated: Task = {
       ...task,
-      priority:  false,
-      urgency:   false,
-      isstarted: false,
-      isbacklog: !task.iscompleted,
+      iscompleted: completed,
+      priority:    false,
+      urgency:     false,
+      isstarted:   false,
+      isbacklog:   !completed,
     }
     await taskStore.updateTask(task.ID, updated)
     emit('updatecategory')
@@ -61,9 +62,9 @@
 <template>
   <v-card class="task-card" :class="{ 'task-started': props.task.isstarted }">
     <v-checkbox
-      v-model="props.task.iscompleted"
       class="status-checkbox"
-      @change="onCompletedTask(props.task)"
+      :model-value="props.task.iscompleted"
+      @update:model-value="(val) => onCompletedTask(props.task, val as boolean)"
     />
     <v-tooltip v-if="props.task.comment" location="top" max-width="320">
       <template #activator="{ props: tooltipProps }">

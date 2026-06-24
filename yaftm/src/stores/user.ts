@@ -30,8 +30,8 @@ export const useUserStore = defineStore('user', () => {
         setUserSession({ ...parseJwt(response.data.token), token: response.data.token })
         router.push('/')
       }
-    } catch (error: any) {
-      snackbar.showSnackbar({ message: 'Login failed! ' + error.message, color: 'error' })
+    } catch (error) {
+      snackbar.showSnackbar({ message: 'Login failed! ' + (error instanceof Error ? error.message : String(error)), color: 'error' })
       throw new Error('Login failed')
     }
   }
@@ -53,8 +53,8 @@ export const useUserStore = defineStore('user', () => {
       await axios.post('/api/v1/user/register', { username, password, email })
       snackbar.showSnackbar({ message: 'Signup successful', color: 'success' })
       router.push('/login')
-    } catch (error: any) {
-      snackbar.showSnackbar({ message: 'Signup failed! ' + error.message, color: 'error' })
+    } catch (error) {
+      snackbar.showSnackbar({ message: 'Signup failed! ' + (error instanceof Error ? error.message : String(error)), color: 'error' })
       throw new Error('Signup failed')
     }
   }

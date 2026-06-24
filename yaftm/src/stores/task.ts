@@ -14,8 +14,8 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value.push(response.data.task)
       snackbar.showSnackbar({ message: 'Task added successfully.', color: 'success' })
       return response.data.task
-    } catch (error: any) {
-      snackbar.showSnackbar({ message: 'Unable to add task: ' + error.message, color: 'error' })
+    } catch (error) {
+      snackbar.showSnackbar({ message: 'Unable to add task: ' + (error instanceof Error ? error.message : String(error)), color: 'error' })
       throw error
     }
   }
@@ -26,8 +26,8 @@ export const useTaskStore = defineStore('task', () => {
       await axiosInstance.delete('/api/v1/task/' + taskToDelete.ID)
       snackbar.showSnackbar({ message: 'Task deleted successfully.', color: 'success' })
       return true
-    } catch (error: any) {
-      snackbar.showSnackbar({ message: 'Unable to delete task: ' + error.message, color: 'error' })
+    } catch (error) {
+      snackbar.showSnackbar({ message: 'Unable to delete task: ' + (error instanceof Error ? error.message : String(error)), color: 'error' })
       throw error
     }
   }
@@ -41,8 +41,8 @@ export const useTaskStore = defineStore('task', () => {
       }
       snackbar.showSnackbar({ message: 'Task updated successfully.', color: 'success' })
       return true
-    } catch (error: any) {
-      snackbar.showSnackbar({ message: 'Unable to update task: ' + error.message, color: 'error' })
+    } catch (error) {
+      snackbar.showSnackbar({ message: 'Unable to update task: ' + (error instanceof Error ? error.message : String(error)), color: 'error' })
       throw error
     }
   }

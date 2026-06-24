@@ -63,8 +63,8 @@
       await axiosInstance.delete('/api/v1/auth/oidc/link')
       snackbar.showSnackbar({ message: 'OIDC account unlinked.', color: 'success' })
       await fetchUser()
-    } catch (e: any) {
-      snackbar.showSnackbar({ message: 'Unlink failed: ' + e.message, color: 'error' })
+    } catch (e) {
+      snackbar.showSnackbar({ message: 'Unlink failed: ' + (e instanceof Error ? e.message : String(e)), color: 'error' })
     }
   }
 

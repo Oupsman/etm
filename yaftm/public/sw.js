@@ -1,3 +1,4 @@
+/* global clients */
 self.addEventListener('push', event => {
   let data = { title: 'ETM', body: 'You have a notification' }
   if (event.data) {
