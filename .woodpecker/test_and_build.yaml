@@ -51,9 +51,9 @@ steps:
       SECRET_KEY: ci-zap-scan-secret-not-for-production
       ALLOWED_ORIGIN: "*"
     commands:
-      - ./etm &
+      - $CI_WORKSPACE/etm &
       - timeout 60 sh -c 'until curl -sf http://localhost:8080/api/v1/healthcheck; do sleep 2; done'
-      - zap-baseline.py -t http://localhost:8080 -I -r zap-report.html
+      - zap-baseline.py -t http://localhost:8080 -I -r /tmp/zap-report.html
 
   - name: build-push
     image: woodpeckerci/plugin-docker-buildx
