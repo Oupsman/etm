@@ -13,6 +13,7 @@ import App from './App.vue'
 
 // Composables
 import { createApp } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const app = createApp(App)
 
@@ -22,3 +23,10 @@ registerPlugins(app)
 app.config.globalProperties.emitter = emitter
 
 app.mount('#app')
+
+const authStore = useAuthStore()
+authStore.initRefreshSchedule()
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') authStore.initRefreshSchedule()
+})
