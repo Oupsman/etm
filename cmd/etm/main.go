@@ -47,7 +47,7 @@ func main() {
 	// Checks every hour; deduplicates within a run to avoid spamming.
 	go func() {
 		notified := make(map[uint]struct{})
-		ticker := time.NewTicker(1 * time.Hour)
+		ticker := time.NewTicker(1 * time.Minute)
 		defer ticker.Stop()
 		for range ticker.C {
 			tasks, err := App.DB.GetTasksDueSoon(24 * time.Hour)
