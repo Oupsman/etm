@@ -7,11 +7,9 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
@@ -212,17 +210,8 @@ func OIDCCallback(c *gin.Context) {
 		}
 	}
 
-	expirationTime := time.Now().Add(30 * time.Minute)
-	jwtClaims := jwt.MapClaims{
-		"authorized": true,
-		"exp":        expirationTime.Unix(),
-		"iss":        "etm",
-		"sub":        user.ID,
-		"uuid":       user.UUID.String(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
-	tokenString, err := token.SignedString([]byte(vars.SecretKey))
-	if err != nil {
+	tokenString := mintJWT(float64(user.ID), user.UUID.String())
+	if tokenString == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}

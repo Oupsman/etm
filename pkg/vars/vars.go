@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -25,6 +27,7 @@ var OIDCRedirectURL string
 var AllowedOrigin string
 var VAPIDSubscriber string
 var EncryptionKey string
+var TokenDuration time.Duration
 
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
@@ -59,6 +62,16 @@ func Init() {
 	VAPIDSubscriber = getEnv("VAPID_SUBSCRIBER", "")
 	EncryptionKey = getEnv("ENCRYPTION_KEY", "")
 	Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DbHost, Username, Password, Database, DbPort)
+
+	tokenMins := 120
+	if raw := getEnv("TOKEN_DURATION", ""); raw != "" {
+		if n, err := strconv.Atoi(raw); err == nil && n > 0 {
+			tokenMins = n
+		} else {
+			log.Printf("WARNING: TOKEN_DURATION=%q is not a valid positive integer; using default %d minutes", raw, tokenMins)
+		}
+	}
+	TokenDuration = time.Duration(tokenMins) * time.Minute
 
 	if SecretKey == "" {
 		log.Println("WARNING: SECRET_KEY is not set — JWT tokens will use an empty secret and can be trivially forged")

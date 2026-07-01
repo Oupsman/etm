@@ -94,11 +94,11 @@ func IsAdminUser() gin.HandlerFunc {
 	}
 }
 
-// mintJWT creates a fresh 30-minute JWT for the given user.
+// mintJWT creates a fresh JWT for the given user, valid for vars.TokenDuration.
 func mintJWT(userID float64, userUUID string) string {
 	claims := jwt.MapClaims{
 		"authorized": true,
-		"exp":        time.Now().Add(30 * time.Minute).Unix(),
+		"exp":        time.Now().Add(vars.TokenDuration).Unix(),
 		"iss":        "etm",
 		"sub":        userID,
 		"uuid":       userUUID,

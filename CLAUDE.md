@@ -46,6 +46,7 @@ Copy `.env.template` to `.env` before running locally. Key variables:
 | `DB_USERNAME` | `etm` | Database user |
 | `DB_PASSWORD` | `etmpass` | Database password |
 | `SECRET_KEY` | — | JWT signing key (generate with `dd if=/dev/random bs=512 count=1 \| sha256sum`) |
+| `TOKEN_DURATION` | `120` | JWT token lifetime in minutes |
 | `OIDC_ENABLED` | `false` | Set to `"true"` to enable OIDC login |
 | `OIDC_ISSUER_URL` | — | OIDC provider URL (e.g. Keycloak realm URL) |
 | `OIDC_CLIENT_ID` | — | OIDC client ID |
